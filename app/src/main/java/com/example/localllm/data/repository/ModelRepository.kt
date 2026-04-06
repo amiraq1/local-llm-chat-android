@@ -108,6 +108,9 @@ class ModelRepository @Inject constructor(
             }
         }
 
+    suspend fun getActiveModel(): InstalledModel? =
+        modelDao.getActiveModel()?.toDomain()
+
     suspend fun setActiveModel(modelId: String) {
         modelDao.deactivateAll()
         modelDao.setActive(modelId)

@@ -42,12 +42,14 @@ object DatabaseModule {
 @InstallIn(SingletonComponent::class)
 abstract class EngineModule {
     /**
-     * Bind FakeInferenceEngine as the default InferenceEngine.
+     * Bind FakeInferenceEngine as the default InferenceEngine for now.
+     * 
+     * RATIONALE: FakeInferenceEngine provides simulated streaming delays and realistic 
+     * token generation, which is necessary to test UI features (like scrolling, TPS calculation, 
+     * and stopping generation). 
      *
-     * To switch to the real MLC engine:
-     * 1. Implement MLCInferenceEngine : InferenceEngine
-     * 2. Change @Binds here to MLCInferenceEngine
-     * 3. Add the MLC AAR to app/build.gradle.kts
+     * Once the actual MLC AAR is integrated, switch this binding to:
+     * abstract fun bindInferenceEngine(engine: MLCInferenceEngine): InferenceEngine
      */
     @Binds
     @Singleton

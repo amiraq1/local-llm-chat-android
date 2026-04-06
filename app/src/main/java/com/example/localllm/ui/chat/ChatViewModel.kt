@@ -7,6 +7,7 @@ import com.example.localllm.data.repository.ConversationRepository
 import com.example.localllm.domain.model.Message
 import com.example.localllm.domain.model.MessageRole
 import com.example.localllm.engine.*
+import com.example.localllm.data.repository.ModelRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
@@ -35,6 +36,7 @@ sealed class ChatEvent {
 class ChatViewModel @Inject constructor(
     private val inferenceEngine: InferenceEngine,
     private val conversationRepo: ConversationRepository,
+    private val modelRepository: ModelRepository,
     private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
 
@@ -95,17 +97,23 @@ class ChatViewModel @Inject constructor(
                 // Persist user message
                 conversationRepo.addMessage(convId, MessageRole.USER, text)
 
-                // Ensure engine is loaded
-                if (!inferenceEngine.isModelLoaded()) {
+                // Fetch active model from DB
+                val activeModel = modelRepository.getActiveModel()
+                if (activeModel == null) {
+                    _uiState.update { it.copy(isGenerating = false, streamingText = "") }
+                    _events.emit(ChatEvent.ShowError("لا يوجد نموذج نشط. الرجاء اختيار نموذج من الإعدادات قبل بدء المحادثة."))
+                    return@launch
+                }
+
+                // Ensure engine is loaded and session is ready
+                if (currentSession == null || !inferenceEngine.isModelLoaded()) {
                     _uiState.update { it.copy(isModelLoading = true) }
-                    val modelPath = "/data/local/tmp/fake_model" // placeholder path
-                    inferenceEngine.loadModel(modelPath, ModelConfig()).getOrThrow()
+                    val config = ModelConfig(contextLength = activeModel.contextLength)
+                    currentSession = inferenceEngine.loadModel(activeModel.filePath, config).getOrThrow()
                     _uiState.update { it.copy(isModelLoading = false) }
                 }
 
-                val session = currentSession ?: inferenceEngine.loadModel(
-                    "/data/local/tmp/fake_model", ModelConfig()
-                ).getOrThrow().also { currentSession = it }
+                val session = currentSession!!
 
                 // Build chat history for context
                 val history = _uiState.value.messages.map { msg ->
@@ -193,7 +201,9 @@ class ChatViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        viewModelScope.launch {
+        // viewModelScope is cancelled immediately in onCleared. 
+        // We must use GlobalScope + NonCancellable to ensure native C++ models are safely unloaded.
+        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.NonCancellable) {
             currentSession?.close()
             inferenceEngine.unloadModel()
         }

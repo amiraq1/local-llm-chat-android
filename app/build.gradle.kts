@@ -98,4 +98,7 @@ dependencies {
     // Core
     implementation(libs.core.ktx)
     implementation(libs.splashscreen)
+
+    // TODO(MLC): Add MLC LLM dependency once compiled/available
+    // implementation("ai.mlc.mlcllm:mlc-llm-android:1.0.0")
 }
