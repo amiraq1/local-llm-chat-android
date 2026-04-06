@@ -99,6 +99,12 @@ dependencies {
     implementation(libs.core.ktx)
     implementation(libs.splashscreen)
 
+    // Test
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+    testImplementation("app.cash.turbine:turbine:1.1.0")
+    testImplementation("io.mockk:mockk:1.13.12")
+
     // TODO(MLC): Add MLC LLM dependency once compiled/available
     // implementation("ai.mlc.mlcllm:mlc-llm-android:1.0.0")
 }

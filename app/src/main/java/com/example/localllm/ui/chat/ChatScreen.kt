@@ -73,7 +73,7 @@ fun ChatScreen(
                 .padding(padding)
         ) {
             if (uiState.messages.isEmpty() && uiState.streamingText.isEmpty() && !uiState.isModelLoading) {
-                ChatEmptyState()
+                ChatEmptyState(activeModelId = uiState.activeModelId)
             } else {
                 LazyColumn(
                     state = listState,
@@ -178,7 +178,7 @@ private fun ChatTopBar(uiState: ChatUiState, onNewChat: () -> Unit) {
 // ─── Empty State ──────────────────────────────────────────────────────────────
 
 @Composable
-private fun ChatEmptyState() {
+private fun ChatEmptyState(activeModelId: String) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -188,46 +188,65 @@ private fun ChatEmptyState() {
     ) {
         Surface(
             shape = RoundedCornerShape(28.dp),
-            color = MaterialTheme.colorScheme.primaryContainer,
+            color = if (activeModelId.isEmpty()) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer,
             modifier = Modifier.size(80.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
-                    Icons.Outlined.Memory,
+                    if (activeModelId.isEmpty()) Icons.Outlined.Warning else Icons.Outlined.Memory,
                     contentDescription = null,
                     modifier = Modifier.size(40.dp),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    tint = if (activeModelId.isEmpty()) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
         }
 
         Spacer(Modifier.height(24.dp))
 
-        Text(
-            "LocalLLM جاهز",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
+        if (activeModelId.isEmpty()) {
+            Text(
+                "لا يوجد نموذج نشط",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.error
+            )
 
-        Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(8.dp))
 
-        Text(
-            "كل معالجتك تتم محليًا على جهازك\nبدون أي اتصال بالإنترنت",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
-        )
+            Text(
+                "الرجاء اختيار نموذج من الإعدادات أو تنزيل نموذج جديد للبدء في استخدام التطبيق.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
+            )
+        } else {
+            Text(
+                "LocalLLM جاهز",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
 
-        Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(8.dp))
 
-        // Suggestion chips
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            SuggestionItem("اشرح لي AI")
-            SuggestionItem("اكتب قصيدة")
+            Text(
+                "كل معالجتك تتم محليًا على جهازك\nبدون أي اتصال بالإنترنت",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
+            )
+
+            Spacer(Modifier.height(32.dp))
+
+            // Suggestion chips
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                SuggestionItem("اشرح لي AI")
+                SuggestionItem("اكتب قصيدة")
+            }
         }
     }
 }
@@ -385,15 +404,9 @@ fun StreamingBubble(text: String) {
             color = MaterialTheme.colorScheme.surfaceVariant,
             modifier = Modifier.widthIn(min = 60.dp, max = 300.dp)
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
             ) {
-                Text(
-                    text,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
                 // Blinking cursor
                 val infiniteTransition = rememberInfiniteTransition(label = "cursor")
                 val alpha by infiniteTransition.animateFloat(
@@ -404,12 +417,13 @@ fun StreamingBubble(text: String) {
                     ),
                     label = "cursorAlpha"
                 )
-                Spacer(Modifier.width(2.dp))
-                Box(
-                    Modifier
-                        .width(2.dp)
-                        .height(14.dp)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = alpha))
+                
+                // Using an inline text approach prevents the cursor from centering vertically on multi-line text
+                val cursorChar = if (alpha > 0.5f) " ▌" else "  "
+                Text(
+                    text = text + cursorChar,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
