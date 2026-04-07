@@ -17,6 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -32,7 +35,9 @@ fun ModelsScreen(viewModel: ModelsViewModel = hiltViewModel()) {
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
+                    Column(
+                        modifier = Modifier.semantics(mergeDescendants = true) { heading() }
+                    ) {
                         Text("النماذج", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         Text(
                             "${state.models.count { it.isInstalled }} مثبّت",
@@ -185,7 +190,9 @@ fun ModelCard(
                             model.name,
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.weight(1f, fill = false)
+                            modifier = Modifier
+                                .weight(1f, fill = false)
+                                .semantics { heading() }
                         )
                         if (isActive) {
                             Surface(
@@ -212,7 +219,12 @@ fun ModelCard(
                 // Install state badge
                 when (modelState.downloadState) {
                     ModelDownloadState.INSTALLED ->
-                        Icon(Icons.Filled.CheckCircle, null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(20.dp))
+                        Icon(
+                            Icons.Filled.CheckCircle,
+                            contentDescription = "النموذج مثبت",
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.size(20.dp)
+                        )
                     ModelDownloadState.DOWNLOADING ->
                         CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
                     else -> Unit
@@ -302,6 +314,9 @@ fun ModelCard(
                         }
                         OutlinedButton(
                             onClick = onDelete,
+                            modifier = Modifier.semantics {
+                                contentDescription = "حذف ${model.name}"
+                            },
                             shape = RoundedCornerShape(10.dp),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = MaterialTheme.colorScheme.error

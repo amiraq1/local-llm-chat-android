@@ -27,7 +27,7 @@ interface MessageDao {
 
     @Query("""
         SELECT * FROM messages 
-        WHERE content LIKE '%' || :query || '%' 
+        WHERE content LIKE '%' || :query || '%' ESCAPE '\'
         ORDER BY createdAt DESC 
         LIMIT 50
     """)

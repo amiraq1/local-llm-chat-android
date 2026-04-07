@@ -18,6 +18,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -36,7 +39,9 @@ fun BenchmarkScreen(viewModel: BenchmarkViewModel = hiltViewModel()) {
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
+                    Column(
+                        modifier = Modifier.semantics(mergeDescendants = true) { heading() }
+                    ) {
                         Text("قياس الأداء", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         Text("Tokens/sec · TTFT", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -137,7 +142,8 @@ private fun PromptCard() {
                     "Prompt الاختبار",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.semantics { heading() }
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
@@ -164,7 +170,8 @@ private fun LiveMetricsCard(state: BenchmarkUiState) {
                 "النتائج الحية",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.semantics { heading() }
             )
 
             Row(
@@ -217,7 +224,9 @@ private fun GaugeMetric(
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = color.copy(alpha = 0.1f),
-        modifier = modifier
+        modifier = modifier.semantics(mergeDescendants = true) {
+            contentDescription = "$label: $value"
+        }
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -240,7 +249,14 @@ private fun RunButton(isRunning: Boolean, onRun: () -> Unit) {
         enabled = !isRunning,
         modifier = Modifier
             .fillMaxWidth()
-            .height(52.dp),
+            .height(52.dp)
+            .semantics {
+                contentDescription = if (isRunning) {
+                    "الاختبار قيد التشغيل"
+                } else {
+                    "تشغيل اختبار الأداء"
+                }
+            },
         shape = RoundedCornerShape(14.dp)
     ) {
         if (isRunning) {

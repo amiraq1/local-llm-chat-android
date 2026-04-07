@@ -4,14 +4,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.localllm.data.datastore.SettingsDataStore
 import com.example.localllm.data.repository.ConversationRepository
+import com.example.localllm.di.ApplicationScope
 import com.example.localllm.domain.model.Message
 import com.example.localllm.domain.model.MessageRole
 import com.example.localllm.engine.*
 import com.example.localllm.data.repository.ModelRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -37,7 +42,8 @@ class ChatViewModel @Inject constructor(
     private val inferenceEngine: InferenceEngine,
     private val conversationRepo: ConversationRepository,
     private val modelRepository: ModelRepository,
-    private val settingsDataStore: SettingsDataStore
+    private val settingsDataStore: SettingsDataStore,
+    @ApplicationScope private val appScope: CoroutineScope
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChatUiState())
@@ -49,12 +55,16 @@ class ChatViewModel @Inject constructor(
     private var generationJob: Job? = null
     private var currentSession: ModelSession? = null
     private var currentConversationId: Long? = null
+    private var messagesCollectionJob: Job? = null
 
     init {
         viewModelScope.launch {
-            settingsDataStore.settings.collect { settings ->
-                _uiState.update { it.copy(activeModelId = settings.activeModelId) }
-            }
+            settingsDataStore.settings
+                .map { it.activeModelId }
+                .distinctUntilChanged()
+                .collect { activeModelId ->
+                    _uiState.update { it.copy(activeModelId = activeModelId) }
+                }
         }
     }
 
@@ -63,7 +73,9 @@ class ChatViewModel @Inject constructor(
         currentConversationId = conversationId
         _uiState.update { it.copy(conversationId = conversationId) }
 
-        viewModelScope.launch {
+        // Cancel previous collection to avoid ghost updates from old conversation
+        messagesCollectionJob?.cancel()
+        messagesCollectionJob = viewModelScope.launch {
             conversationRepo.getMessagesForConversation(conversationId)
                 .collect { messages ->
                     _uiState.update { it.copy(messages = messages) }
@@ -73,6 +85,11 @@ class ChatViewModel @Inject constructor(
     }
 
     fun onInputChanged(text: String) {
+        _uiState.update { it.copy(inputText = text) }
+    }
+
+    /** Fill the input bar with a suggestion chip's text. */
+    fun onSuggestionClicked(text: String) {
         _uiState.update { it.copy(inputText = text) }
     }
 
@@ -116,15 +133,10 @@ class ChatViewModel @Inject constructor(
                 val session = currentSession!!
 
                 // Build chat history for context
-                val history = _uiState.value.messages.map { msg ->
-                    ChatMessage(
-                        role = msg.role.name.lowercase(),
-                        content = msg.content
-                    )
-                }
+                val history = _uiState.value.messages.map(Message::toChatMessage)
 
                 val request = GenerationRequest(
-                    messages = history + ChatMessage("user", text),
+                    messages = history + ChatMessage(role = MessageRole.USER, content = text),
                     maxTokens = 512,
                     temperature = 0.7f
                 )
@@ -190,6 +202,7 @@ class ChatViewModel @Inject constructor(
 
     fun startNewConversation() {
         stopGeneration()
+        messagesCollectionJob?.cancel()
         currentConversationId = null
         currentSession?.let { session ->
             viewModelScope.launch { session.resetContext() }
@@ -201,11 +214,17 @@ class ChatViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        // viewModelScope is cancelled immediately in onCleared. 
-        // We must use GlobalScope + NonCancellable to ensure native C++ models are safely unloaded.
-        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.NonCancellable) {
-            currentSession?.close()
-            inferenceEngine.unloadModel()
+        generationJob?.cancel()
+        messagesCollectionJob?.cancel()
+        val sessionToClose = currentSession
+        currentSession = null
+        // viewModelScope is cancelled in onCleared, so we use the application-scoped
+        // CoroutineScope to ensure native C++ engine resources are safely released.
+        appScope.launch(NonCancellable + Dispatchers.IO) {
+            withTimeoutOrNull(5_000L) {
+                sessionToClose?.close()
+                inferenceEngine.unloadModel()
+            } ?: Timber.w("Model unload timed out after 5s — native resources may leak")
         }
     }
 }

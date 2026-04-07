@@ -12,7 +12,16 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import javax.inject.Qualifier
 import javax.inject.Singleton
+
+/** Qualifier for a [CoroutineScope] bound to the application lifecycle. */
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+annotation class ApplicationScope
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -22,7 +31,6 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
         Room.databaseBuilder(context, AppDatabase::class.java, "localllm.db")
-            .fallbackToDestructiveMigration()
             .build()
 
     @Provides
@@ -36,6 +44,23 @@ object DatabaseModule {
 
     @Provides
     fun provideBenchmarkDao(db: AppDatabase): BenchmarkDao = db.benchmarkDao()
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object CoroutineModule {
+
+    /**
+     * Application-scoped [CoroutineScope] for work that must outlive ViewModels
+     * (e.g., native model unloading, pending DB writes).
+     *
+     * Uses [SupervisorJob] so child failures don't cancel the entire scope.
+     */
+    @Provides
+    @Singleton
+    @ApplicationScope
+    fun provideApplicationScope(): CoroutineScope =
+        CoroutineScope(SupervisorJob() + Dispatchers.Default)
 }
 
 @Module

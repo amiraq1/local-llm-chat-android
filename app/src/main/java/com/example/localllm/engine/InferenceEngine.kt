@@ -1,5 +1,7 @@
 package com.example.localllm.engine
 
+import com.example.localllm.domain.model.Message
+import com.example.localllm.domain.model.MessageRole
 import kotlinx.coroutines.flow.Flow
 
 // ─── Core Abstraction Interfaces ──────────────────────────────────────────────
@@ -43,7 +45,7 @@ interface ModelSession {
 // ─── Request / Response ───────────────────────────────────────────────────────
 
 data class ChatMessage(
-    val role: String,   // "user" | "assistant" | "system"
+    val role: MessageRole,
     val content: String
 )
 
@@ -84,3 +86,10 @@ data class EngineInfo(
     val version: String,
     val backend: String   // "MLC", "LiteRT", "Fake"
 )
+
+fun Message.toChatMessage(): ChatMessage = ChatMessage(
+    role = role,
+    content = content
+)
+
+fun MessageRole.asWireValue(): String = storageValue

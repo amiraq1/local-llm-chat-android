@@ -14,7 +14,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -73,7 +78,10 @@ fun ChatScreen(
                 .padding(padding)
         ) {
             if (uiState.messages.isEmpty() && uiState.streamingText.isEmpty() && !uiState.isModelLoading) {
-                ChatEmptyState(activeModelId = uiState.activeModelId)
+                ChatEmptyState(
+                    activeModelId = uiState.activeModelId,
+                    onSuggestionClick = viewModel::onSuggestionClicked
+                )
             } else {
                 LazyColumn(
                     state = listState,
@@ -82,7 +90,16 @@ fun ChatScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(uiState.messages, key = { it.id }) { message ->
-                        MessageBubble(message = message)
+                        // Animate each message entry
+                        AnimatedVisibility(
+                            visible = true,
+                            enter = slideInVertically(
+                                initialOffsetY = { it / 3 },
+                                animationSpec = tween(250)
+                            ) + fadeIn(tween(200))
+                        ) {
+                            MessageBubble(message = message)
+                        }
                         Spacer(Modifier.height(4.dp))
                     }
 
@@ -120,9 +137,19 @@ private fun ChatTopBar(uiState: ChatUiState, onNewChat: () -> Unit) {
                             else
                                 MaterialTheme.colorScheme.outline
                         )
+                        .semantics {
+                            contentDescription = "حالة النموذج"
+                            stateDescription = if (uiState.activeModelId.isNotEmpty()) {
+                                "نموذج نشط"
+                            } else {
+                                "لا يوجد نموذج نشط"
+                            }
+                        }
                 )
                 Spacer(Modifier.width(8.dp))
-                Column {
+                Column(
+                    modifier = Modifier.semantics(mergeDescendants = true) { heading() }
+                ) {
                     Text(
                         "LocalLLM",
                         style = MaterialTheme.typography.titleMedium,
@@ -178,7 +205,7 @@ private fun ChatTopBar(uiState: ChatUiState, onNewChat: () -> Unit) {
 // ─── Empty State ──────────────────────────────────────────────────────────────
 
 @Composable
-private fun ChatEmptyState(activeModelId: String) {
+private fun ChatEmptyState(activeModelId: String, onSuggestionClick: (String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -194,7 +221,7 @@ private fun ChatEmptyState(activeModelId: String) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     if (activeModelId.isEmpty()) Icons.Outlined.Warning else Icons.Outlined.Memory,
-                    contentDescription = null,
+                    contentDescription = if (activeModelId.isEmpty()) "تحذير: لا يوجد نموذج" else "نموذج جاهز",
                     modifier = Modifier.size(40.dp),
                     tint = if (activeModelId.isEmpty()) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
                 )
@@ -208,7 +235,8 @@ private fun ChatEmptyState(activeModelId: String) {
                 "لا يوجد نموذج نشط",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.error
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.semantics { heading() }
             )
 
             Spacer(Modifier.height(8.dp))
@@ -225,7 +253,8 @@ private fun ChatEmptyState(activeModelId: String) {
                 "LocalLLM جاهز",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.semantics { heading() }
             )
 
             Spacer(Modifier.height(8.dp))
@@ -240,31 +269,41 @@ private fun ChatEmptyState(activeModelId: String) {
 
             Spacer(Modifier.height(32.dp))
 
-            // Suggestion chips
+            // Interactive suggestion chips
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                SuggestionItem("اشرح لي AI")
-                SuggestionItem("اكتب قصيدة")
+                SuggestionItem("اشرح لي AI", onClick = onSuggestionClick)
+                SuggestionItem("اكتب قصيدة", onClick = onSuggestionClick)
             }
         }
     }
 }
 
 @Composable
-private fun SuggestionItem(text: String) {
-    Surface(
+private fun SuggestionItem(text: String, onClick: (String) -> Unit) {
+    SuggestionChip(
+        onClick = { onClick(text) },
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        tonalElevation = 1.dp
-    ) {
-        Text(
-            text,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-    }
+        colors = SuggestionChipDefaults.suggestionChipColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            iconContentColor = MaterialTheme.colorScheme.primary
+        ),
+        label = {
+            Text(
+                text,
+                style = MaterialTheme.typography.labelLarge
+            )
+        },
+        icon = {
+            Icon(
+                Icons.Outlined.AutoAwesome,
+                contentDescription = null,
+                modifier = Modifier.size(SuggestionChipDefaults.IconSize)
+            )
+        }
+    )
 }
 
 // ─── Message Bubble ───────────────────────────────────────────────────────────
@@ -293,7 +332,7 @@ fun MessageBubble(message: Message) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             Icons.Filled.AutoAwesome,
-                            contentDescription = null,
+                            contentDescription = "المساعد",
                             modifier = Modifier.size(14.dp),
                             tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
@@ -338,7 +377,7 @@ fun MessageBubble(message: Message) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             Icons.Filled.Person,
-                            contentDescription = null,
+                            contentDescription = "أنت",
                             modifier = Modifier.size(14.dp),
                             tint = MaterialTheme.colorScheme.onSecondaryContainer
                         )
@@ -392,7 +431,7 @@ fun StreamingBubble(text: String) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     Icons.Filled.AutoAwesome,
-                    contentDescription = null,
+                    contentDescription = "المساعد يكتب",
                     modifier = Modifier.size(14.dp),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
@@ -402,7 +441,9 @@ fun StreamingBubble(text: String) {
         Surface(
             shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp, bottomStart = 4.dp, bottomEnd = 18.dp),
             color = MaterialTheme.colorScheme.surfaceVariant,
-            modifier = Modifier.widthIn(min = 60.dp, max = 300.dp)
+            modifier = Modifier
+                .widthIn(min = 60.dp, max = 300.dp)
+                .semantics { liveRegion = LiveRegionMode.Polite }
         ) {
             Box(
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
@@ -418,7 +459,6 @@ fun StreamingBubble(text: String) {
                     label = "cursorAlpha"
                 )
                 
-                // Using an inline text approach prevents the cursor from centering vertically on multi-line text
                 val cursorChar = if (alpha > 0.5f) " ▌" else "  "
                 Text(
                     text = text + cursorChar,
@@ -447,7 +487,7 @@ private fun TypingIndicator() {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     Icons.Filled.AutoAwesome,
-                    null,
+                    contentDescription = "جارٍ التفكير",
                     Modifier.size(14.dp),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
@@ -463,8 +503,9 @@ private fun TypingIndicator() {
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Single InfiniteTransition with 3 animations (optimized from 3 separate transitions)
+                val infiniteTransition = rememberInfiniteTransition(label = "typing")
                 repeat(3) { i ->
-                    val infiniteTransition = rememberInfiniteTransition(label = "dot$i")
                     val offsetY by infiniteTransition.animateFloat(
                         initialValue = 0f,
                         targetValue = -6f,
@@ -543,6 +584,7 @@ fun ChatInputBar(
             OutlinedTextField(
                 value = text,
                 onValueChange = onTextChange,
+                label = { Text("الرسالة") },
                 placeholder = {
                     Text(
                         "اكتب رسالتك...",
@@ -578,7 +620,7 @@ fun ChatInputBar(
                             contentColor   = MaterialTheme.colorScheme.onErrorContainer
                         )
                     ) {
-                        Icon(Icons.Filled.Stop, contentDescription = "إيقاف", modifier = Modifier.size(20.dp))
+                        Icon(Icons.Filled.Stop, contentDescription = "إيقاف التوليد", modifier = Modifier.size(20.dp))
                     }
                 } else {
                     FilledIconButton(
@@ -586,7 +628,7 @@ fun ChatInputBar(
                         enabled = text.isNotBlank(),
                         modifier = Modifier.size(48.dp)
                     ) {
-                        Icon(Icons.Filled.Send, contentDescription = "إرسال", modifier = Modifier.size(20.dp))
+                        Icon(Icons.Filled.Send, contentDescription = "إرسال الرسالة", modifier = Modifier.size(20.dp))
                     }
                 }
             }

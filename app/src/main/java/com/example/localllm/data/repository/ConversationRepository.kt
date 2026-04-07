@@ -1,5 +1,7 @@
 package com.example.localllm.data.repository
 
+import androidx.room.withTransaction
+import com.example.localllm.data.db.AppDatabase
 import com.example.localllm.data.db.dao.ConversationDao
 import com.example.localllm.data.db.dao.MessageDao
 import com.example.localllm.data.db.entity.ConversationEntity
@@ -15,6 +17,7 @@ import javax.inject.Singleton
 
 @Singleton
 class ConversationRepository @Inject constructor(
+    private val db: AppDatabase,
     private val conversationDao: ConversationDao,
     private val messageDao: MessageDao
 ) {
@@ -51,6 +54,10 @@ class ConversationRepository @Inject constructor(
         messageDao.getMessagesForConversation(conversationId)
             .map { it.map(MessageEntity::toDomain) }
 
+    /**
+     * Atomically inserts a message AND increments the conversation's messageCount.
+     * Wrapped in a Room transaction to prevent count desync on partial failure.
+     */
     suspend fun addMessage(
         conversationId: Long,
         role: MessageRole,
@@ -60,18 +67,32 @@ class ConversationRepository @Inject constructor(
     ): Long {
         val entity = MessageEntity(
             conversationId = conversationId,
-            role = role.name.lowercase(),
+            role = role.storageValue,
             content = content,
             tokensUsed = tokensUsed,
             generationTimeMs = generationTimeMs
         )
-        val id = messageDao.insert(entity)
-        conversationDao.incrementMessageCount(conversationId)
-        return id
+        return db.withTransaction {
+            val id = messageDao.insert(entity)
+            conversationDao.incrementMessageCount(conversationId)
+            id
+        }
     }
 
     suspend fun updateMessage(message: Message) =
         messageDao.update(message.toEntity())
+
+    /**
+     * Search messages by content. Sanitizes LIKE wildcards to prevent
+     * unexpected pattern matching from user input containing % or _.
+     */
+    suspend fun searchMessages(query: String): List<Message> {
+        val sanitized = query
+            .replace("\\", "\\\\")
+            .replace("%", "\\%")
+            .replace("_", "\\_")
+        return messageDao.searchMessages(sanitized).map(MessageEntity::toDomain)
+    }
 }
 
 // ─── Mappers ───────────────────────────────────────────────────────────────────
@@ -89,11 +110,7 @@ fun ConversationEntity.toDomain() = Conversation(
 fun MessageEntity.toDomain() = Message(
     id = id,
     conversationId = conversationId,
-    role = when (role.uppercase()) {
-        "USER" -> MessageRole.USER
-        "ASSISTANT" -> MessageRole.ASSISTANT
-        else -> MessageRole.SYSTEM
-    },
+    role = MessageRole.fromStorageValue(role),
     content = content,
     createdAt = createdAt,
     tokensUsed = tokensUsed,
@@ -103,7 +120,7 @@ fun MessageEntity.toDomain() = Message(
 fun Message.toEntity() = MessageEntity(
     id = id,
     conversationId = conversationId,
-    role = role.name.lowercase(),
+    role = role.storageValue,
     content = content,
     createdAt = createdAt,
     tokensUsed = tokensUsed,

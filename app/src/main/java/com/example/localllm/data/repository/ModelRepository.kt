@@ -11,10 +11,10 @@ import com.example.localllm.domain.model.ModelUiState
 import com.example.localllm.domain.model.ModelDownloadState
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -94,6 +94,9 @@ class ModelRepository @Inject constructor(
     fun getModelUiStates(): Flow<List<ModelUiState>> =
         modelDao.getAllInstalledModels().map { installedList ->
             val installedMap = installedList.associateBy { it.id }
+            // Cache device specs to avoid repeated system calls per-model
+            val ramMb = getAvailableRamMb()
+            val storageMb = getAvailableStorageMb()
             availableModels.map { model ->
                 val installed = installedMap[model.id]
                 ModelUiState(
@@ -102,8 +105,8 @@ class ModelRepository @Inject constructor(
                                    else ModelDownloadState.NOT_DOWNLOADED,
                     isInstalled = installed != null,
                     isActive = installed?.isActive ?: false,
-                    isCompatible = isCompatible(model),
-                    incompatibilityReason = getIncompatibilityReason(model)
+                    isCompatible = isCompatibleWith(model, ramMb, storageMb),
+                    incompatibilityReason = getIncompatibilityReasonWith(model, ramMb, storageMb)
                 )
             }
         }
@@ -136,6 +139,9 @@ class ModelRepository @Inject constructor(
     suspend fun markChecksumVerified(modelId: String) =
         modelDao.setChecksumVerified(modelId, true)
 
+    fun getInstallPath(modelId: String): String =
+        File(context.filesDir, "models/$modelId.bin").absolutePath
+
     suspend fun deleteModel(modelId: String) {
         modelDao.deleteById(modelId)
         Timber.d("Deleted model: $modelId")
@@ -144,11 +150,15 @@ class ModelRepository @Inject constructor(
     // ─── Device Compatibility ─────────────────────────────────────────────────
 
     fun isCompatible(model: LLMModel): Boolean =
-        getAvailableRamMb() >= model.minRamMb && getAvailableStorageMb() >= (model.sizeBytes / 1_000_000)
+        isCompatibleWith(model, getAvailableRamMb(), getAvailableStorageMb())
 
-    fun getIncompatibilityReason(model: LLMModel): String? {
-        val ramMb = getAvailableRamMb()
-        val storageMb = getAvailableStorageMb()
+    fun isCompatibleWith(model: LLMModel, ramMb: Int, storageMb: Long): Boolean =
+        ramMb >= model.minRamMb && storageMb >= (model.sizeBytes / 1_000_000)
+
+    fun getIncompatibilityReason(model: LLMModel): String? =
+        getIncompatibilityReasonWith(model, getAvailableRamMb(), getAvailableStorageMb())
+
+    fun getIncompatibilityReasonWith(model: LLMModel, ramMb: Int, storageMb: Long): String? {
         return when {
             ramMb < model.minRamMb ->
                 "RAM غير كافية: ${ramMb}MB متاح، ${model.minRamMb}MB مطلوب"
