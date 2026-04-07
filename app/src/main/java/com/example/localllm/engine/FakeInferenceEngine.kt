@@ -4,6 +4,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import timber.log.Timber
+import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 
 /**
@@ -61,11 +62,11 @@ class FakeModelSession(private val config: ModelConfig) : ModelSession {
         "تُشغّل النماذج الأكبر بأداء أفضل."
     )
 
-    private var responseIndex = 0
+    private val responseIndex = AtomicInteger(0)
 
     override fun generate(request: GenerationRequest): Flow<GenerationResponse> = flow {
-        val responseText = responses[responseIndex % responses.size]
-        responseIndex++
+        val idx = responseIndex.getAndIncrement()
+        val responseText = responses[idx % responses.size]
 
         val words = responseText.split(" ")
         var totalTokens = 0
