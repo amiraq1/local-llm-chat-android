@@ -14,6 +14,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -38,7 +41,9 @@ fun HistoryScreen(
                 TopAppBar(
                     title = {
                         if (!searchActive) {
-                            Column {
+                            Column(
+                                modifier = Modifier.semantics(mergeDescendants = true) { heading() }
+                            ) {
                                 Text("المحادثات", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                                 Text(
                                     "${state.conversations.size} محادثة",
@@ -68,6 +73,7 @@ fun HistoryScreen(
                     OutlinedTextField(
                         value = state.searchQuery,
                         onValueChange = viewModel::onSearchQueryChanged,
+                        label = { Text("البحث في المحادثات") },
                         leadingIcon = {
                             Icon(Icons.Outlined.Search, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         },
@@ -108,7 +114,9 @@ fun HistoryScreen(
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(vertical = 10.dp, horizontal = 2.dp)
+                            modifier = Modifier
+                                .padding(vertical = 10.dp, horizontal = 2.dp)
+                                .semantics { heading() }
                         )
                     }
                     items(convList, key = { it.id }) { conversation ->
@@ -152,7 +160,8 @@ private fun HistoryEmptyState(isSearching: Boolean, query: String, modifier: Mod
                 if (isSearching) "لا نتائج لـ \"$query\""
                 else "لا توجد محادثات بعد",
                 style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.semantics { heading() }
             )
             if (!isSearching) {
                 Text(
@@ -202,7 +211,18 @@ private fun ConversationItem(
 
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription = buildString {
+                    append(conversation.title)
+                    append("، ")
+                    append("${conversation.messageCount} رسالة")
+                    if (conversation.modelId.isNotEmpty()) {
+                        append("، النموذج ${conversation.modelId.take(15)}")
+                    }
+                }
+            },
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
@@ -269,7 +289,11 @@ private fun ConversationItem(
                 )
                 IconButton(
                     onClick = { showDeleteDialog = true },
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier
+                        .size(28.dp)
+                        .semantics {
+                            contentDescription = "حذف المحادثة ${conversation.title}"
+                        }
                 ) {
                     Icon(
                         Icons.Outlined.DeleteOutline,

@@ -37,9 +37,9 @@ private val DarkColorScheme = darkColorScheme(
     surface          = Color(0xFF161B22),
     onSurface        = Color(0xFFE6EDF3),
     surfaceVariant   = Color(0xFF21262D),
-    onSurfaceVariant = Color(0xFF8B949E),
+    onSurfaceVariant = Color(0xFFAFB8C1),
     surfaceTint      = Color(0xFF58A6FF),
-    outline          = Color(0xFF30363D),
+    outline          = Color(0xFF6E7681),
     outlineVariant   = Color(0xFF21262D),
     inverseSurface   = Color(0xFFE6EDF3),
     inverseOnSurface = Color(0xFF0D1117),
@@ -108,6 +108,10 @@ private val AppTypography = Typography(
 
 // ─── Theme ────────────────────────────────────────────────────────────────────
 
+/**
+ * @param darkTheme When omitted, previews/default callers follow the system theme.
+ *   The app shell passes the persisted user preference from [MainActivity].
+ */
 @Composable
 fun LocalLLMTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

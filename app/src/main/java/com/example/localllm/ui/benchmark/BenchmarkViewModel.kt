@@ -4,10 +4,12 @@ import android.app.ActivityManager
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.localllm.data.repository.ModelRepository
 import com.example.localllm.data.db.dao.BenchmarkDao
 import com.example.localllm.data.db.entity.BenchmarkResultEntity
 import com.example.localllm.data.datastore.SettingsDataStore
 import com.example.localllm.domain.model.BenchmarkResult
+import com.example.localllm.domain.model.MessageRole
 import com.example.localllm.engine.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -29,6 +31,7 @@ data class BenchmarkUiState(
 @HiltViewModel
 class BenchmarkViewModel @Inject constructor(
     private val inferenceEngine: InferenceEngine,
+    private val modelRepository: ModelRepository,
     private val benchmarkDao: BenchmarkDao,
     private val settingsDataStore: SettingsDataStore,
     @ApplicationContext private val context: Context
@@ -59,17 +62,26 @@ class BenchmarkViewModel @Inject constructor(
         _state.update { it.copy(isRunning = true, currentTTFT = null, currentTPS = null, currentTokens = null) }
 
         viewModelScope.launch {
+            var session: ModelSession? = null
             try {
-                if (!inferenceEngine.isModelLoaded()) {
-                    inferenceEngine.loadModel("/data/local/tmp/fake_model", ModelConfig())
-                        .getOrThrow()
+                val activeModel = modelRepository.getActiveModel()
+                if (activeModel == null) {
+                    _state.update {
+                        it.copy(
+                            isRunning = false,
+                            errorMessage = "لا يوجد نموذج نشط لتشغيل الاختبار"
+                        )
+                    }
+                    return@launch
                 }
 
-                val session = inferenceEngine.loadModel("/data/local/tmp/fake_model", ModelConfig())
-                    .getOrThrow()
+                session = inferenceEngine.loadModel(
+                    modelPath = activeModel.filePath,
+                    config = ModelConfig(contextLength = activeModel.contextLength)
+                ).getOrThrow()
 
                 val request = GenerationRequest(
-                    messages = listOf(ChatMessage("user", BENCHMARK_PROMPT)),
+                    messages = listOf(ChatMessage(role = MessageRole.USER, content = BENCHMARK_PROMPT)),
                     maxTokens = 200
                 )
 
@@ -94,7 +106,7 @@ class BenchmarkViewModel @Inject constructor(
                             _state.update { it.copy(currentTPS = tps, isRunning = false) }
 
                             val result = BenchmarkResultEntity(
-                                modelId = _state.value.activeModelId.ifEmpty { "fake-model" },
+                                modelId = activeModel.id,
                                 ttftMs = firstTokenTime ?: 0L,
                                 tokensPerSecond = tps,
                                 totalTokens = tokenCount,
@@ -111,11 +123,16 @@ class BenchmarkViewModel @Inject constructor(
                         }
                     }
                 }
-
-                session.close()
             } catch (e: Exception) {
                 Timber.e(e, "Benchmark failed")
                 _state.update { it.copy(isRunning = false, errorMessage = "فشل الاختبار: ${e.message}") }
+            } finally {
+                runCatching {
+                    session?.close()
+                    inferenceEngine.unloadModel()
+                }.onFailure { cleanupError ->
+                    Timber.w(cleanupError, "Benchmark cleanup failed")
+                }
             }
         }
     }

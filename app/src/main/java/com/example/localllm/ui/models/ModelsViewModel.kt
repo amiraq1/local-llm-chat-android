@@ -61,8 +61,7 @@ class ModelsViewModel @Inject constructor(
             if (model != null) {
                 // Simulate a fast download to allow UI testing of model selection
                 kotlinx.coroutines.delay(800)
-                // Fake a file path based on the ID
-                val fakePath = "/data/local/tmp/${model.id}.bin"
+                val fakePath = modelRepository.getInstallPath(model.id)
                 modelRepository.markAsInstalled(model, fakePath)
                 Timber.d("Model fake-installed: $modelId at $fakePath")
             } else {

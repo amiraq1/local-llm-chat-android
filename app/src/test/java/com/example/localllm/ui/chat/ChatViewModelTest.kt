@@ -6,14 +6,17 @@ import com.example.localllm.data.repository.ConversationRepository
 import com.example.localllm.data.repository.ModelRepository
 import com.example.localllm.domain.model.AppSettings
 import com.example.localllm.domain.model.InstalledModel
+import com.example.localllm.domain.model.Message
 import com.example.localllm.engine.FakeInferenceEngine
 import com.example.localllm.util.MainDispatcherRule
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -28,29 +31,43 @@ class ChatViewModelTest {
     private val modelRepository = mockk<ModelRepository>()
     private val settingsDataStore = mockk<SettingsDataStore>()
 
-    private fun createViewModel(): ChatViewModel {
+    private fun createViewModel(appScope: CoroutineScope): ChatViewModel {
         // Default mock responses
         every { settingsDataStore.settings } returns flowOf(AppSettings(activeModelId = "dummy_model"))
         coEvery { conversationRepo.createConversation(any(), any()) } returns 1L
-        coEvery { conversationRepo.addMessage(any(), any(), any(), any(), any()) } returns Unit
-        
-        return ChatViewModel(inferenceEngine, conversationRepo, modelRepository, settingsDataStore)
+        coEvery { conversationRepo.addMessage(any(), any(), any(), any(), any()) } returns 1L
+        every { conversationRepo.getMessagesForConversation(any()) } returns flowOf(emptyList<Message>())
+
+        return ChatViewModel(
+            inferenceEngine = inferenceEngine,
+            conversationRepo = conversationRepo,
+            modelRepository = modelRepository,
+            settingsDataStore = settingsDataStore,
+            appScope = appScope
+        )
     }
 
     @Test
     fun `sendMessage with NO active model emits ShowError event`() = runTest {
         // Arrange: Repository returns null for active model
         coEvery { modelRepository.getActiveModel() } returns null
-        val viewModel = createViewModel()
+        val viewModel = createViewModel(this.backgroundScope)
         viewModel.onInputChanged("Hello")
 
         // Act & Assert
         viewModel.events.test {
             viewModel.sendMessage()
-            
-            val event = awaitItem() as ChatEvent.ShowError
-            assertTrue(event.message.contains("لا يوجد نموذج نشط"))
-            
+
+            while (true) {
+                when (val event = awaitItem()) {
+                    is ChatEvent.ShowError -> {
+                        assertTrue(event.message.contains("لا يوجد نموذج نشط"))
+                        break
+                    }
+                    ChatEvent.ScrollToBottom -> Unit
+                }
+            }
+
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -64,7 +81,7 @@ class ChatViewModelTest {
             isActive = true, quantization = "Q4", contextLength = 2048
         )
         
-        val viewModel = createViewModel()
+        val viewModel = createViewModel(this.backgroundScope)
         viewModel.onInputChanged("Hello")
 
         // Act & Assert using Turbine
@@ -82,13 +99,15 @@ class ChatViewModelTest {
             
             // Ignore loading and streaming state changes safely
             var finalState = awaitItem()
-            while (finalState.isGenerating) {
+            while (finalState.isGenerating || finalState.isModelLoading) {
                 finalState = awaitItem()
             }
             
             // Finished state
             assertEquals(false, finalState.isGenerating)
             assertTrue(finalState.streamingText.isEmpty())
+            assertNotNull(finalState.conversationId)
+            assertNotNull(finalState.tokensPerSecond)
 
             cancelAndIgnoreRemainingEvents()
         }
