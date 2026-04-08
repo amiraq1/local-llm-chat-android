@@ -109,6 +109,5 @@ dependencies {
     testImplementation("app.cash.turbine:turbine:1.1.0")
     testImplementation("io.mockk:mockk:1.13.12")
 
-    // TODO(MLC): Add MLC LLM dependency once compiled/available
-    // implementation("ai.mlc.mlcllm:mlc-llm-android:1.0.0")
+    implementation(project(":mlc4j"))
 }
