@@ -1,6 +1,7 @@
 package com.example.localllm.engine
 
 import ai.mlc.mlcllm.MLCEngine
+ HEAD
 import ai.mlc.mlcllm.OpenAIProtocol.*
 import android.content.Context
  codex/fix-audit-findings
@@ -12,17 +13,25 @@ import ai.mlc.mlcllm.OpenAIProtocol.ChatCompletionRole
 import ai.mlc.mlcllm.OpenAIProtocol.StreamOptions
 main
 import dagger.hilt.android.qualifiers.ApplicationContext
+
+import ai.mlc.mlcllm.OpenAIProtocol.ChatCompletionMessage
+import ai.mlc.mlcllm.OpenAIProtocol.ChatCompletionRole
+import ai.mlc.mlcllm.OpenAIProtocol.StreamOptions
+import android.content.Context
+ (Fix merge artifacts and normalize MLC engine wiring)
 import com.example.localllm.domain.model.MessageRole
 import com.example.localllm.mlc.findBundledMlcModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.ChannelResult
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+<<<<<<< HEAD
 import java.io.File
 import javax.inject.Inject
 
@@ -43,10 +52,14 @@ codex/fix-audit-findings
 
 main
 main
+=======
+
+>>>>>>> a19f194 (Fix merge artifacts and normalize MLC engine wiring)
 class MLCInferenceEngine @Inject constructor(
     @ApplicationContext private val context: Context
 ) : InferenceEngine {
 
+<<<<<<< HEAD
  codex/fix-audit-findings
     private var engine: MLCEngine? = null
 
@@ -56,14 +69,19 @@ codex/fix-audit-findings
     private var activeSession: MLCModelSession? = null
     private var activeModelId: String? = null
 
+=======
+>>>>>>> a19f194 (Fix merge artifacts and normalize MLC engine wiring)
     private var engine: MLCEngine? = null
     private var activeSession: MLCModelSession? = null
     private var activeModelId: String? = null
-main
 
-    override suspend fun loadModel(modelPath: String, config: ModelConfig): Result<ModelSession> {
+    override suspend fun loadModel(
+        modelPath: String,
+        config: ModelConfig
+    ): Result<ModelSession> {
         return withContext(Dispatchers.IO) {
             try {
+<<<<<<< HEAD
 codex/fix-audit-findings
                 val modelDir = File(modelPath)
 
@@ -98,36 +116,52 @@ codex/fix-audit-findings
                 activeSession = MLCModelSession(engine, config)
                 Timber.i("MLCInferenceEngine: Model loaded successfully (lib=$modelLib)")
 
+=======
+>>>>>>> a19f194 (Fix merge artifacts and normalize MLC engine wiring)
                 val modelDir = File(modelPath)
-                require(modelDir.isDirectory) { "Model directory not found: $modelPath" }
+                require(modelDir.isDirectory) {
+                    "Model directory not found: $modelPath"
+                }
 
                 val modelId = modelDir.name
                 val manifestRecord = findBundledMlcModel(context, modelId)
                     ?: error("Model \"$modelId\" is missing from mlc-app-config.json")
 
-                Timber.i("MLCInferenceEngine: Loading model %s from %s", modelId, modelPath)
+                Timber.i(
+                    "MLCInferenceEngine: Loading model %s from %s",
+                    modelId,
+                    modelPath
+                )
 
                 val mlcEngine = engine ?: MLCEngine().also { engine = it }
                 runCatching { mlcEngine.unload() }
 
                 mlcEngine.reload(modelDir.absolutePath, manifestRecord.modelLib)
 
-                activeSession = MLCModelSession(mlcEngine)
+                activeSession = MLCModelSession(mlcEngine, config)
                 activeModelId = modelId
-main
+
                 Result.success(activeSession!!)
  main
             } catch (e: Exception) {
                 Timber.e(e, "MLCInferenceEngine: Failed to load model")
+<<<<<<< HEAD
+=======
+                activeSession = null
+                activeModelId = null
+>>>>>>> a19f194 (Fix merge artifacts and normalize MLC engine wiring)
                 Result.failure(e)
             }
         }
     }
 
-    override fun isModelLoaded(): Boolean = activeSession != null && activeModelId != null
+    override fun isModelLoaded(): Boolean {
+        return activeSession != null && activeModelId != null
+    }
 
     override suspend fun unloadModel() {
         withContext(Dispatchers.IO) {
+<<<<<<< HEAD
  codex/fix-audit-findings
 
 codex/fix-audit-findings
@@ -147,27 +181,35 @@ codex/fix-audit-findings
             }
 
  main
+=======
+>>>>>>> a19f194 (Fix merge artifacts and normalize MLC engine wiring)
             Timber.i("MLCInferenceEngine: Unloading model and releasing VRAM")
-            activeSession?.close()
+
+            runCatching { activeSession?.close() }
+                .onFailure { Timber.e(it, "MLCInferenceEngine: Error while closing active session") }
+
             activeSession = null
             activeModelId = null
+<<<<<<< HEAD
             engine?.unload()
  codex/fix-audit-findings
 
  main
 main
+=======
+
+            runCatching { engine?.unload() }
+                .onFailure { Timber.e(it, "MLCInferenceEngine: Error during model unload") }
+>>>>>>> a19f194 (Fix merge artifacts and normalize MLC engine wiring)
         }
     }
 
     override fun getEngineInfo(): EngineInfo = EngineInfo(
         name = "MLC LLM Engine",
- codex/fix-audit-findings
-        version = "1.0.0",
-
         version = "mlc4j-local",
- main
         backend = "MLC"
     )
+<<<<<<< HEAD
 
     private fun extractModelLib(modelId: String): String {
         return when {
@@ -203,23 +245,27 @@ private class MLCModelSession(
 class MLCModelSession(
 codex/fix-audit-findings
     private val engine: MLCEngine,
-    private val config: ModelConfig
+=======
+}
 
-    private val engineInstance: MLCEngine
- main
+private class MLCModelSession(
+    private val engineInstance: MLCEngine,
+>>>>>>> a19f194 (Fix merge artifacts and normalize MLC engine wiring)
+    private val config: ModelConfig
 ) : ModelSession {
 
     @Volatile
     private var isGenerating = false
-    private var contextTokenCount = 0
 
     override fun generate(request: GenerationRequest): Flow<GenerationResponse> = callbackFlow {
         if (isGenerating) {
-            close(IllegalStateException("Already generating — wait for current generation to finish"))
+            close(IllegalStateException("Already generating"))
             return@callbackFlow
         }
+
         isGenerating = true
 
+<<<<<<< HEAD
 codex/fix-audit-findings
         try {
             // Map our domain messages to MLC OpenAI-compatible messages
@@ -271,54 +317,84 @@ main
 
         val generationJob = launch(Dispatchers.IO) {
             var finishReason = FinishReason.STOP
+=======
+        val generationJob = launch(Dispatchers.IO) {
+            var promptTokens = 0
+            var completionTokens = 0
+            var sentFinished = false
+
+>>>>>>> a19f194 (Fix merge artifacts and normalize MLC engine wiring)
             try {
                 val responses = engineInstance.chat.completions.create(
-                    messages = request.messages.map(ChatMessage::toMlcMessage),
+                    messages = request.messages.map { msg ->
+                        ChatCompletionMessage(
+                            role = when (msg.role) {
+                                MessageRole.USER -> ChatCompletionRole.user
+                                MessageRole.ASSISTANT -> ChatCompletionRole.assistant
+                                MessageRole.SYSTEM -> ChatCompletionRole.system
+                            },
+                            content = msg.content
+                        )
+                    },
                     max_tokens = request.maxTokens,
                     temperature = request.temperature,
                     top_p = request.topP,
-                    stop = request.stopSequences.takeIf { it.isNotEmpty() },
+                    stop = request.stopSequences.ifEmpty { null },
+                    stream = true,
                     stream_options = StreamOptions(include_usage = true)
                 )
 
                 for (response in responses) {
+                    if (!isGenerating) break
+
                     response.usage?.let { usage ->
-                        contextTokenCount = usage.total_tokens
-                        trySend(
-                            GenerationResponse.Finished(
-                                finishReason = finishReason,
-                                usage = TokenUsage(
-                                    promptTokens = usage.prompt_tokens,
-                                    completionTokens = usage.completion_tokens
-                                )
-                            )
-                        )
-                        close()
-                        return@launch
+                        promptTokens = usage.prompt_tokens
+                        completionTokens = usage.completion_tokens
                     }
 
-                    response.choices.forEach { choice ->
-                        finishReason = choice.finish_reason?.toFinishReason() ?: finishReason
-                        val text = choice.delta.content?.asText().orEmpty()
-                        if (text.isNotEmpty()) {
-                            val sendResult: ChannelResult<Unit> =
-                                trySend(GenerationResponse.Token(text))
-                            if (sendResult.isFailure) {
-                                Timber.w("MLCModelSession: Dropped token because the collector is closed")
+                    for (choice in response.choices) {
+                        val deltaText = choice.delta.content?.asText()
+                        if (!deltaText.isNullOrEmpty()) {
+                            trySend(GenerationResponse.Token(deltaText))
+                        }
+
+                        choice.finish_reason?.let { reason ->
+                            val finishReason = when (reason) {
+                                "length" -> FinishReason.MAX_TOKENS
+                                else -> FinishReason.STOP
+                            }
+
+                            if (!sentFinished) {
+                                trySend(
+                                    GenerationResponse.Finished(
+                                        finishReason = finishReason,
+                                        usage = TokenUsage(
+                                            promptTokens = promptTokens,
+                                            completionTokens = completionTokens
+                                        )
+                                    )
+                                )
+                                sentFinished = true
                             }
                         }
                     }
                 }
 
-                trySend(
-                    GenerationResponse.Finished(
-                        finishReason = finishReason,
-                        usage = TokenUsage(promptTokens = 0, completionTokens = 0)
+                if (!sentFinished) {
+                    trySend(
+                        GenerationResponse.Finished(
+                            finishReason = FinishReason.STOP,
+                            usage = TokenUsage(
+                                promptTokens = promptTokens,
+                                completionTokens = completionTokens
+                            )
+                        )
                     )
-                )
+                }
+
                 close()
             } catch (e: Exception) {
-                Timber.e(e, "MLCModelSession: Generation failed")
+                Timber.e(e, "MLCModelSession: Generation error")
                 trySend(GenerationResponse.Error(e))
                 close(e)
             } finally {
@@ -328,6 +404,7 @@ main
 
         awaitClose {
             generationJob.cancel()
+<<<<<<< HEAD
             if (isGenerating) {
                 Timber.w("MLCModelSession: Generation cancelled by UI")
 main
@@ -400,3 +477,15 @@ private fun String.toFinishReason(): FinishReason = when (this.lowercase()) {
     "error" -> FinishReason.ERROR
     else -> FinishReason.STOP
 }
+=======
+            isGenerating = false
+            Timber.w("MLCModelSession: Generation cancelled by downstream collector")
+        }
+    }
+
+    override fun close() {
+        runCatching { engineInstance.reset() }
+            .onFailure { Timber.e(it, "MLCModelSession: Failed to reset engine session") }
+    }
+}
+>>>>>>> a19f194 (Fix merge artifacts and normalize MLC engine wiring)

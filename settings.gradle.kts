@@ -22,7 +22,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "LocalLLM"
 include(":app")
-codex/fix-audit-findings
- main
 include(":mlc4j")
 project(":mlc4j").projectDir = file("mlc4j")
