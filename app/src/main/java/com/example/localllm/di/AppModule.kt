@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.room.Room
 import com.example.localllm.data.db.AppDatabase
 import com.example.localllm.data.db.dao.*
-import com.example.localllm.engine.FakeInferenceEngine
 import com.example.localllm.engine.InferenceEngine
+import com.example.localllm.engine.MLCInferenceEngine
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -66,17 +66,7 @@ object CoroutineModule {
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class EngineModule {
-    /**
-     * Bind FakeInferenceEngine as the default InferenceEngine for now.
-     * 
-     * RATIONALE: FakeInferenceEngine provides simulated streaming delays and realistic 
-     * token generation, which is necessary to test UI features (like scrolling, TPS calculation, 
-     * and stopping generation). 
-     *
-     * Once the actual MLC AAR is integrated, switch this binding to:
-     * abstract fun bindInferenceEngine(engine: MLCInferenceEngine): InferenceEngine
-     */
     @Binds
     @Singleton
-    abstract fun bindInferenceEngine(fake: FakeInferenceEngine): InferenceEngine
+    abstract fun bindInferenceEngine(engine: MLCInferenceEngine): InferenceEngine
 }

@@ -53,19 +53,19 @@ class ModelsViewModel @Inject constructor(
         }
     }
 
-    /** Simulates a download. Replace with real WorkManager-based download in production. */
     fun downloadModel(modelId: String) {
         viewModelScope.launch {
-            Timber.d("Starting fake download for model: $modelId")
-            val model = modelRepository.availableModels.find { it.id == modelId }
-            if (model != null) {
-                // Simulate a fast download to allow UI testing of model selection
-                kotlinx.coroutines.delay(800)
-                val fakePath = modelRepository.getInstallPath(model.id)
-                modelRepository.markAsInstalled(model, fakePath)
-                Timber.d("Model fake-installed: $modelId at $fakePath")
-            } else {
-                _state.update { it.copy(errorMessage = "النموذج غير موجود") }
+            _state.update { it.copy(isLoading = true) }
+            try {
+                modelRepository.downloadModel(modelId)
+                Timber.d("Model installed: $modelId")
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to download model")
+                _state.update {
+                    it.copy(errorMessage = e.message ?: "فشل تنزيل النموذج")
+                }
+            } finally {
+                _state.update { it.copy(isLoading = false) }
             }
         }
     }
