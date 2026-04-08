@@ -252,15 +252,55 @@ class ModelRepository @Inject constructor(
         destination.parentFile?.mkdirs()
         val tempFile = File(destination.parentFile, "${destination.name}.part")
 
-        URL(url).openStream().use { input ->
-            FileOutputStream(tempFile).use { output ->
-                input.copyTo(output)
-            }
-        }
+        var currentUrl = url
+        var redirectCount = 0
+        var connection: java.net.HttpURLConnection? = null
+        var inputStream: java.io.InputStream? = null
 
-        if (!tempFile.renameTo(destination)) {
-            tempFile.copyTo(destination, overwrite = true)
-            tempFile.delete()
+        try {
+            while (redirectCount < 10) {
+                connection = java.net.URL(currentUrl).openConnection() as java.net.HttpURLConnection
+                connection.instanceFollowRedirects = false
+                connection.connectTimeout = 15000
+                connection.readTimeout = 60000
+
+                val responseCode = connection.responseCode
+                if (responseCode in 300..399) {
+                    currentUrl = connection.getHeaderField("Location")
+                    connection.disconnect()
+                    redirectCount++
+                    continue
+                }
+
+                if (responseCode in 200..299) {
+                    inputStream = connection.inputStream
+                    break
+                } else {
+                    error("Bad HTTP response: $responseCode for $currentUrl")
+                }
+            }
+
+            if (inputStream == null) {
+                error("Failed to connect or too many redirects")
+            }
+
+            inputStream.use { input ->
+                java.io.FileOutputStream(tempFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+
+            if (tempFile.exists()) {
+                if (!tempFile.renameTo(destination)) {
+                    tempFile.copyTo(destination, overwrite = true)
+                    tempFile.delete()
+                }
+            } else {
+                error("Downloaded temp file was not created properly: $tempFile")
+            }
+        } finally {
+            try { inputStream?.close() } catch (e: Exception) { }
+            try { connection?.disconnect() } catch (e: Exception) { }
         }
     }
 
