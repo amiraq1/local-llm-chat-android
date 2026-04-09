@@ -66,6 +66,7 @@ class ModelsViewModel @Inject constructor(
 
     fun downloadModel(modelId: String) {
         viewModelScope.launch {
+ codex/fix-audit-findings
             Timber.d("Attempting to bind local model: $modelId")
             val model = modelRepository.availableModels.find { it.id == modelId }
             if (model != null) {
@@ -86,6 +87,19 @@ class ModelsViewModel @Inject constructor(
                 }
             } else {
                 _state.update { it.copy(errorMessage = "النموذج غير موجود في القائمة") }
+
+            _state.update { it.copy(isLoading = true) }
+            try {
+                modelRepository.downloadModel(modelId)
+                Timber.d("Model installed: $modelId")
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to download model")
+                _state.update {
+                    it.copy(errorMessage = e.message ?: "فشل تنزيل النموذج")
+                }
+            } finally {
+                _state.update { it.copy(isLoading = false) }
+main
             }
         }
     }

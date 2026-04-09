@@ -66,11 +66,14 @@ object CoroutineModule {
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class EngineModule {
+codex/fix-audit-findings
     /**
      * Bind MLCInferenceEngine as the production InferenceEngine.
      *
      * Uses the real MLC4J native library for on-device LLM inference.
      */
+
+main
     @Binds
     @Singleton
     abstract fun bindInferenceEngine(engine: MLCInferenceEngine): InferenceEngine

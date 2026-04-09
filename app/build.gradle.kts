@@ -18,6 +18,10 @@ android {
         versionCode = 1
         versionName = "1.0.0-mvp"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters += "arm64-v8a"
+        }
     }
 
     buildTypes {

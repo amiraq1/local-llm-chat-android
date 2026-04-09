@@ -1,3 +1,4 @@
+codex/fix-audit-findings
 *.iml
 .gradle
 /local.properties
@@ -19,3 +20,12 @@ app/schemas/
 gradle-build.log
 adb-devices.log
 NUL
+
+.gradle/
+.idea/
+local.properties
+*.iml
+build/
+app/build/
+mlc4j/build/
+main
