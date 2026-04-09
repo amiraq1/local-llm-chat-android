@@ -82,14 +82,14 @@ class MLCEngine {
     }
 }
 
-class Chat(
+internal class Chat(
     private val jsonFFIEngine: JSONFFIEngine,
     private val state: EngineState
 ) {
     val completions = Completions(jsonFFIEngine, state)
 }
 
-class Completions(
+internal class Completions(
     private val jsonFFIEngine: JSONFFIEngine,
     private val state: EngineState
 ) {
