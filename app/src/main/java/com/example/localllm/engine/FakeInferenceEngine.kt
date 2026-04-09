@@ -19,7 +19,7 @@ class FakeInferenceEngine @Inject constructor() : InferenceEngine {
 
     override suspend fun loadModel(modelPath: String, config: ModelConfig): Result<ModelSession> {
         Timber.d("FakeEngine: loading model from $modelPath")
-        delay(1200) // Simulate load time
+        delay(1200)
         session = FakeModelSession(config)
         Timber.d("FakeEngine: model loaded successfully")
         return Result.success(session!!)
@@ -47,19 +47,15 @@ class FakeModelSession(private val config: ModelConfig) : ModelSession {
 
     private val responses = listOf(
         "مرحبًا! أنا نموذج لغوي يعمل بالكامل على جهازك بدون إنترنت. " +
-        "يمكنني مساعدتك في الإجابة على أسئلتك والتحدث معك بخصوصية تامة.",
-
+            "يمكنني مساعدتك في الإجابة على أسئلتك والتحدث معك بخصوصية تامة.",
         "هذا التطبيق يستخدم محرك MLC LLM للاستدلال المحلي على الجهاز. " +
-        "جميع المعالجة تتم على جهازك مباشرةً دون إرسال أي بيانات لخوادم خارجية.",
-
+            "جميع المعالجة تتم على جهازك مباشرةً دون إرسال أي بيانات لخوادم خارجية.",
         "يمكنني مساعدتك في تحليل النصوص، الإجابة على الأسئلة، كتابة المحتوى، " +
-        "والتحدث بشكل طبيعي في أي موضوع تريده.",
-
+            "والتحدث بشكل طبيعي في أي موضوع تريده.",
         "الخصوصية التامة هي ميزتنا الأساسية. كل ما تكتبه يبقى على جهازك فقط. " +
-        "لا يوجد اتصال بالإنترنت أثناء المحادثة.",
-
+            "لا يوجد اتصال بالإنترنت أثناء المحادثة.",
         "أداء النموذج يعتمد على مواصفات جهازك. الأجهزة ذات 8GB RAM وما فوق " +
-        "تُشغّل النماذج الأكبر بأداء أفضل."
+            "تُشغّل النماذج الأكبر بأداء أفضل."
     )
 
     private val responseIndex = AtomicInteger(0)
@@ -71,7 +67,6 @@ class FakeModelSession(private val config: ModelConfig) : ModelSession {
         val words = responseText.split(" ")
         var totalTokens = 0
 
-        // Simulate TTFT delay (Time To First Token)
         delay(350)
 
         for ((index, word) in words.withIndex()) {
@@ -79,7 +74,6 @@ class FakeModelSession(private val config: ModelConfig) : ModelSession {
             emit(GenerationResponse.Token(token))
             totalTokens++
             contextTokenCount++
-            // Realistic token streaming delay (10–15 tokens/sec)
             delay((60..100L).random())
         }
 

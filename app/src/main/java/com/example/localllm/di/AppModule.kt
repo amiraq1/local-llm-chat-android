@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.room.Room
 import com.example.localllm.data.db.AppDatabase
 import com.example.localllm.data.db.dao.*
+import com.example.localllm.engine.FakeInferenceEngine
 import com.example.localllm.engine.InferenceEngine
-import com.example.localllm.engine.MLCInferenceEngine
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -68,13 +68,15 @@ object CoroutineModule {
 abstract class EngineModule {
 codex/fix-audit-findings
     /**
-     * Bind MLCInferenceEngine as the production InferenceEngine.
+     * Keep the fake engine as the default until the native MLC toolchain is
+     * explicitly enabled in a compatible build environment.
      *
-     * Uses the real MLC4J native library for on-device LLM inference.
+     * This keeps regular development and CI builds independent from the
+     * bundled TVM runtime artifacts.
      */
 
 main
     @Binds
     @Singleton
-    abstract fun bindInferenceEngine(engine: MLCInferenceEngine): InferenceEngine
+    abstract fun bindInferenceEngine(engine: FakeInferenceEngine): InferenceEngine
 }
