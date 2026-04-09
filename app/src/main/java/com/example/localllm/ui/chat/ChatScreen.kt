@@ -151,7 +151,7 @@ private fun ChatTopBar(uiState: ChatUiState, onNewChat: () -> Unit) {
                     modifier = Modifier.semantics(mergeDescendants = true) { heading() }
                 ) {
                     Text(
-                        "LocalLLM",
+                        "نبض",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -250,7 +250,7 @@ private fun ChatEmptyState(activeModelId: String, onSuggestionClick: (String) ->
             )
         } else {
             Text(
-                "LocalLLM جاهز",
+                "نبض جاهز",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,

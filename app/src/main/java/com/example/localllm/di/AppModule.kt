@@ -71,8 +71,6 @@ codex/fix-audit-findings
      * Bind MLCInferenceEngine as the production InferenceEngine.
      *
      * Uses the real MLC4J native library for on-device LLM inference.
-     * To switch back to the fake engine for UI testing, change binding to:
-     *   abstract fun bindInferenceEngine(fake: FakeInferenceEngine): InferenceEngine
      */
 
 main
