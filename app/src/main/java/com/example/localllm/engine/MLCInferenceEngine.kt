@@ -3,81 +3,70 @@ package com.example.localllm.engine
 import ai.mlc.mlcllm.MLCEngine
 import ai.mlc.mlcllm.OpenAIProtocol.*
 import android.content.Context
+import com.example.localllm.domain.model.MessageRole
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.ChannelResult
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 
-/**
- * Production MLC LLM inference engine.
- * Uses the MLC4J native library to run Qwen3-0.6B (or any compiled model) on-device.
- *
- * API flow:
- *   1. MLCEngine() → starts background threads for the native runtime
- *   2. engine.reload(modelPath, modelLib) → loads model weights into GPU/NPU
- *   3. engine.chat.completions.create(messages, ...) → streams ChatCompletionStreamResponse
- *   4. engine.reset() → clears KV-cache between conversations
- *   5. engine.unload() → releases model from memory
- */
 class MLCInferenceEngine @Inject constructor(
     @ApplicationContext private val context: Context
 ) : InferenceEngine {
 
-    private var nativeEngine: MLCEngine? = null
+    private var engine: MLCEngine? = null
     private var activeSession: MLCModelSession? = null
-    private var currentModelLib: String? = null
+    private var activeModelId: String? = null
 
     override suspend fun loadModel(modelPath: String, config: ModelConfig): Result<ModelSession> {
         return withContext(Dispatchers.IO) {
             try {
-                Timber.i("MLCInferenceEngine: Initializing native engine and loading model from $modelPath")
+                val modelDir = File(modelPath)
 
-                // Create the native engine (starts background inference + stream-back threads)
-                val engine = MLCEngine()
+                // جدار الحماية: التأكد أن المسار هو مجلد وليس ملف .bin
+                require(modelDir.exists()) { "Model path not found: $modelPath" }
+                require(modelDir.isDirectory) { "MLC requires a model directory, not a single file: $modelPath" }
 
-                // The modelLib identifier must match what was compiled by mlc_llm package.
-                // Convention: the model directory name under assets or the lib suffix.
-                // We extract it from the modelPath or use a known default.
-                val modelLib = extractModelLib(modelPath)
-                currentModelLib = modelLib
+                val modelId = modelDir.name
 
-                engine.reload(modelPath, modelLib)
-                nativeEngine = engine
+                Timber.i("MLCInferenceEngine: Loading model %s from %s", modelId, modelPath)
 
-                activeSession = MLCModelSession(engine, config)
-                Timber.i("MLCInferenceEngine: Model loaded successfully (lib=$modelLib)")
-                Result.success(activeSession!!)
+                val mlcEngine = engine ?: MLCEngine().also { engine = it }
+
+                // التأكد من إغلاق أي جلسة سابقة
+                activeSession?.close()
+                runCatching { mlcEngine.unload() }
+
+                val modelLib = extractModelLib(modelId)
+                mlcEngine.reload(modelDir.absolutePath, modelLib)
+
+                val session = MLCModelSession(mlcEngine)
+                activeSession = session
+                activeModelId = modelId
+
+                Result.success(session)
             } catch (e: Exception) {
                 Timber.e(e, "MLCInferenceEngine: Failed to load model")
-                nativeEngine = null
-                activeSession = null
                 Result.failure(e)
             }
         }
     }
 
-    override fun isModelLoaded(): Boolean = nativeEngine != null
+    override fun isModelLoaded(): Boolean = activeSession != null && activeModelId != null
 
     override suspend fun unloadModel() {
         withContext(Dispatchers.IO) {
-            try {
-                Timber.i("MLCInferenceEngine: Unloading model and releasing VRAM")
-                activeSession?.close()
-                activeSession = null
-                nativeEngine?.unload()
-                nativeEngine = null
-                currentModelLib = null
-            } catch (e: Exception) {
-                Timber.e(e, "MLCInferenceEngine: Error during model unload")
-                // Force cleanup even on error
-                activeSession = null
-                nativeEngine = null
-                currentModelLib = null
-            }
+            Timber.i("MLCInferenceEngine: Unloading model and releasing VRAM")
+            activeSession?.close()
+            activeSession = null
+            activeModelId = null
+            engine?.unload()
         }
     }
 
@@ -87,132 +76,93 @@ class MLCInferenceEngine @Inject constructor(
         backend = "MLC"
     )
 
-    /**
-     * Extracts the model library identifier from the model path.
-     * The modelLib must match the compiled library name registered via `system://` prefix.
-     * Falls back to the Qwen3 lib compiled in our mlc4j module.
-     */
-    private fun extractModelLib(modelPath: String): String {
-        // If the path contains a known model pattern, map to the correct lib
+    private fun extractModelLib(modelId: String): String {
         return when {
-            modelPath.contains("Qwen3-0.6B", ignoreCase = true) ->
+            modelId.contains("Qwen3", ignoreCase = true) ->
                 "qwen3_q0f16_e709b04052d95e24b38d40e4259e1f14"
-            else -> {
-                // Default: assume the last path segment is the model ID,
-                // and the lib shares a known naming convention
-                Timber.w("MLCInferenceEngine: Unknown model path '$modelPath', using default Qwen3 lib")
-                "qwen3_q0f16_e709b04052d95e24b38d40e4259e1f14"
-            }
+            else -> throw IllegalArgumentException(
+                "Unsupported MLC model: $modelId. This build only supports Qwen3."
+            )
         }
     }
 }
 
-class MLCModelSession(
-    private val engine: MLCEngine,
-    private val config: ModelConfig
+private class MLCModelSession(
+    private val engineInstance: MLCEngine
 ) : ModelSession {
 
-    @Volatile
-    private var isGenerating = false
+    private var contextTokenCount = 0
 
     override fun generate(request: GenerationRequest): Flow<GenerationResponse> = callbackFlow {
-        if (isGenerating) {
-            close(IllegalStateException("Already generating — wait for current generation to finish"))
-            return@callbackFlow
-        }
-        isGenerating = true
-
-        try {
-            // Map our domain messages to MLC OpenAI-compatible messages
-            val mlcMessages = request.messages.map { msg ->
-                ChatCompletionMessage(
-                    role = when (msg.role) {
-                        com.example.localllm.domain.model.MessageRole.USER -> ChatCompletionRole.user
-                        com.example.localllm.domain.model.MessageRole.ASSISTANT -> ChatCompletionRole.assistant
-                        com.example.localllm.domain.model.MessageRole.SYSTEM -> ChatCompletionRole.system
-                    },
-                    content = msg.content
+        val generationJob = launch(Dispatchers.IO) {
+            var finishReason = FinishReason.STOP
+            try {
+                val responses = engineInstance.chat.completions.create(
+                    messages = request.messages.map(ChatMessage::toMlcMessage),
+                    max_tokens = request.maxTokens,
+                    temperature = request.temperature,
+                    top_p = request.topP,
+                    stop = request.stopSequences.takeIf { it.isNotEmpty() },
+                    stream = true,
+                    stream_options = StreamOptions(include_usage = true)
                 )
-            }
 
-            // Call MLC engine streaming API
-            val channel = engine.chat.completions.create(
-                messages = mlcMessages,
-                max_tokens = request.maxTokens,
-                temperature = request.temperature,
-                top_p = request.topP,
-                stop = request.stopSequences.ifEmpty { null },
-                stream = true,
-                stream_options = StreamOptions(include_usage = true)
-            )
-
-            var promptTokens = 0
-            var completionTokens = 0
-
-            // Consume the MLC response channel
-            for (response in channel) {
-                if (!isGenerating) break // cancelled
-
-                // Extract streamed token delta
-                for (choice in response.choices) {
-                    val deltaContent = choice.delta.content?.asText()
-                    if (!deltaContent.isNullOrEmpty()) {
-                        trySend(GenerationResponse.Token(deltaContent))
-                    }
-
-                    // Check for finish
-                    choice.finish_reason?.let { reason ->
-                        val finishReason = when (reason) {
-                            "stop" -> FinishReason.STOP
-                            "length" -> FinishReason.MAX_TOKENS
-                            else -> FinishReason.STOP
-                        }
+                for (response in responses) {
+                    response.usage?.let { usage ->
+                        contextTokenCount = usage.total_tokens
                         trySend(
                             GenerationResponse.Finished(
-                                finishReason,
-                                TokenUsage(promptTokens, completionTokens)
+                                finishReason = finishReason,
+                                usage = TokenUsage(usage.prompt_tokens, usage.completion_tokens)
                             )
                         )
+                        close()
+                        return@launch
+                    }
+
+                    response.choices.forEach { choice ->
+                        finishReason = choice.finish_reason?.toFinishReason() ?: finishReason
+                        val text = choice.delta.content?.asText().orEmpty()
+                        if (text.isNotEmpty()) {
+                            trySend(GenerationResponse.Token(text))
+                        }
                     }
                 }
-
-                // Capture usage stats if present (sent in final chunk)
-                response.usage?.let { usage ->
-                    promptTokens = usage.prompt_tokens
-                    completionTokens = usage.completion_tokens
-                }
+            } catch (e: Exception) {
+                Timber.e(e, "MLCModelSession: Generation failed")
+                trySend(GenerationResponse.Error(e))
+                close(e)
             }
-
-            close()
-        } catch (e: Exception) {
-            Timber.e(e, "MLCModelSession: Generation error")
-            trySend(GenerationResponse.Error(e))
-            close(e)
-        } finally {
-            isGenerating = false
         }
 
         awaitClose {
-            if (isGenerating) {
-                Timber.w("MLCModelSession: Generation cancelled by downstream collector")
-                isGenerating = false
-                // MLC engine will finish current batch; reset clears state
-            }
+            generationJob.cancel()
         }
     }
 
     override fun resetContext() {
-        Timber.i("MLCModelSession: Resetting KV Cache")
-        engine.reset()
+        engineInstance.reset()
+        contextTokenCount = 0
     }
 
-    override fun getContextLength(): Int {
-        // MLC doesn't expose a direct getter; return config value
-        return config.contextLength
-    }
+    override fun getContextLength(): Int = contextTokenCount
 
     override suspend fun close() {
-        Timber.i("MLCModelSession: Closing session")
-        isGenerating = false
+        engineInstance.reset()
     }
+}
+
+private fun ChatMessage.toMlcMessage(): ChatCompletionMessage = ChatCompletionMessage(
+    role = when (role) {
+        MessageRole.SYSTEM -> ChatCompletionRole.system
+        MessageRole.USER -> ChatCompletionRole.user
+        MessageRole.ASSISTANT -> ChatCompletionRole.assistant
+    },
+    content = content
+)
+
+private fun String.toFinishReason(): FinishReason = when (this.lowercase()) {
+    "length" -> FinishReason.MAX_TOKENS
+    "error" -> FinishReason.ERROR
+    else -> FinishReason.STOP
 }

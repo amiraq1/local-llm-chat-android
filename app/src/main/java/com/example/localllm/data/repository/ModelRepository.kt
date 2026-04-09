@@ -29,59 +29,17 @@ class ModelRepository @Inject constructor(
     /** Hard-coded demo catalogue — replace with remote manifest fetch in production. */
     val availableModels: List<LLMModel> = listOf(
         LLMModel(
-            id = "llama-3.2-1b-q4",
-            name = "Llama 3.2 1B (Q4_0)",
-            family = "llama",
-            sizeBytes = 756_000_000L,
-            downloadUrl = "https://example.com/models/llama-3.2-1b-q4.tar",
-            checksumSha256 = "abc123placeholder",
-            minRamMb = 2048,
-            recommendedRamMb = 4096,
+            id = "Qwen3",
+            name = "Qwen 2.5 0.5B (MLC)",
+            family = "qwen",
+            sizeBytes = 600_000_000L,
+            downloadUrl = "https://huggingface.co/mlc-ai/Qwen2.5-0.5B-Instruct-q4f16_1-MLC",
+            checksumSha256 = "",
+            minRamMb = 1024,
+            recommendedRamMb = 2048,
             contextLength = 4096,
-            quantization = "Q4_0",
-            tags = listOf("fast", "lightweight"),
-            minAndroidApi = 28
-        ),
-        LLMModel(
-            id = "phi-3-mini-q4",
-            name = "Phi-3 Mini 3.8B (Q4_K_M)",
-            family = "phi",
-            sizeBytes = 2_200_000_000L,
-            downloadUrl = "https://example.com/models/phi-3-mini-q4.tar",
-            checksumSha256 = "def456placeholder",
-            minRamMb = 4096,
-            recommendedRamMb = 6144,
-            contextLength = 4096,
-            quantization = "Q4_K_M",
-            tags = listOf("balanced", "coding"),
-            minAndroidApi = 28
-        ),
-        LLMModel(
-            id = "gemma-2-2b-q4",
-            name = "Gemma 2 2B (Q4_0)",
-            family = "gemma",
-            sizeBytes = 1_500_000_000L,
-            downloadUrl = "https://example.com/models/gemma-2-2b-q4.tar",
-            checksumSha256 = "ghi789placeholder",
-            minRamMb = 3072,
-            recommendedRamMb = 6144,
-            contextLength = 8192,
-            quantization = "Q4_0",
-            tags = listOf("google", "multilingual"),
-            minAndroidApi = 28
-        ),
-        LLMModel(
-            id = "mistral-7b-q4",
-            name = "Mistral 7B (Q4_K_M)",
-            family = "mistral",
-            sizeBytes = 4_400_000_000L,
-            downloadUrl = "https://example.com/models/mistral-7b-q4.tar",
-            checksumSha256 = "jkl012placeholder",
-            minRamMb = 6144,
-            recommendedRamMb = 8192,
-            contextLength = 8192,
-            quantization = "Q4_K_M",
-            tags = listOf("powerful", "large"),
+            quantization = "q4f16_1",
+            tags = listOf("fast", "mlc", "local"),
             minAndroidApi = 28
         )
     )
@@ -139,8 +97,14 @@ class ModelRepository @Inject constructor(
     suspend fun markChecksumVerified(modelId: String) =
         modelDao.setChecksumVerified(modelId, true)
 
+    fun getModelsDir(): File {
+        val dir = context.getExternalFilesDir("models") ?: File(context.filesDir, "models")
+        if (!dir.exists()) dir.mkdirs()
+        return dir
+    }
+
     fun getInstallPath(modelId: String): String =
-        File(context.filesDir, "models/$modelId.bin").absolutePath
+        File(getModelsDir(), modelId).absolutePath
 
     suspend fun deleteModel(modelId: String) {
         modelDao.deleteById(modelId)

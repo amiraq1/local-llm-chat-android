@@ -351,7 +351,7 @@ fun ModelCard(
                     ) {
                         Icon(Icons.Outlined.Download, null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text(if (modelState.isCompatible) "تنزيل" else "غير متوافق")
+                        Text(if (modelState.isCompatible) "استيراد محلي" else "غير متوافق")
                     }
                 }
             }
