@@ -56,6 +56,7 @@ class MLCEngine {
     fun reload(modelPath: String, modelLib: String) {
         val engineConfig = """
             {
+                "device": "vulkan",
                 "model": "$modelPath",
                 "model_lib": "system://$modelLib",
                 "mode": "interactive"
