@@ -20,7 +20,7 @@ class MLCEngine {
 
     private val jsonFFIEngine: JSONFFIEngine
     private val state: EngineState
-    val chat: Chat
+    internal val chat: Chat
     private val threads = mutableListOf<BackgroundWorker>()
     private val callbackScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -86,7 +86,7 @@ internal class Chat(
     private val jsonFFIEngine: JSONFFIEngine,
     private val state: EngineState
 ) {
-    val completions = Completions(jsonFFIEngine, state)
+    internal val completions = Completions(jsonFFIEngine, state)
 }
 
 internal class Completions(
