@@ -4,7 +4,6 @@ import org.apache.tvm.Device;
 import org.apache.tvm.Function;
 import org.apache.tvm.Module;
 import org.apache.tvm.TVMValue;
-import android.util.Log;
 
 public class JSONFFIEngine {
     private Module jsonFFIEngine;
@@ -58,6 +57,10 @@ public class JSONFFIEngine {
 
     public void chatCompletion(String requestJSONStr, String requestId) {
         chatCompletionFunc.pushArg(requestJSONStr).pushArg(requestId).invoke();
+    }
+
+    public void abort(String requestId) {
+        abortFunc.pushArg(requestId).invoke();
     }
 
     public void runBackgroundLoop() {

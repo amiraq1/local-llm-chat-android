@@ -24,12 +24,15 @@ import com.example.localllm.mlc.findBundledMlcModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.isActive
 import timber.log.Timber
 <<<<<<< HEAD
 import java.io.File
@@ -256,6 +259,8 @@ private class MLCModelSession(
 
     @Volatile
     private var isGenerating = false
+    @Volatile
+    private var activeResponses: ReceiveChannel<ai.mlc.mlcllm.OpenAIProtocol.ChatCompletionStreamResponse>? = null
 
     override fun generate(request: GenerationRequest): Flow<GenerationResponse> = callbackFlow {
         if (isGenerating) {
@@ -343,9 +348,10 @@ main
                     stream = true,
                     stream_options = StreamOptions(include_usage = true)
                 )
+                activeResponses = responses
 
                 for (response in responses) {
-                    if (!isGenerating) break
+                    if (!isGenerating || !isActive) break
 
                     response.usage?.let { usage ->
                         promptTokens = usage.prompt_tokens
@@ -355,7 +361,10 @@ main
                     for (choice in response.choices) {
                         val deltaText = choice.delta.content?.asText()
                         if (!deltaText.isNullOrEmpty()) {
-                            trySend(GenerationResponse.Token(deltaText))
+                            val sendResult = trySend(GenerationResponse.Token(deltaText))
+                            if (sendResult.isFailure) {
+                                break
+                            }
                         }
 
                         choice.finish_reason?.let { reason ->
@@ -380,7 +389,7 @@ main
                     }
                 }
 
-                if (!sentFinished) {
+                if (!sentFinished && isActive && isGenerating) {
                     trySend(
                         GenerationResponse.Finished(
                             finishReason = FinishReason.STOP,
@@ -393,16 +402,22 @@ main
                 }
 
                 close()
+            } catch (_: CancellationException) {
+                responsesCancel("Generation cancelled")
             } catch (e: Exception) {
                 Timber.e(e, "MLCModelSession: Generation error")
-                trySend(GenerationResponse.Error(e))
+                if (channel.isOpenForSend) {
+                    trySend(GenerationResponse.Error(e))
+                }
                 close(e)
             } finally {
+                activeResponses = null
                 isGenerating = false
             }
         }
 
         awaitClose {
+            responsesCancel("Flow collector closed")
             generationJob.cancel()
 <<<<<<< HEAD
             if (isGenerating) {
@@ -483,9 +498,25 @@ private fun String.toFinishReason(): FinishReason = when (this.lowercase()) {
         }
     }
 
-    override fun close() {
+    override fun resetContext() {
+        responsesCancel("Context reset")
         runCatching { engineInstance.reset() }
             .onFailure { Timber.e(it, "MLCModelSession: Failed to reset engine session") }
+    }
+
+    override fun getContextLength(): Int = config.contextLength
+
+    override suspend fun close() {
+        responsesCancel("Session closed")
+        resetContext()
+    }
+
+    private fun responsesCancel(reason: String) {
+        runCatching {
+            activeResponses?.cancel(CancellationException(reason))
+        }.onFailure { cancelError ->
+            Timber.w(cancelError, "MLCModelSession: Failed to cancel active response stream")
+        }
     }
 }
 >>>>>>> a19f194 (Fix merge artifacts and normalize MLC engine wiring)
