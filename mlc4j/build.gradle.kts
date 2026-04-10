@@ -6,6 +6,10 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+val enableBundledTvm4j = providers.gradleProperty("enableBundledTvm4j")
+    .map(String::toBoolean)
+    .orElse(false)
+
 android {
     namespace = "ai.mlc.mlcllm"
     compileSdk = 35
@@ -33,7 +37,11 @@ kotlin {
 }
 
 dependencies {
-    implementation(fileTree(mapOf("dir" to "output", "include" to listOf("*.jar"))))
+    if (enableBundledTvm4j.get()) {
+        // Opt-in only. The vendored TVM jar may be built with a newer Java target
+        // than the default Android test/CI toolchain.
+        implementation(fileTree(mapOf("dir" to "output", "include" to listOf("tvm4j_core.jar"))))
+    }
 
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
