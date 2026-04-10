@@ -23,8 +23,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
-import java.io.FileOutputStream
-import java.net.URL
 import kotlin.math.max
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -34,34 +32,12 @@ class ModelRepository @Inject constructor(
     private val modelDao: ModelDao,
     @ApplicationContext private val context: Context
 ) {
-
- codex/fix-audit-findings
-    private val json = Json { ignoreUnknownKeys = true }
-
-    /** Hard-coded demo catalogue — replace with remote manifest fetch in production. */
-    val availableModels: List<LLMModel> = listOf(
-        LLMModel(
-            id = "Qwen3",
-            name = "Qwen 2.5 0.5B (MLC)",
-            family = "qwen",
-            sizeBytes = 600_000_000L,
-            downloadUrl = "https://huggingface.co/mlc-ai/Qwen2.5-0.5B-Instruct-q4f16_1-MLC",
-            checksumSha256 = "",
-            minRamMb = 1024,
-            recommendedRamMb = 2048,
-            contextLength = 4096,
-            quantization = "q4f16_1",
-            tags = listOf("fast", "mlc", "local"),
-            minAndroidApi = 28
-        )
-    )
     private val bundledModels: List<BundledMlcModel> by lazy(LazyThreadSafetyMode.NONE) {
         loadBundledModels()
     }
 
     val availableModels: List<LLMModel>
         get() = bundledModels.map(BundledMlcModel::uiModel)
-main
 
     // ─── Installed Model Queries ───────────────────────────────────────────────
 
@@ -146,17 +122,13 @@ main
         modelDao.setChecksumVerified(modelId, true)
 
     fun getModelsDir(): File {
-        val dir = context.getExternalFilesDir("models") ?: File(context.filesDir, "models")
+        val dir = File(installRootDir(), "models")
         if (!dir.exists()) dir.mkdirs()
         return dir
     }
 
     fun getInstallPath(modelId: String): String =
-codex/fix-audit-findings
         File(getModelsDir(), modelId).absolutePath
-
-        File(installRootDir(), modelId).absolutePath
- main
 
     suspend fun deleteModel(modelId: String) {
         File(getInstallPath(modelId)).deleteRecursively()

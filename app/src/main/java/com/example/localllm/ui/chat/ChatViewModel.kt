@@ -97,6 +97,7 @@ class ChatViewModel @Inject constructor(
         val text = _uiState.value.inputText.trim()
         if (text.isBlank() || _uiState.value.isGenerating) return
 
+        val history = _uiState.value.messages.map(Message::toChatMessage)
         _uiState.update { it.copy(inputText = "", isGenerating = true, streamingText = "") }
 
         generationJob = viewModelScope.launch {
@@ -105,8 +106,6 @@ class ChatViewModel @Inject constructor(
                 val convId = currentConversationId ?: run {
                     val title = text.take(40).let { if (text.length > 40) "$it…" else it }
                     val newId = conversationRepo.createConversation(title, _uiState.value.activeModelId)
-                    currentConversationId = newId
-                    _uiState.update { it.copy(conversationId = newId) }
                     loadConversation(newId)
                     newId
                 }
@@ -131,9 +130,6 @@ class ChatViewModel @Inject constructor(
                 }
 
                 val session = currentSession!!
-
-                // Build chat history for context
-                val history = _uiState.value.messages.map(Message::toChatMessage)
 
                 val request = GenerationRequest(
                     messages = history + ChatMessage(role = MessageRole.USER, content = text),

@@ -79,6 +79,56 @@ class EngineStateTest {
     }
 
     @Test
+    fun `include usage stream stays open until the trailing usage chunk arrives`() = runTest {
+        val controller = FakeRequestController()
+        val scope = TestScope(StandardTestDispatcher(testScheduler))
+        val state = EngineState(controller, scope)
+
+        val channel = state.chatCompletion(
+            request(streamOptions = StreamOptions(include_usage = true))
+        )
+        val requestId = controller.requestIds.single()
+
+        state.streamCallback(
+            json.encodeToString(
+                listOf(
+                    response(
+                        requestId = requestId,
+                        finishReason = "stop"
+                    )
+                )
+            )
+        )
+        advanceUntilIdle()
+
+        val first = channel.receiveCatching().getOrThrow()
+        assertEquals("stop", first.choices.single().finish_reason)
+        assertEquals(1, state.activeRequestCount())
+
+        state.streamCallback(
+            json.encodeToString(
+                listOf(
+                    response(
+                        requestId = requestId,
+                        usage = CompletionUsage(
+                            prompt_tokens = 12,
+                            completion_tokens = 4,
+                            total_tokens = 16
+                        ),
+                        includeChoice = false
+                    )
+                )
+            )
+        )
+        advanceUntilIdle()
+
+        val second = channel.receiveCatching().getOrThrow()
+        assertEquals(4, second.usage?.completion_tokens)
+        assertTrue(channel.receiveCatching().isClosed)
+        assertEquals(0, state.activeRequestCount())
+    }
+
+    @Test
     fun `finish reason without usage closes non usage streams`() = runTest {
         val controller = FakeRequestController()
         val scope = TestScope(StandardTestDispatcher(testScheduler))
@@ -121,19 +171,24 @@ class EngineStateTest {
     private fun response(
         requestId: String,
         finishReason: String? = null,
-        usage: CompletionUsage? = null
+        usage: CompletionUsage? = null,
+        includeChoice: Boolean = true
     ) = ChatCompletionStreamResponse(
         id = requestId,
-        choices = listOf(
-            ChatCompletionStreamResponseChoice(
-                finish_reason = finishReason,
-                index = 0,
-                delta = ChatCompletionMessage(
-                    role = ChatCompletionRole.assistant,
-                    content = "hi"
+        choices = if (includeChoice) {
+            listOf(
+                ChatCompletionStreamResponseChoice(
+                    finish_reason = finishReason,
+                    index = 0,
+                    delta = ChatCompletionMessage(
+                        role = ChatCompletionRole.assistant,
+                        content = "hi"
+                    )
                 )
             )
-        ),
+        } else {
+            emptyList()
+        },
         usage = usage
     )
 

@@ -119,9 +119,8 @@ private class MLCModelSession(
         isGenerating = true
 
         val generationJob = launch(Dispatchers.IO) {
-            var promptTokens = 0
-            var completionTokens = 0
-            var sentFinished = false
+            val responseAssembler = MlcResponseAssembler()
+            var collectorOpen = true
 
             try {
                 val responses = engineInstance.chat.completions.create(
@@ -136,47 +135,18 @@ private class MLCModelSession(
                 activeResponses = responses
 
                 for (response in responses) {
-                    if (!isGenerating || !isActive) break
+                    if (!isGenerating || !isActive || !collectorOpen) break
 
-                    response.usage?.let { usage ->
-                        promptTokens = usage.prompt_tokens
-                        completionTokens = usage.completion_tokens
-                    }
-
-                    for (choice in response.choices) {
-                        val deltaText = choice.delta.content?.asText()
-                        if (!deltaText.isNullOrEmpty()) {
-                            val sendResult = trySend(GenerationResponse.Token(deltaText))
-                            if (sendResult.isFailure) break
-                        }
-
-                        choice.finish_reason?.let { finishReason ->
-                            if (!sentFinished) {
-                                trySend(
-                                    GenerationResponse.Finished(
-                                        finishReason = finishReason.toFinishReason(),
-                                        usage = TokenUsage(
-                                            promptTokens = promptTokens,
-                                            completionTokens = completionTokens
-                                        )
-                                    )
-                                )
-                                sentFinished = true
-                            }
+                    for (event in responseAssembler.onResponse(response)) {
+                        if (trySend(event).isFailure) {
+                            collectorOpen = false
+                            break
                         }
                     }
                 }
 
-                if (!sentFinished && isActive && isGenerating) {
-                    trySend(
-                        GenerationResponse.Finished(
-                            finishReason = FinishReason.STOP,
-                            usage = TokenUsage(
-                                promptTokens = promptTokens,
-                                completionTokens = completionTokens
-                            )
-                        )
-                    )
+                if (collectorOpen && isActive && isGenerating) {
+                    responseAssembler.finishIfNeeded()?.let { trySend(it) }
                 }
 
                 close()
@@ -184,9 +154,7 @@ private class MLCModelSession(
                 responsesCancel("Generation cancelled")
             } catch (e: Exception) {
                 Timber.e(e, "MLCModelSession: Generation error")
-                if (channel.isOpenForSend) {
-                    trySend(GenerationResponse.Error(e))
-                }
+                trySend(GenerationResponse.Error(e))
                 close(e)
             } finally {
                 activeResponses = null
@@ -221,6 +189,55 @@ private class MLCModelSession(
         }.onFailure { cancelError ->
             Timber.w(cancelError, "MLCModelSession: Failed to cancel active response stream")
         }
+    }
+}
+
+internal class MlcResponseAssembler {
+
+    private var promptTokens = 0
+    private var completionTokens = 0
+    private var pendingFinishReason: FinishReason? = null
+    private var sentFinished = false
+
+    fun onResponse(response: ChatCompletionStreamResponse): List<GenerationResponse> {
+        if (sentFinished) return emptyList()
+
+        response.usage?.let { usage ->
+            promptTokens = usage.prompt_tokens
+            completionTokens = usage.completion_tokens
+        }
+
+        val events = buildList {
+            response.choices.forEach { choice ->
+                choice.delta.content?.asText()
+                    ?.takeIf { it.isNotEmpty() }
+                    ?.let { add(GenerationResponse.Token(it)) }
+
+                choice.finish_reason?.let { pendingFinishReason = it.toFinishReason() }
+            }
+
+            if (response.usage != null) {
+                add(buildFinished(pendingFinishReason ?: FinishReason.STOP))
+            }
+        }
+
+        return events
+    }
+
+    fun finishIfNeeded(defaultReason: FinishReason = FinishReason.STOP): GenerationResponse.Finished? {
+        if (sentFinished) return null
+        return buildFinished(pendingFinishReason ?: defaultReason)
+    }
+
+    private fun buildFinished(reason: FinishReason): GenerationResponse.Finished {
+        sentFinished = true
+        return GenerationResponse.Finished(
+            finishReason = reason,
+            usage = TokenUsage(
+                promptTokens = promptTokens,
+                completionTokens = completionTokens
+            )
+        )
     }
 }
 
