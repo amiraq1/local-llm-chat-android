@@ -7,8 +7,8 @@ import com.example.localllm.data.db.dao.ModelDao
 import com.example.localllm.data.db.entity.InstalledModelEntity
 import com.example.localllm.domain.model.InstalledModel
 import com.example.localllm.domain.model.LLMModel
-import com.example.localllm.domain.model.ModelUiState
 import com.example.localllm.domain.model.ModelDownloadState
+import com.example.localllm.domain.model.ModelUiState
 import com.example.localllm.mlc.MLC_MODEL_CONFIG_FILENAME
 import com.example.localllm.mlc.MLC_TENSOR_CACHE_FILENAME
 import com.example.localllm.mlc.MlcModelRecord
@@ -17,17 +17,15 @@ import com.example.localllm.mlc.readInstalledMlcChatConfig
 import com.example.localllm.mlc.readInstalledMlcTensorCache
 import com.example.localllm.mlc.resolveMlcModelAssetUrl
 import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlin.math.max
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
-import java.io.FileOutputStream
-import java.net.URL
-import kotlin.math.max
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 class ModelRepository @Inject constructor(
@@ -35,35 +33,12 @@ class ModelRepository @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
 
- codex/fix-audit-findings
-    private val json = Json { ignoreUnknownKeys = true }
-
-    /** Hard-coded demo catalogue — replace with remote manifest fetch in production. */
-    val availableModels: List<LLMModel> = listOf(
-        LLMModel(
-            id = "Qwen3",
-            name = "Qwen 2.5 0.5B (MLC)",
-            family = "qwen",
-            sizeBytes = 600_000_000L,
-            downloadUrl = "https://huggingface.co/mlc-ai/Qwen2.5-0.5B-Instruct-q4f16_1-MLC",
-            checksumSha256 = "",
-            minRamMb = 1024,
-            recommendedRamMb = 2048,
-            contextLength = 4096,
-            quantization = "q4f16_1",
-            tags = listOf("fast", "mlc", "local"),
-            minAndroidApi = 28
-        )
-    )
     private val bundledModels: List<BundledMlcModel> by lazy(LazyThreadSafetyMode.NONE) {
         loadBundledModels()
     }
 
     val availableModels: List<LLMModel>
         get() = bundledModels.map(BundledMlcModel::uiModel)
-main
-
-    // ─── Installed Model Queries ───────────────────────────────────────────────
 
     fun getInstalledModels(): Flow<List<InstalledModel>> =
         modelDao.getAllInstalledModels().map { it.map(InstalledModelEntity::toDomain) }
@@ -71,7 +46,6 @@ main
     fun getModelUiStates(): Flow<List<ModelUiState>> =
         modelDao.getAllInstalledModels().map { installedList ->
             val installedMap = installedList.associateBy { it.id }
-            // Cache device specs to avoid repeated system calls per-model
             val ramMb = getAvailableRamMb()
             val storageMb = getAvailableStorageMb()
             availableModels.map { model ->
@@ -79,7 +53,7 @@ main
                 ModelUiState(
                     model = model,
                     downloadState = if (installed != null) ModelDownloadState.INSTALLED
-                                   else ModelDownloadState.NOT_DOWNLOADED,
+                    else ModelDownloadState.NOT_DOWNLOADED,
                     isInstalled = installed != null,
                     isActive = installed?.isActive ?: false,
                     isCompatible = isCompatibleWith(model, ramMb, storageMb),
@@ -152,19 +126,13 @@ main
     }
 
     fun getInstallPath(modelId: String): String =
-codex/fix-audit-findings
         File(getModelsDir(), modelId).absolutePath
-
-        File(installRootDir(), modelId).absolutePath
- main
 
     suspend fun deleteModel(modelId: String) {
         File(getInstallPath(modelId)).deleteRecursively()
         modelDao.deleteById(modelId)
         Timber.d("Deleted model: $modelId")
     }
-
-    // ─── Device Compatibility ─────────────────────────────────────────────────
 
     fun isCompatible(model: LLMModel): Boolean =
         isCompatibleWith(model, getAvailableRamMb(), getAvailableStorageMb())
@@ -330,16 +298,20 @@ codex/fix-audit-findings
                 error("Downloaded temp file was not created properly: $tempFile")
             }
         } finally {
-            try { inputStream?.close() } catch (e: Exception) { }
-            try { connection?.disconnect() } catch (e: Exception) { }
+            try {
+                inputStream?.close()
+            } catch (_: Exception) {
+            }
+            try {
+                connection?.disconnect()
+            } catch (_: Exception) {
+            }
         }
     }
 
     private fun installRootDir(): File =
         context.getExternalFilesDir(null) ?: context.filesDir
 }
-
-// ─── Mapper ───────────────────────────────────────────────────────────────────
 
 fun InstalledModelEntity.toDomain() = InstalledModel(
     id = id,
