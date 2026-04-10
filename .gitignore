@@ -16,7 +16,6 @@ codex/fix-audit-findings
 local.properties
 .kotlin
 app/build/
-app/schemas/
 gradle-build.log
 adb-devices.log
 NUL
