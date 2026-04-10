@@ -82,7 +82,7 @@
 
 لتشغيل المشروع محليًا يحتاج المطور إلى:
 
-- JDK 17 أو أحدث
+- JDK 21
 - Android SDK API 35
 - Gradle Wrapper الموجود في المستودع
 - ملفات runtime الخاصة بـ`mlc4j/output`

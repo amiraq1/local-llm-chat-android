@@ -15,7 +15,7 @@
   - Compose BOM `2024.10.00`
 - توحيد الإصدارات عبر `gradle/libs.versions.toml` قدر الإمكان.
 - تحويل `mlc4j` من Groovy DSL إلى Kotlin DSL لتقليل التباين مع `app`.
-- توحيد `Java 17` و`jvmTarget 17` واستخدام `compilerOptions`.
+- توحيد `Java 21` و`jvmTarget 21` واستخدام `compilerOptions`.
 
 ## Streaming / Engine Integration Changes
 
