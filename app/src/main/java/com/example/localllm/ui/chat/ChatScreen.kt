@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -314,7 +315,11 @@ fun MessageBubble(message: Message) {
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clearAndSetSemantics {
+                contentDescription = buildMessageAccessibilityLabel(message, timeFormatter)
+            },
         horizontalAlignment = if (isUser) Alignment.End else Alignment.Start
     ) {
         Row(
@@ -332,7 +337,7 @@ fun MessageBubble(message: Message) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             Icons.Filled.AutoAwesome,
-                            contentDescription = "المساعد",
+                            contentDescription = null,
                             modifier = Modifier.size(14.dp),
                             tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
@@ -377,7 +382,7 @@ fun MessageBubble(message: Message) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             Icons.Filled.Person,
-                            contentDescription = "أنت",
+                            contentDescription = null,
                             modifier = Modifier.size(14.dp),
                             tint = MaterialTheme.colorScheme.onSecondaryContainer
                         )
@@ -419,7 +424,16 @@ fun MessageBubble(message: Message) {
 @Composable
 fun StreamingBubble(text: String) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clearAndSetSemantics {
+                liveRegion = LiveRegionMode.Polite
+                contentDescription = if (text.isBlank()) {
+                    "المساعد يكتب ردًا"
+                } else {
+                    "رد المساعد قيد التوليد. $text"
+                }
+            },
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.Bottom
     ) {
@@ -431,7 +445,7 @@ fun StreamingBubble(text: String) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     Icons.Filled.AutoAwesome,
-                    contentDescription = "المساعد يكتب",
+                    contentDescription = null,
                     modifier = Modifier.size(14.dp),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
@@ -441,9 +455,7 @@ fun StreamingBubble(text: String) {
         Surface(
             shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp, bottomStart = 4.dp, bottomEnd = 18.dp),
             color = MaterialTheme.colorScheme.surfaceVariant,
-            modifier = Modifier
-                .widthIn(min = 60.dp, max = 300.dp)
-                .semantics { liveRegion = LiveRegionMode.Polite }
+            modifier = Modifier.widthIn(min = 60.dp, max = 300.dp)
         ) {
             Box(
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
@@ -475,7 +487,12 @@ fun StreamingBubble(text: String) {
 @Composable
 private fun TypingIndicator() {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                liveRegion = LiveRegionMode.Polite
+                contentDescription = "المساعد يفكر في الرد"
+            },
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -487,7 +504,7 @@ private fun TypingIndicator() {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     Icons.Filled.AutoAwesome,
-                    contentDescription = "جارٍ التفكير",
+                    contentDescription = null,
                     Modifier.size(14.dp),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
@@ -535,7 +552,11 @@ private fun ModelLoadingIndicator() {
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.tertiaryContainer,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription = "جاري تحميل النموذج"
+            }
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -633,5 +654,19 @@ fun ChatInputBar(
                 }
             }
         }
+    }
+}
+
+private fun buildMessageAccessibilityLabel(
+    message: Message,
+    timeFormatter: SimpleDateFormat
+): String {
+    val sender = if (message.role == MessageRole.USER) "أنت" else "المساعد"
+    return buildString {
+        append("رسالة من $sender. ")
+        append(message.content)
+        append(". أُرسلت الساعة ${timeFormatter.format(Date(message.createdAt))}")
+        message.tokensUsed?.let { append(". عدد الرموز $it") }
+        append(".")
     }
 }

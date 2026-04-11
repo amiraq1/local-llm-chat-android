@@ -2,7 +2,9 @@ package com.example.localllm.data.repository
 
 import android.app.ActivityManager
 import android.content.Context
+import android.net.Uri
 import android.os.StatFs
+import androidx.documentfile.provider.DocumentFile
 import com.example.localllm.data.db.dao.ModelDao
 import com.example.localllm.data.db.entity.InstalledModelEntity
 import com.example.localllm.domain.model.CatalogModel
@@ -143,6 +145,44 @@ class ModelRepository @Inject constructor(
         entity.toDomain()
     }
 
+    suspend fun importModelFromTree(modelId: String, treeUri: Uri): InstalledModel = withContext(Dispatchers.IO) {
+        val catalogModel = catalogModels.firstOrNull { it.slug == modelId }
+            ?: error("النموذج غير موجود في الكتالوج")
+
+        val root = DocumentFile.fromTreeUri(context, treeUri)
+            ?: error("تعذر فتح المجلد المحدد")
+
+        val sourceDir = resolveSelectedModelDirectory(root, modelId)
+        val targetDir = File(getInstallPath(modelId))
+        val existing = modelDao.getModelById(modelId)
+
+        targetDir.deleteRecursively()
+        targetDir.mkdirs()
+
+        val copiedFiles = copyDocumentTreeContents(sourceDir, targetDir)
+        if (copiedFiles == 0) {
+            targetDir.deleteRecursively()
+            error("المجلد المحدد فارغ أو لا يمكن قراءة ملفاته")
+        }
+
+        val entity = InstalledModelEntity(
+            id = catalogModel.slug,
+            name = catalogModel.name,
+            family = catalogModel.family,
+            sizeBytes = catalogModel.sizeBytes,
+            filePath = targetDir.absolutePath,
+            installedAt = existing?.installedAt ?: System.currentTimeMillis(),
+            checksumVerified = false,
+            isActive = existing?.isActive ?: false,
+            quantization = catalogModel.quantization,
+            contextLength = catalogModel.contextLength
+        )
+
+        modelDao.insert(entity)
+        Timber.i("Imported local model %s from %s", modelId, treeUri)
+        entity.toDomain()
+    }
+
     suspend fun markChecksumVerified(modelId: String) =
         modelDao.setChecksumVerified(modelId, true)
 
@@ -197,10 +237,59 @@ class ModelRepository @Inject constructor(
     private fun isInstalledModelDir(modelDir: File): Boolean =
         modelDir.exists() && modelDir.isDirectory && !modelDir.list().isNullOrEmpty()
 
+    private fun resolveSelectedModelDirectory(root: DocumentFile, modelId: String): DocumentFile {
+        if (!root.exists() || !root.canRead()) {
+            error("لا يمكن قراءة المجلد المحدد")
+        }
+
+        if (!root.isDirectory) {
+            error("يرجى اختيار مجلد نموذج وليس ملفًا")
+        }
+
+        val matchingChild = root.findFile(modelId)
+            ?.takeIf { it.isDirectory && it.canRead() }
+
+        return matchingChild ?: root
+    }
+
     private fun buildLocalImportMessage(modelId: String): String =
         "يرجى نسخ مجلد النموذج إلى المسار التالي ثم المحاولة مجددًا:\n\n" +
             "${getModelsDir().absolutePath}\n\n" +
             "(يجب أن يكون اسم المجلد $modelId)"
+
+    private fun copyDocumentTreeContents(sourceDir: DocumentFile, targetDir: File): Int {
+        var copiedFiles = 0
+        sourceDir.listFiles().forEach { child ->
+            val name = child.name ?: return@forEach
+            val destination = File(targetDir, name)
+            copiedFiles += copyDocumentNode(child, destination)
+        }
+        return copiedFiles
+    }
+
+    private fun copyDocumentNode(source: DocumentFile, destination: File): Int {
+        return when {
+            source.isDirectory -> {
+                destination.mkdirs()
+                source.listFiles().sumOf { child ->
+                    val childName = child.name ?: return@sumOf 0
+                    copyDocumentNode(child, File(destination, childName))
+                }
+            }
+
+            source.isFile -> {
+                destination.parentFile?.mkdirs()
+                context.contentResolver.openInputStream(source.uri)?.use { input ->
+                    FileOutputStream(destination).use { output ->
+                        input.copyTo(output)
+                    }
+                } ?: error("تعذر قراءة الملف ${source.name}")
+                1
+            }
+
+            else -> 0
+        }
+    }
 
     private fun installBoundModel(record: MlcModelRecord, modelDir: File) = run {
         modelDir.mkdirs()

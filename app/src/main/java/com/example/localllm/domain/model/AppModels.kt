@@ -106,7 +106,7 @@ data class BenchmarkResult(
 
 @Immutable
 data class AppSettings(
-    val activeModelId: String = "",
+    val activeModelId: String = "gemma-4-e2b",
     val temperature: Float = 0.7f,
     val topP: Float = 0.9f,
     val maxTokens: Int = 512,

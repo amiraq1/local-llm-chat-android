@@ -10,6 +10,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.*
@@ -74,6 +77,14 @@ fun AppNavigation() {
                             label = { Text(item.label) },
                             selected = selected,
                             alwaysShowLabel = true,
+                            modifier = Modifier.semantics {
+                                contentDescription = item.label
+                                stateDescription = if (selected) {
+                                    "التبويب الحالي"
+                                } else {
+                                    "غير محدد"
+                                }
+                            },
                             onClick = {
                                 navController.navigate(item.screen.route) {
                                     popUpTo(navController.graph.findStartDestination().id) {

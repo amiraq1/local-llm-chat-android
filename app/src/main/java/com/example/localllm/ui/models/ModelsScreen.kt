@@ -1,5 +1,8 @@
 package com.example.localllm.ui.models
 
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -12,16 +15,21 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.Role
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.localllm.domain.model.ModelDownloadState
 import com.example.localllm.domain.model.ModelUiState
@@ -30,6 +38,24 @@ import com.example.localllm.domain.model.ModelUiState
 @Composable
 fun ModelsScreen(viewModel: ModelsViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
+    var pendingImportModelId by rememberSaveable { mutableStateOf<String?>(null) }
+    val modelPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        val modelId = pendingImportModelId
+        pendingImportModelId = null
+        if (uri == null || modelId == null) return@rememberLauncherForActivityResult
+
+        runCatching {
+            context.contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
+        }
+
+        viewModel.importModel(modelId, uri)
+    }
 
     Scaffold(
         topBar = {
@@ -72,7 +98,14 @@ fun ModelsScreen(viewModel: ModelsViewModel = hiltViewModel()) {
                         modelState = modelState,
                         isActive   = modelState.model.id == state.activeModelId,
                         onActivate = { viewModel.activateModel(modelState.model.id) },
-                        onDownload = { viewModel.downloadModel(modelState.model.id) },
+                        onDownload = {
+                            if (modelState.model.downloadUrl.isBlank()) {
+                                pendingImportModelId = modelState.model.id
+                                modelPicker.launch(null)
+                            } else {
+                                viewModel.downloadModel(modelState.model.id)
+                            }
+                        },
                         onDelete   = { viewModel.deleteModel(modelState.model.id) }
                     )
                 }
@@ -99,7 +132,10 @@ fun ModelsScreen(viewModel: ModelsViewModel = hiltViewModel()) {
 private fun DeviceInfoBanner() {
     Surface(
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+        modifier = Modifier.semantics(mergeDescendants = true) {
+            contentDescription = "معلومة عن الجهاز. اختر نموذجًا متوافقًا مع ذاكرة جهازك."
+        }
     ) {
         Row(
             modifier = Modifier
@@ -158,145 +194,146 @@ fun ModelCard(
         elevation = CardDefaults.cardElevation(defaultElevation = if (isActive) 0.dp else 1.dp)
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-
-            // ── Header ──
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            Column(
+                modifier = Modifier.clearAndSetSemantics {
+                    contentDescription = buildModelAccessibilitySummary(modelState, isActive)
+                },
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Family icon
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = familyColor(model.family).copy(alpha = 0.15f),
-                    modifier = Modifier.size(44.dp)
+                // ── Header ──
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            familyIcon(model.family),
-                            null,
-                            tint = familyColor(model.family),
-                            modifier = Modifier.size(22.dp)
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = familyColor(model.family).copy(alpha = 0.15f),
+                        modifier = Modifier.size(44.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                familyIcon(model.family),
+                                null,
+                                tint = familyColor(model.family),
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                    }
+
+                    Column(Modifier.weight(1f)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                model.name,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier
+                                    .weight(1f, fill = false)
+                                    .semantics { heading() }
+                            )
+                            if (isActive) {
+                                Surface(
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = MaterialTheme.colorScheme.primary
+                                ) {
+                                    Text(
+                                        "نشط",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
+                        }
+                        Text(
+                            buildString {
+                                if (model.provider.isNotBlank()) {
+                                    append(model.provider)
+                                    append(" · ")
+                                }
+                                append(model.family.uppercase())
+                                append(" · ")
+                                append(model.quantization)
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        if (model.description.isNotBlank()) {
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                model.description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    when (modelState.downloadState) {
+                        ModelDownloadState.INSTALLED ->
+                            Icon(
+                                Icons.Filled.CheckCircle,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        ModelDownloadState.DOWNLOADING ->
+                            CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                        else -> Unit
                     }
                 }
 
-                Column(Modifier.weight(1f)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(
-                            model.name,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier
-                                .weight(1f, fill = false)
-                                .semantics { heading() }
-                        )
-                        if (isActive) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SpecPill(Icons.Outlined.Storage, "${"%.1f".format(model.sizeBytes / 1e9)}GB")
+                    SpecPill(Icons.Outlined.Memory,  "≥${model.minRamMb / 1024}GB RAM")
+                    SpecPill(Icons.Outlined.Forum,   "${model.contextLength / 1000}K ctx")
+                }
+
+                if (model.tags.isNotEmpty()) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        model.tags.take(3).forEach { tag ->
                             Surface(
-                                shape = RoundedCornerShape(4.dp),
-                                color = MaterialTheme.colorScheme.primary
+                                shape = RoundedCornerShape(20.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant
                             ) {
                                 Text(
-                                    "نشط",
+                                    "#$tag",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                                 )
                             }
                         }
                     }
-                    Text(
-                        buildString {
-                            if (model.provider.isNotBlank()) {
-                                append(model.provider)
-                                append(" · ")
-                            }
-                            append(model.family.uppercase())
-                            append(" · ")
-                            append(model.quantization)
-                        },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    if (model.description.isNotBlank()) {
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            model.description,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
                 }
 
-                // Install state badge
-                when (modelState.downloadState) {
-                    ModelDownloadState.INSTALLED ->
-                        Icon(
-                            Icons.Filled.CheckCircle,
-                            contentDescription = "النموذج مثبت",
-                            tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    ModelDownloadState.DOWNLOADING ->
-                        CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-                    else -> Unit
-                }
-            }
-
-            // ── Spec chips ──
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SpecPill(Icons.Outlined.Storage, "${"%.1f".format(model.sizeBytes / 1e9)}GB")
-                SpecPill(Icons.Outlined.Memory,  "≥${model.minRamMb / 1024}GB RAM")
-                SpecPill(Icons.Outlined.Forum,   "${model.contextLength / 1000}K ctx")
-            }
-
-            // ── Tags ──
-            if (model.tags.isNotEmpty()) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    model.tags.take(3).forEach { tag ->
-                        Surface(
-                            shape = RoundedCornerShape(20.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant
+                if (!modelState.isCompatible && modelState.incompatibilityReason != null) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.errorContainer
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 10.dp, vertical = 7.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
+                            Icon(
+                                Icons.Outlined.Warning,
+                                null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(14.dp)
+                            )
                             Text(
-                                "#$tag",
+                                modelState.incompatibilityReason,
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                color = MaterialTheme.colorScheme.onErrorContainer
                             )
                         }
-                    }
-                }
-            }
-
-            // ── Incompatibility warning ──
-            if (!modelState.isCompatible && modelState.incompatibilityReason != null) {
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = MaterialTheme.colorScheme.errorContainer
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 10.dp, vertical = 7.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(
-                            Icons.Outlined.Warning,
-                            null,
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Text(
-                            modelState.incompatibilityReason,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onErrorContainer
-                        )
                     }
                 }
             }
@@ -306,7 +343,12 @@ fun ModelCard(
 
             when {
                 modelState.downloadState == ModelDownloadState.DOWNLOADING -> {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Column(
+                        modifier = Modifier.semantics(mergeDescendants = true) {
+                            contentDescription = "يجري تنزيل النموذج ${model.name}"
+                        },
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
                         LinearProgressIndicator(
                             modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp))
                         )
@@ -321,7 +363,11 @@ fun ModelCard(
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
                             onClick = onActivate,
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .semantics {
+                                    contentDescription = "تفعيل النموذج ${model.name}"
+                                },
                             shape = RoundedCornerShape(10.dp)
                         ) {
                             Icon(Icons.Filled.PlayCircle, null, modifier = Modifier.size(16.dp))
@@ -346,7 +392,11 @@ fun ModelCard(
                 modelState.isInstalled && isActive -> {
                     OutlinedButton(
                         onClick = onDelete,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics {
+                                contentDescription = "إلغاء تثبيت النموذج ${model.name}"
+                            },
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = MaterialTheme.colorScheme.error
@@ -359,10 +409,23 @@ fun ModelCard(
                     }
                 }
                 else -> {
+                    val actionLabel = if (model.downloadUrl.isBlank()) "استيراد محلي" else "تنزيل"
                     Button(
                         onClick = onDownload,
                         enabled = modelState.isCompatible,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics {
+                                role = Role.Button
+                                contentDescription = when {
+                                    !modelState.isCompatible ->
+                                        "النموذج ${model.name} غير متوافق مع هذا الجهاز"
+                                    model.downloadUrl.isBlank() ->
+                                        "استيراد النموذج ${model.name} من مجلد على الجهاز"
+                                    else ->
+                                        "تنزيل النموذج ${model.name}"
+                                }
+                            },
                         shape = RoundedCornerShape(10.dp)
                     ) {
                         Icon(Icons.Outlined.Download, null, modifier = Modifier.size(16.dp))
@@ -370,8 +433,7 @@ fun ModelCard(
                         Text(
                             when {
                                 !modelState.isCompatible -> "غير متوافق"
-                                model.downloadUrl.isNotBlank() -> "تنزيل"
-                                else -> "استيراد محلي"
+                                else -> actionLabel
                             }
                         )
                     }
@@ -432,4 +494,39 @@ private fun familyIcon(family: String): ImageVector = when (family.lowercase()) 
     "gemma"   -> Icons.Filled.Diamond
     "mistral" -> Icons.Filled.Air
     else      -> Icons.Filled.Memory
+}
+
+private fun buildModelAccessibilitySummary(modelState: ModelUiState, isActive: Boolean): String {
+    val model = modelState.model
+    return buildString {
+        append("النموذج ${model.name}. ")
+        if (model.provider.isNotBlank()) {
+            append("المزوّد ${model.provider}. ")
+        }
+        append("الفئة ${model.family}. ")
+        append("التكميم ${model.quantization}. ")
+        append("الحجم ${"%.1f".format(model.sizeBytes / 1e9)} جيجابايت. ")
+        append("الحد الأدنى للذاكرة ${model.minRamMb / 1024} جيجابايت رام. ")
+        append("السياق ${model.contextLength / 1000} ألف رمز. ")
+        if (model.description.isNotBlank()) {
+            append("${model.description}. ")
+        }
+        if (model.tags.isNotEmpty()) {
+            append("الوسوم ${model.tags.take(3).joinToString(separator = "، ")}. ")
+        }
+        when {
+            modelState.downloadState == ModelDownloadState.DOWNLOADING -> append("حالة النموذج: قيد التنزيل. ")
+            modelState.isInstalled -> append("حالة النموذج: مثبت. ")
+            model.downloadUrl.isBlank() -> append("حالة النموذج: متاح للاستيراد المحلي. ")
+            else -> append("حالة النموذج: غير مثبت. ")
+        }
+        if (isActive) {
+            append("هذا هو النموذج النشط حاليًا. ")
+        }
+        if (!modelState.isCompatible) {
+            append("غير متوافق مع هذا الجهاز")
+            modelState.incompatibilityReason?.let { append(". $it") }
+            append(".")
+        }
+    }.trim()
 }

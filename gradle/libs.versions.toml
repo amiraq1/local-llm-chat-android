@@ -12,6 +12,7 @@ coroutines = "1.9.0"
 kotlinx-serialization = "1.7.3"
 timber = "5.0.1"
 workmanager = "2.9.1"
+documentfile = "1.0.1"
 
 [libraries]
 # Compose BOM
@@ -60,6 +61,7 @@ timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "tim
 # Core
 core-ktx = { group = "androidx.core", name = "core-ktx", version = "1.13.1" }
 splashscreen = { group = "androidx.core", name = "core-splashscreen", version = "1.0.1" }
+documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -1,5 +1,6 @@
 package com.example.localllm.ui.settings
 
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,6 +12,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -301,7 +304,10 @@ private fun SliderRow(
             steps = steps,
             modifier = Modifier
                 .padding(top = 4.dp)
-                .semantics { stateDescription = displayValue }
+                .semantics {
+                    contentDescription = "$label. $description"
+                    stateDescription = displayValue
+                }
         )
     }
 }
@@ -319,7 +325,16 @@ private fun ToggleRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 14.dp),
+            .toggleable(
+                value = checked,
+                onValueChange = onToggle,
+                role = Role.Switch
+            )
+            .padding(vertical = 14.dp)
+            .semantics(mergeDescendants = true) {
+                contentDescription = "$label. $description"
+                stateDescription = if (checked) "مفعّل" else "غير مفعّل"
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
@@ -328,7 +343,7 @@ private fun ToggleRow(
             Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
             Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Switch(checked = checked, onCheckedChange = onToggle)
+        Switch(checked = checked, onCheckedChange = null)
     }
 }
 
@@ -339,7 +354,10 @@ private fun AboutRow(icon: ImageVector, label: String, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp),
+            .padding(vertical = 12.dp)
+            .semantics(mergeDescendants = true) {
+                contentDescription = "$label: $value"
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))

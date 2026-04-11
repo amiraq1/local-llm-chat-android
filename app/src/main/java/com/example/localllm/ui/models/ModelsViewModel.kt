@@ -1,5 +1,6 @@
 package com.example.localllm.ui.models
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.localllm.data.datastore.SettingsDataStore
@@ -68,6 +69,24 @@ class ModelsViewModel @Inject constructor(
                 Timber.e(e, "Failed to download model")
                 _state.update {
                     it.copy(errorMessage = e.message ?: "فشل تنزيل النموذج")
+                }
+            } finally {
+                _state.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+    fun importModel(modelId: String, treeUri: Uri) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+            try {
+                modelRepository.importModelFromTree(modelId, treeUri)
+                Timber.d("Model imported locally: $modelId")
+                _state.update { it.copy(errorMessage = null) }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to import local model")
+                _state.update {
+                    it.copy(errorMessage = e.message ?: "فشل استيراد النموذج")
                 }
             } finally {
                 _state.update { it.copy(isLoading = false) }
