@@ -12,9 +12,11 @@ import com.example.localllm.domain.model.ModelDownloadState
 import com.example.localllm.mlc.MLC_MODEL_CONFIG_FILENAME
 import com.example.localllm.mlc.MLC_TENSOR_CACHE_FILENAME
 import com.example.localllm.mlc.MlcModelRecord
+import com.example.localllm.mlc.isInstalledMlcModelComplete
 import com.example.localllm.mlc.loadBundledMlcAppConfig
 import com.example.localllm.mlc.readInstalledMlcChatConfig
 import com.example.localllm.mlc.readInstalledMlcTensorCache
+import com.example.localllm.mlc.resolveMlcRedirectUrl
 import com.example.localllm.mlc.resolveMlcModelAssetUrl
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -68,12 +70,20 @@ class ModelRepository @Inject constructor(
         modelDao.getActiveModel()?.toDomain()
 
     suspend fun setActiveModel(modelId: String) {
+        val installedModel = modelDao.getModelById(modelId)
+            ?: error("لا يمكن تفعيل نموذج غير مثبّت: $modelId")
+        if (installedModel.isActive) {
+            Timber.d("Active model already set to: $modelId")
+            return
+        }
+
         modelDao.deactivateAll()
         modelDao.setActive(modelId)
         Timber.d("Active model set to: $modelId")
     }
 
     suspend fun markAsInstalled(model: LLMModel, filePath: String) {
+        val existing = modelDao.getModelById(model.id)
         modelDao.insert(
             InstalledModelEntity(
                 id = model.id,
@@ -81,10 +91,11 @@ class ModelRepository @Inject constructor(
                 family = model.family,
                 sizeBytes = model.sizeBytes,
                 filePath = filePath,
-                checksumVerified = false,
-                isActive = false,
-                quantization = model.quantization,
-                contextLength = model.contextLength
+                installedAt = existing?.installedAt ?: System.currentTimeMillis(),
+                checksumVerified = existing?.checksumVerified ?: false,
+                isActive = existing?.isActive ?: false,
+                quantization = existing?.quantization ?: model.quantization,
+                contextLength = existing?.contextLength ?: model.contextLength
             )
         )
     }
@@ -129,6 +140,9 @@ class ModelRepository @Inject constructor(
 
     fun getInstallPath(modelId: String): String =
         File(getModelsDir(), modelId).absolutePath
+
+    fun isInstallComplete(modelId: String): Boolean =
+        isInstalledMlcModelComplete(File(getInstallPath(modelId)))
 
     suspend fun deleteModel(modelId: String) {
         File(getInstallPath(modelId)).deleteRecursively()
@@ -252,7 +266,12 @@ class ModelRepository @Inject constructor(
             return
         }
 
-        destination.parentFile?.mkdirs()
+        val parentDir = checkNotNull(destination.parentFile) {
+            "Destination has no parent directory: $destination"
+        }
+        if (!parentDir.exists() && !parentDir.mkdirs()) {
+            error("Failed to create destination directory: $parentDir")
+        }
         val tempFile = File(destination.parentFile, "${destination.name}.part")
 
         var currentUrl = url
@@ -269,7 +288,9 @@ class ModelRepository @Inject constructor(
 
                 val responseCode = connection.responseCode
                 if (responseCode in 300..399) {
-                    currentUrl = connection.getHeaderField("Location")
+                    val redirectLocation = connection.getHeaderField("Location")
+                        ?: error("Redirect response missing Location header for $currentUrl")
+                    currentUrl = resolveMlcRedirectUrl(currentUrl, redirectLocation)
                     connection.disconnect()
                     redirectCount++
                     continue
@@ -287,9 +308,15 @@ class ModelRepository @Inject constructor(
                 error("Failed to connect or too many redirects")
             }
 
+            tempFile.delete()
+            if (!tempFile.createNewFile()) {
+                error("Failed to create temp file for download: $tempFile")
+            }
+
             inputStream.use { input ->
                 java.io.FileOutputStream(tempFile).use { output ->
                     input.copyTo(output)
+                    output.fd.sync()
                 }
             }
 
@@ -298,9 +325,15 @@ class ModelRepository @Inject constructor(
                     tempFile.copyTo(destination, overwrite = true)
                     tempFile.delete()
                 }
+                if (!destination.exists()) {
+                    error("Downloaded file could not be finalized: $destination")
+                }
             } else {
                 error("Downloaded temp file was not created properly: $tempFile")
             }
+        } catch (error: Exception) {
+            tempFile.delete()
+            throw error
         } finally {
             try { inputStream?.close() } catch (e: Exception) { }
             try { connection?.disconnect() } catch (e: Exception) { }

@@ -33,8 +33,10 @@ class ModelsViewModel @Inject constructor(
             modelRepository.availableModels.forEach { model ->
                 val path = modelRepository.getInstallPath(model.id)
                 val dir = java.io.File(path)
-                if (dir.exists() && dir.isDirectory && !dir.list().isNullOrEmpty()) {
+                if (modelRepository.isInstallComplete(model.id)) {
                     modelRepository.markAsInstalled(model, path)
+                } else if (dir.exists()) {
+                    Timber.w("Ignoring incomplete local model install for %s at %s", model.id, path)
                 }
             }
         }
@@ -44,8 +46,15 @@ class ModelsViewModel @Inject constructor(
                 modelRepository.getModelUiStates(),
                 settingsDataStore.settings
             ) { modelStates, settings ->
-                Pair(modelStates, settings.activeModelId)
-            }.collect { (modelStates, activeModelId) ->
+                Pair(modelStates, settings)
+            }.collect { (modelStates, settings) ->
+                val activeModelId = runCatching {
+                    reconcileActiveModelState(modelStates, settings.activeModelId)
+                }.onFailure { error ->
+                    Timber.e(error, "Failed to reconcile active model state")
+                    _state.update { it.copy(errorMessage = "فشل مزامنة النموذج النشط") }
+                }.getOrDefault("")
+
                 _state.update { it.copy(models = modelStates, activeModelId = activeModelId) }
             }
         }
@@ -74,11 +83,15 @@ class ModelsViewModel @Inject constructor(
 
             val path = modelRepository.getInstallPath(model.id)
             val dir = java.io.File(path)
-            if (dir.exists() && dir.isDirectory && !dir.list().isNullOrEmpty()) {
+            if (modelRepository.isInstallComplete(model.id)) {
                 modelRepository.markAsInstalled(model, path)
                 Timber.d("Model found in local storage and synced: $modelId at $path")
                 _state.update { it.copy(errorMessage = null) }
                 return@launch
+            }
+
+            if (dir.exists()) {
+                dir.deleteRecursively()
             }
 
             _state.update { it.copy(isLoading = true) }
@@ -86,9 +99,15 @@ class ModelsViewModel @Inject constructor(
                 modelRepository.downloadModel(modelId)
                 Timber.d("Model installed: $modelId")
             } catch (e: Exception) {
-                Timber.e(e, "Failed to download model")
-                _state.update {
-                    it.copy(errorMessage = e.message ?: "فشل تنزيل النموذج")
+                if (modelRepository.isInstallComplete(modelId)) {
+                    modelRepository.markAsInstalled(model, path)
+                    Timber.w(e, "Recovered from download error after completing model install: $modelId")
+                    _state.update { it.copy(errorMessage = null) }
+                } else {
+                    Timber.e(e, "Failed to download model")
+                    _state.update {
+                        it.copy(errorMessage = e.message ?: "فشل تنزيل النموذج")
+                    }
                 }
             } finally {
                 _state.update { it.copy(isLoading = false) }
@@ -100,6 +119,9 @@ class ModelsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 modelRepository.deleteModel(modelId)
+                if (_state.value.activeModelId == modelId) {
+                    settingsDataStore.updateActiveModelId("")
+                }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to delete model")
                 _state.update { it.copy(errorMessage = "فشل حذف النموذج") }
@@ -108,4 +130,37 @@ class ModelsViewModel @Inject constructor(
     }
 
     fun clearError() = _state.update { it.copy(errorMessage = null) }
+
+    private suspend fun reconcileActiveModelState(
+        modelStates: List<ModelUiState>,
+        storedActiveModelId: String
+    ): String {
+        val installedIds = modelStates
+            .asSequence()
+            .filter { it.isInstalled }
+            .map { it.model.id }
+            .toSet()
+        val databaseActiveModelId = modelStates.firstOrNull { it.isActive }?.model?.id.orEmpty()
+
+        return when {
+            databaseActiveModelId.isNotBlank() && databaseActiveModelId != storedActiveModelId -> {
+                settingsDataStore.updateActiveModelId(databaseActiveModelId)
+                databaseActiveModelId
+            }
+
+            databaseActiveModelId.isBlank() &&
+                storedActiveModelId.isNotBlank() &&
+                storedActiveModelId in installedIds -> {
+                modelRepository.setActiveModel(storedActiveModelId)
+                storedActiveModelId
+            }
+
+            storedActiveModelId.isNotBlank() && storedActiveModelId !in installedIds -> {
+                settingsDataStore.updateActiveModelId("")
+                ""
+            }
+
+            else -> databaseActiveModelId.ifBlank { storedActiveModelId }
+        }
+    }
 }

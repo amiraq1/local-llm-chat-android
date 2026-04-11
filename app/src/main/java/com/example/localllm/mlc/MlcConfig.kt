@@ -7,6 +7,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import timber.log.Timber
 import java.io.File
+import java.net.URL
 
 const val MLC_APP_CONFIG_ASSET = "mlc-app-config.json"
 const val MLC_MODEL_CONFIG_FILENAME = "mlc-chat-config.json"
@@ -68,3 +69,28 @@ fun resolveMlcModelAssetUrl(modelUrl: String, relativePath: String): String {
     val normalizedBase = if (modelUrl.endsWith("/")) modelUrl else "$modelUrl/"
     return normalizedBase + HUGGING_FACE_RESOLVE_PREFIX + relativePath.removePrefix("/")
 }
+
+fun resolveMlcRedirectUrl(requestUrl: String, redirectLocation: String): String =
+    URL(URL(requestUrl), redirectLocation).toString()
+
+fun isInstalledMlcModelComplete(modelDir: File): Boolean = runCatching {
+    if (!modelDir.isDirectory) return false
+
+    val chatConfigFile = File(modelDir, MLC_MODEL_CONFIG_FILENAME)
+    val tensorCacheFile = File(modelDir, MLC_TENSOR_CACHE_FILENAME)
+    if (!chatConfigFile.isFile || !tensorCacheFile.isFile) {
+        return false
+    }
+
+    val chatConfig = readInstalledMlcChatConfig(modelDir)
+    val tensorCache = readInstalledMlcTensorCache(modelDir)
+
+    val tokenizerFilesPresent = chatConfig.tokenizerFiles.all { relativePath ->
+        File(modelDir, relativePath).isFile
+    }
+    val tensorFilesPresent = tensorCache.records.all { tensorRecord ->
+        File(modelDir, tensorRecord.dataPath).isFile
+    }
+
+    tokenizerFilesPresent && tensorFilesPresent
+}.getOrDefault(false)
