@@ -35,9 +35,7 @@ public class JSONFFIEngine {
         exitBackgroundLoopFunc = jsonFFIEngine.getFunction("exit_background_loop");
     }
 
-    public void initBackgroundEngine(KotlinFunction callback) {
-        Device device = Device.opencl();
-
+    public void initBackgroundEngine(int deviceType, int deviceId, KotlinFunction callback) {
         requestStreamCallback = Function.convertFunc(new Function.Callback() {
             @Override
             public Object invoke(TVMValue... args) {
@@ -47,7 +45,7 @@ public class JSONFFIEngine {
             }
         });
 
-        initBackgroundEngineFunc.pushArg(device.deviceType).pushArg(device.deviceId).pushArg(requestStreamCallback)
+        initBackgroundEngineFunc.pushArg(deviceType).pushArg(deviceId).pushArg(requestStreamCallback)
                 .invoke();
     }
 
