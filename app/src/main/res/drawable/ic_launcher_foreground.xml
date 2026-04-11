@@ -5,7 +5,6 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     <path
-codex/fix-audit-findings
         android:fillColor="#58A6FF"
         android:pathData="M54,16A38,38 0 1,1 16,54A38,38 0 0,1 54,16Z" />
     <path
@@ -20,20 +19,4 @@ codex/fix-audit-findings
     <path
         android:fillColor="#F0F6FC"
         android:pathData="M64,43A4,4 0 1,1 60,47A4,4 0 0,1 64,43Z" />
-
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,18c-18.8,0 -34,13.7 -34,30.6c0,9.6 4.9,18.2 12.5,23.8L29,90l18.2,-8.7c2.2,0.4 4.5,0.6 6.8,0.6c18.8,0 34,-13.7 34,-30.6S72.8,18 54,18z" />
-    <path
-        android:fillColor="#4FC3F7"
-        android:pathData="M39,44m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0" />
-    <path
-        android:fillColor="#4FC3F7"
-        android:pathData="M54,44m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0" />
-    <path
-        android:fillColor="#4FC3F7"
-        android:pathData="M69,44m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0" />
-    <path
-        android:fillColor="#4FC3F7"
-        android:pathData="M38,60h32a4,4 0,0 1,0 8H38a4,4 0,0 1,0 -8z" />
- main
 </vector>

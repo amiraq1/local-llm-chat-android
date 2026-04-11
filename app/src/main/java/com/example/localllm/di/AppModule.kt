@@ -66,7 +66,6 @@ object CoroutineModule {
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class EngineModule {
-codex/fix-audit-findings
     /**
      * Keep the fake engine as the default until the native MLC toolchain is
      * explicitly enabled in a compatible build environment.
@@ -74,8 +73,6 @@ codex/fix-audit-findings
      * This keeps regular development and CI builds independent from the
      * bundled TVM runtime artifacts.
      */
-
-main
     @Binds
     @Singleton
     abstract fun bindInferenceEngine(engine: FakeInferenceEngine): InferenceEngine

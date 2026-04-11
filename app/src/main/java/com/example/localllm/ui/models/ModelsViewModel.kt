@@ -28,15 +28,8 @@ class ModelsViewModel @Inject constructor(
     val state: StateFlow<ModelsScreenState> = _state.asStateFlow()
 
     init {
-        // Auto-sync local storage models on startup
         viewModelScope.launch {
-            modelRepository.availableModels.forEach { model ->
-                val path = modelRepository.getInstallPath(model.id)
-                val dir = java.io.File(path)
-                if (dir.exists() && dir.isDirectory && !dir.list().isNullOrEmpty()) {
-                    modelRepository.markAsInstalled(model, path)
-                }
-            }
+            modelRepository.syncDiscoveredModels()
         }
 
         viewModelScope.launch {
@@ -66,32 +59,11 @@ class ModelsViewModel @Inject constructor(
 
     fun downloadModel(modelId: String) {
         viewModelScope.launch {
- codex/fix-audit-findings
-            Timber.d("Attempting to bind local model: $modelId")
-            val model = modelRepository.availableModels.find { it.id == modelId }
-            if (model != null) {
-                val path = modelRepository.getInstallPath(model.id)
-                val dir = java.io.File(path)
-                
-                if (dir.exists() && dir.isDirectory && !dir.list().isNullOrEmpty()) {
-                    modelRepository.markAsInstalled(model, path)
-                    Timber.d("Model found in local storage and synced: $modelId at $path")
-                    // Clear error if there was any
-                    _state.update { it.copy(errorMessage = null) }
-                } else {
-                    // Tell user to place the model there
-                    val parentUrl = path.substringBeforeLast('/')
-                    _state.update { 
-                        it.copy(errorMessage = "يرجى نسخ مجلد النموذج إلى المسار التالي ثم المحاولة مجدداً:\n\n$parentUrl\n\n(يجب أن يكون اسم المجلد $modelId)") 
-                    }
-                }
-            } else {
-                _state.update { it.copy(errorMessage = "النموذج غير موجود في القائمة") }
-
             _state.update { it.copy(isLoading = true) }
             try {
                 modelRepository.downloadModel(modelId)
                 Timber.d("Model installed: $modelId")
+                _state.update { it.copy(errorMessage = null) }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to download model")
                 _state.update {
@@ -99,7 +71,6 @@ class ModelsViewModel @Inject constructor(
                 }
             } finally {
                 _state.update { it.copy(isLoading = false) }
-main
             }
         }
     }

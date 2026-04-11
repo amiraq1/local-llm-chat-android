@@ -54,7 +54,9 @@ data class LLMModel(
     val contextLength: Int,
     val quantization: String,
     val tags: List<String> = emptyList(),
-    val minAndroidApi: Int = 28
+    val minAndroidApi: Int = 28,
+    val provider: String = "",
+    val description: String = ""
 )
 
 @Immutable

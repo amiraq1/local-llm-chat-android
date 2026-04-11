@@ -210,10 +210,26 @@ fun ModelCard(
                         }
                     }
                     Text(
-                        "${model.family.uppercase()} · ${model.quantization}",
+                        buildString {
+                            if (model.provider.isNotBlank()) {
+                                append(model.provider)
+                                append(" · ")
+                            }
+                            append(model.family.uppercase())
+                            append(" · ")
+                            append(model.quantization)
+                        },
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    if (model.description.isNotBlank()) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            model.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
                 // Install state badge
@@ -351,7 +367,13 @@ fun ModelCard(
                     ) {
                         Icon(Icons.Outlined.Download, null, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(6.dp))
-                        Text(if (modelState.isCompatible) "استيراد محلي" else "غير متوافق")
+                        Text(
+                            when {
+                                !modelState.isCompatible -> "غير متوافق"
+                                model.downloadUrl.isNotBlank() -> "تنزيل"
+                                else -> "استيراد محلي"
+                            }
+                        )
                     }
                 }
             }
