@@ -1,15 +1,12 @@
 package com.example.localllm.data.tools
 
-import android.os.Build
 import com.example.localllm.domain.tools.Tool
 import com.example.localllm.domain.tools.ToolResult
 import javax.inject.Inject
 
-/**
- * Returns basic device information using [android.os.Build].
- * No permissions required.
- */
-class GetDeviceInfoTool @Inject constructor() : Tool {
+class GetDeviceInfoTool @Inject constructor(
+    private val provider: DeviceInfoProvider
+) : Tool {
 
     override val name = "get_device_info"
     override val description = "Returns manufacturer, model, Android version, and SDK level"
@@ -17,30 +14,25 @@ class GetDeviceInfoTool @Inject constructor() : Tool {
 
     override suspend fun execute(params: Map<String, Any>): ToolResult {
         return try {
+            val info = provider.get()
             val payload = mapOf(
-                "manufacturer" to Build.MANUFACTURER,
-                "model"        to Build.MODEL,
-                "brand"        to Build.BRAND,
-                "androidVersion" to Build.VERSION.RELEASE,
-                "sdkLevel"     to Build.VERSION.SDK_INT.toString(),
-                "device"       to Build.DEVICE,
-                "hardware"     to Build.HARDWARE,
-                "supportedAbis" to Build.SUPPORTED_ABIS.joinToString(", ")
+                "manufacturer"   to info.manufacturer,
+                "model"          to info.model,
+                "brand"          to info.brand,
+                "androidVersion" to info.androidVersion,
+                "sdkLevel"       to info.sdkLevel.toString(),
+                "device"         to info.device,
+                "hardware"       to info.hardware,
+                "supportedAbis"  to info.supportedAbis.joinToString(", ")
             )
-
             val text = buildString {
-                appendLine("Manufacturer: ${payload["manufacturer"]}")
-                appendLine("Model: ${payload["model"]}")
-                appendLine("Android: ${payload["androidVersion"]} (SDK ${payload["sdkLevel"]})")
-                appendLine("ABI: ${payload["supportedAbis"]}")
+                appendLine("Manufacturer: ${info.manufacturer}")
+                appendLine("Model: ${info.model}")
+                appendLine("Android: ${info.androidVersion} (SDK ${info.sdkLevel})")
+                appendLine("ABI: ${info.supportedAbis.joinToString(", ")}")
             }.trimEnd()
 
-            ToolResult(
-                toolName = name,
-                success = true,
-                resultText = text,
-                payload = payload
-            )
+            ToolResult(toolName = name, success = true, resultText = text, payload = payload)
         } catch (e: Exception) {
             ToolResult(
                 toolName = name,

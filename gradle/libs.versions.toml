@@ -17,6 +17,7 @@ junit4 = "4.13.2"
 kotlinx-serialization = "1.7.3"
 mockk = "1.13.12"
 timber = "5.0.1"
+truth = "1.4.4"
 turbine = "1.1.0"
 workmanager = "2.9.1"
 
@@ -74,6 +75,7 @@ material = { group = "com.google.android.material", name = "material", version.r
 # Test
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+truth = { group = "com.google.truth", name = "truth", version.ref = "truth" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 
 [plugins]
