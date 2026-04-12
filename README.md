@@ -4,7 +4,7 @@
 
 ## المتطلبات
 
-- JDK 21
+- JDK 17+
 - Android SDK API 35
 - Android Studio حديث أو بيئة Gradle تدعم Android
 
