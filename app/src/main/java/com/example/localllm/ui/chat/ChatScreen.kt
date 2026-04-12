@@ -1,27 +1,91 @@
 package com.example.localllm.ui.chat
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material.icons.outlined.Memory
+import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.mergeDescendants
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -43,25 +107,50 @@ fun ChatScreen(
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val shouldShowEmptyState by remember(uiState.messages, uiState.streamingText, uiState.isModelLoading) {
+        derivedStateOf {
+            uiState.messages.isEmpty() &&
+                uiState.streamingText.isEmpty() &&
+                !uiState.isModelLoading
+        }
+    }
+
     LaunchedEffect(conversationId) {
-        if (conversationId > 0L) viewModel.loadConversation(conversationId)
+        if (conversationId > 0L) {
+            viewModel.loadConversation(conversationId)
+        }
     }
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
             when (event) {
-                is ChatEvent.ScrollToBottom -> {
-                    val count = listState.layoutInfo.totalItemsCount
-                    if (count > 0) listState.animateScrollToItem(count - 1)
-                }
+                is ChatEvent.ScrollToBottom -> listState.scrollToBottomIfNeeded(force = true)
                 is ChatEvent.ShowError -> snackbarHostState.showSnackbar(event.message)
             }
         }
     }
 
+    LaunchedEffect(
+        uiState.messages.size,
+        uiState.streamingText,
+        uiState.isModelLoading,
+        uiState.errorMessage
+    ) {
+        val shouldAutoScroll =
+            listState.isNearBottom() || uiState.isGenerating || uiState.streamingText.isNotEmpty()
+        if (shouldAutoScroll) {
+            listState.scrollToBottomIfNeeded(force = false)
+        }
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = { ChatTopBar(uiState = uiState, onNewChat = viewModel::startNewConversation) },
+        topBar = {
+            ChatTopBar(
+                uiState = uiState,
+                onNewChat = viewModel::startNewConversation
+            )
+        },
         bottomBar = {
             ChatInputBar(
                 text = uiState.inputText,
@@ -71,76 +160,112 @@ fun ChatScreen(
                 onStop = viewModel::stopGeneration
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets.ime
     ) { padding ->
         Box(
-            Modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            if (uiState.messages.isEmpty() && uiState.streamingText.isEmpty() && !uiState.isModelLoading) {
-                ChatEmptyState(
-                    activeModelId = uiState.activeModelId,
-                    onSuggestionClick = viewModel::onSuggestionClicked
-                )
-            } else {
-                LazyColumn(
-                    state = listState,
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(uiState.messages, key = { it.id }) { message ->
-                        // Animate each message entry
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = slideInVertically(
-                                initialOffsetY = { it / 3 },
-                                animationSpec = tween(250)
-                            ) + fadeIn(tween(200))
-                        ) {
-                            MessageBubble(message = message)
-                        }
-                        Spacer(Modifier.height(4.dp))
-                    }
+            when {
+                shouldShowEmptyState -> {
+                    ChatEmptyState(
+                        activeModelId = uiState.activeModelId,
+                        onSuggestionClick = viewModel::onSuggestionClicked
+                    )
+                }
 
-                    if (uiState.isModelLoading) {
-                        item { ModelLoadingIndicator() }
-                    }
-
-                    uiState.errorMessage?.let { errorMessage ->
-                        item { ChatErrorCard(message = errorMessage) }
-                    }
-
-                    if (uiState.streamingText.isNotEmpty()) {
-                        item { StreamingBubble(text = uiState.streamingText) }
-                    } else if (uiState.isGenerating && uiState.streamingText.isEmpty()) {
-                        item { TypingIndicator() }
-                    }
+                else -> {
+                    ChatMessageList(
+                        uiState = uiState,
+                        listState = listState
+                    )
                 }
             }
         }
     }
 }
 
-// ─── Top Bar ──────────────────────────────────────────────────────────────────
+@Composable
+private fun ChatMessageList(
+    uiState: ChatUiState,
+    listState: LazyListState
+) {
+    LazyColumn(
+        state = listState,
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        items(
+            items = uiState.messages,
+            key = { it.id }
+        ) { message ->
+            AnimatedMessageItem(message = message)
+        }
+
+        if (uiState.isModelLoading) {
+            item(key = "model_loading") {
+                ModelLoadingIndicator()
+            }
+        }
+
+        uiState.errorMessage?.let { errorMessage ->
+            item(key = "error") {
+                ChatErrorCard(message = errorMessage)
+            }
+        }
+
+        if (uiState.streamingText.isNotEmpty()) {
+            item(key = "streaming") {
+                StreamingBubble(text = uiState.streamingText)
+            }
+        } else if (uiState.isGenerating) {
+            item(key = "typing") {
+                TypingIndicator()
+            }
+        }
+
+        item(key = "bottom_spacer") {
+            Spacer(Modifier.size(4.dp))
+        }
+    }
+}
+
+@OptIn(ExperimentalAnimationApi::class)
+@Composable
+private fun AnimatedMessageItem(message: Message) {
+    AnimatedVisibility(
+        visible = true,
+        enter = slideInVertically(
+            initialOffsetY = { it / 4 },
+            animationSpec = tween(220)
+        ) + fadeIn(animationSpec = tween(180))
+    ) {
+        MessageBubble(message = message)
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ChatTopBar(uiState: ChatUiState, onNewChat: () -> Unit) {
+private fun ChatTopBar(
+    uiState: ChatUiState,
+    onNewChat: () -> Unit
+) {
     TopAppBar(
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Status dot
                 Box(
                     Modifier
                         .size(8.dp)
-                        .clip(RoundedCornerShape(50))
+                        .clip(CircleShape)
                         .background(
-                            if (uiState.activeModelId.isNotEmpty())
+                            if (uiState.activeModelId.isNotEmpty()) {
                                 MaterialTheme.colorScheme.secondary
-                            else
+                            } else {
                                 MaterialTheme.colorScheme.outline
+                            }
                         )
                         .semantics {
                             contentDescription = "حالة النموذج"
@@ -156,34 +281,30 @@ private fun ChatTopBar(uiState: ChatUiState, onNewChat: () -> Unit) {
                     modifier = Modifier.semantics(mergeDescendants = true) { heading() }
                 ) {
                     Text(
-                        "نبض",
+                        text = "نبض",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
-                    if (uiState.activeModelId.isNotEmpty()) {
-                        Text(
-                            uiState.activeModelId,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    } else {
-                        Text(
-                            "لم يُختر نموذج",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                    }
+                    Text(
+                        text = uiState.activeModelId.ifEmpty { "لم يُختر نموذج" },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (uiState.activeModelId.isNotEmpty()) {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        } else {
+                            MaterialTheme.colorScheme.outline
+                        }
+                    )
                 }
             }
         },
         actions = {
-            if (uiState.tokensPerSecond != null) {
+            uiState.tokensPerSecond?.let { tps ->
                 Surface(
                     shape = RoundedCornerShape(20.dp),
                     color = MaterialTheme.colorScheme.secondaryContainer
                 ) {
                     Text(
-                        "${"%.1f".format(uiState.tokensPerSecond)} t/s",
+                        text = "${"%.1f".format(tps)} t/s",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
                         fontWeight = FontWeight.SemiBold,
@@ -192,6 +313,7 @@ private fun ChatTopBar(uiState: ChatUiState, onNewChat: () -> Unit) {
                 }
                 Spacer(Modifier.width(4.dp))
             }
+
             IconButton(onClick = onNewChat) {
                 Icon(
                     Icons.Outlined.EditNote,
@@ -207,10 +329,11 @@ private fun ChatTopBar(uiState: ChatUiState, onNewChat: () -> Unit) {
     )
 }
 
-// ─── Empty State ──────────────────────────────────────────────────────────────
-
 @Composable
-private fun ChatEmptyState(activeModelId: String, onSuggestionClick: (String) -> Unit) {
+private fun ChatEmptyState(
+    activeModelId: String,
+    onSuggestionClick: (String) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -220,64 +343,75 @@ private fun ChatEmptyState(activeModelId: String, onSuggestionClick: (String) ->
     ) {
         Surface(
             shape = RoundedCornerShape(28.dp),
-            color = if (activeModelId.isEmpty()) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer,
+            color = if (activeModelId.isEmpty()) {
+                MaterialTheme.colorScheme.errorContainer
+            } else {
+                MaterialTheme.colorScheme.primaryContainer
+            },
             modifier = Modifier.size(80.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
-                    if (activeModelId.isEmpty()) Icons.Outlined.Warning else Icons.Outlined.Memory,
-                    contentDescription = if (activeModelId.isEmpty()) "تحذير: لا يوجد نموذج" else "نموذج جاهز",
+                    imageVector = if (activeModelId.isEmpty()) {
+                        Icons.Outlined.Warning
+                    } else {
+                        Icons.Outlined.Memory
+                    },
+                    contentDescription = if (activeModelId.isEmpty()) {
+                        "تحذير: لا يوجد نموذج"
+                    } else {
+                        "نموذج جاهز"
+                    },
                     modifier = Modifier.size(40.dp),
-                    tint = if (activeModelId.isEmpty()) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
+                    tint = if (activeModelId.isEmpty()) {
+                        MaterialTheme.colorScheme.onErrorContainer
+                    } else {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    }
                 )
             }
         }
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.size(24.dp))
 
         if (activeModelId.isEmpty()) {
             Text(
-                "لا يوجد نموذج نشط",
+                text = "لا يوجد نموذج نشط",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.semantics { heading() }
             )
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.size(8.dp))
 
             Text(
-                "الرجاء اختيار نموذج من الإعدادات أو تنزيل نموذج جديد للبدء في استخدام التطبيق.",
+                text = "الرجاء اختيار نموذج من الإعدادات أو تنزيل نموذج جديد للبدء في استخدام التطبيق.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
+                textAlign = TextAlign.Center
             )
         } else {
             Text(
-                "نبض جاهز",
+                text = "نبض جاهز",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.semantics { heading() }
             )
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.size(8.dp))
 
             Text(
-                "كل معالجتك تتم محليًا على جهازك\nبدون أي اتصال بالإنترنت",
+                text = "كل معالجتك تتم محليًا على جهازك\nبدون أي اتصال بالإنترنت",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
+                textAlign = TextAlign.Center
             )
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.size(32.dp))
 
-            // Interactive suggestion chips
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SuggestionItem("اشرح لي AI", onClick = onSuggestionClick)
                 SuggestionItem("اكتب قصيدة", onClick = onSuggestionClick)
             }
@@ -286,7 +420,10 @@ private fun ChatEmptyState(activeModelId: String, onSuggestionClick: (String) ->
 }
 
 @Composable
-private fun SuggestionItem(text: String, onClick: (String) -> Unit) {
+private fun SuggestionItem(
+    text: String,
+    onClick: (String) -> Unit
+) {
     SuggestionChip(
         onClick = { onClick(text) },
         shape = RoundedCornerShape(20.dp),
@@ -297,7 +434,7 @@ private fun SuggestionItem(text: String, onClick: (String) -> Unit) {
         ),
         label = {
             Text(
-                text,
+                text = text,
                 style = MaterialTheme.typography.labelLarge
             )
         },
@@ -311,18 +448,19 @@ private fun SuggestionItem(text: String, onClick: (String) -> Unit) {
     )
 }
 
-// ─── Message Bubble ───────────────────────────────────────────────────────────
-
 @Composable
 fun MessageBubble(message: Message) {
     val isUser = message.role == MessageRole.USER
-    val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+    val formattedTime = rememberMessageTime(message.createdAt)
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clearAndSetSemantics {
-                contentDescription = buildMessageAccessibilityLabel(message, timeFormatter)
+                contentDescription = buildMessageAccessibilityLabel(
+                    message = message,
+                    formattedTime = formattedTime
+                )
             },
         horizontalAlignment = if (isUser) Alignment.End else Alignment.Start
     ) {
@@ -331,162 +469,76 @@ fun MessageBubble(message: Message) {
             horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
             verticalAlignment = Alignment.Bottom
         ) {
-            // Assistant avatar
             if (!isUser) {
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.size(28.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            Icons.Filled.AutoAwesome,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                }
+                MessageAvatar(isUser = false)
                 Spacer(Modifier.width(8.dp))
             }
 
-            // Bubble
-            Surface(
-                shape = RoundedCornerShape(
-                    topStart = 18.dp,
-                    topEnd   = 18.dp,
-                    bottomStart = if (isUser) 18.dp else 4.dp,
-                    bottomEnd   = if (isUser) 4.dp else 18.dp
-                ),
-                color = if (isUser)
-                    MaterialTheme.colorScheme.primary
-                else
-                    MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.widthIn(min = 60.dp, max = 300.dp)
-            ) {
-                Text(
-                    text = message.content,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (isUser)
-                        MaterialTheme.colorScheme.onPrimary
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
-                )
-            }
+            ChatBubbleSurface(
+                isUser = isUser,
+                text = message.content
+            )
 
-            // User avatar
             if (isUser) {
                 Spacer(Modifier.width(8.dp))
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    modifier = Modifier.size(28.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            Icons.Filled.Person,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    }
-                }
+                MessageAvatar(isUser = true)
             }
         }
 
-        // Meta row: time + token count
-        Row(
-            modifier = Modifier
-                .padding(
-                    start = if (!isUser) 36.dp else 0.dp,
-                    end   = if (isUser) 36.dp else 0.dp,
-                    top   = 3.dp
-                ),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                timeFormatter.format(Date(message.createdAt)),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.outline
-            )
-            if (message.tokensUsed != null) {
-                Text("·", color = MaterialTheme.colorScheme.outline, style = MaterialTheme.typography.labelSmall)
-                Text(
-                    "${message.tokensUsed} tokens",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.outline
-                )
-            }
-        }
+        MessageMetaRow(
+            isUser = isUser,
+            formattedTime = formattedTime,
+            tokensUsed = message.tokensUsed
+        )
     }
 }
-
-// ─── Streaming Bubble ────────────────────────────────────────────────────────
 
 @Composable
 fun StreamingBubble(text: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clearAndSetSemantics {
+            .semantics(mergeDescendants = true) {
                 liveRegion = LiveRegionMode.Polite
                 contentDescription = if (text.isBlank()) {
                     "المساعد يكتب ردًا"
                 } else {
-                    "رد المساعد قيد التوليد. $text"
+                    "رد المساعد قيد التوليد"
                 }
             },
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.Bottom
     ) {
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.primaryContainer,
-            modifier = Modifier.size(28.dp)
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    Icons.Filled.AutoAwesome,
-                    contentDescription = null,
-                    modifier = Modifier.size(14.dp),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-        }
+        MessageAvatar(isUser = false)
         Spacer(Modifier.width(8.dp))
+
         Surface(
-            shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp, bottomStart = 4.dp, bottomEnd = 18.dp),
+            shape = assistantBubbleShape(),
             color = MaterialTheme.colorScheme.surfaceVariant,
-            modifier = Modifier.widthIn(min = 60.dp, max = 300.dp)
+            modifier = Modifier.widthIn(min = 60.dp, max = 320.dp)
         ) {
-            Box(
+            val infiniteTransition = rememberInfiniteTransition(label = "cursor")
+            val alpha by infiniteTransition.animateFloat(
+                initialValue = 1f,
+                targetValue = 0f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(500),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "cursorAlpha"
+            )
+
+            val cursorChar = if (alpha > 0.5f) " ▌" else ""
+
+            Text(
+                text = text + cursorChar,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
-            ) {
-                // Blinking cursor
-                val infiniteTransition = rememberInfiniteTransition(label = "cursor")
-                val alpha by infiniteTransition.animateFloat(
-                    initialValue = 1f, targetValue = 0f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(500),
-                        repeatMode = RepeatMode.Reverse
-                    ),
-                    label = "cursorAlpha"
-                )
-                
-                val cursorChar = if (alpha > 0.5f) " ▌" else "  "
-                Text(
-                    text = text + cursorChar,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            )
         }
     }
 }
-
-// ─── Typing Indicator ────────────────────────────────────────────────────────
 
 @Composable
 private fun TypingIndicator() {
@@ -500,23 +552,11 @@ private fun TypingIndicator() {
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.primaryContainer,
-            modifier = Modifier.size(28.dp)
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    Icons.Filled.AutoAwesome,
-                    contentDescription = null,
-                    Modifier.size(14.dp),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-        }
+        MessageAvatar(isUser = false)
         Spacer(Modifier.width(8.dp))
+
         Surface(
-            shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp, bottomStart = 4.dp, bottomEnd = 18.dp),
+            shape = assistantBubbleShape(),
             color = MaterialTheme.colorScheme.surfaceVariant
         ) {
             Row(
@@ -524,7 +564,6 @@ private fun TypingIndicator() {
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Single InfiniteTransition with 3 animations (optimized from 3 separate transitions)
                 val infiniteTransition = rememberInfiniteTransition(label = "typing")
                 repeat(3) { i ->
                     val offsetY by infiniteTransition.animateFloat(
@@ -536,20 +575,21 @@ private fun TypingIndicator() {
                         ),
                         label = "dotOffset$i"
                     )
+
                     Box(
-                        Modifier
+                        modifier = Modifier
                             .size(7.dp)
                             .offset(y = offsetY.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f))
+                            .clip(CircleShape)
+                            .background(
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
                     )
                 }
             }
         }
     }
 }
-
-// ─── Model Loading ────────────────────────────────────────────────────────────
 
 @Composable
 private fun ModelLoadingIndicator() {
@@ -574,7 +614,7 @@ private fun ModelLoadingIndicator() {
             )
             Spacer(Modifier.width(10.dp))
             Text(
-                "جاري تحميل النموذج...",
+                text = "جاري تحميل النموذج...",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onTertiaryContainer
             )
@@ -614,8 +654,6 @@ private fun ChatErrorCard(message: String) {
     }
 }
 
-// ─── Input Bar ────────────────────────────────────────────────────────────────
-
 @Composable
 fun ChatInputBar(
     text: String,
@@ -644,7 +682,7 @@ fun ChatInputBar(
                 label = { Text("الرسالة") },
                 placeholder = {
                     Text(
-                        "اكتب رسالتك...",
+                        text = "اكتب رسالتك...",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.outline
                     )
@@ -652,11 +690,15 @@ fun ChatInputBar(
                 modifier = Modifier.weight(1f),
                 maxLines = 6,
                 shape = RoundedCornerShape(20.dp),
-                enabled = !isGenerating,
+                enabled = true,
+                keyboardActions = KeyboardActions(
+                    onSend = { if (!isGenerating && text.isNotBlank()) onSend() }
+                ),
+                singleLine = false,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor   = MaterialTheme.colorScheme.primary,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-                    disabledBorderColor  = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                    disabledBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                 )
             )
 
@@ -664,7 +706,7 @@ fun ChatInputBar(
                 targetState = isGenerating,
                 transitionSpec = {
                     scaleIn(tween(150)) + fadeIn(tween(150)) togetherWith
-                    scaleOut(tween(150)) + fadeOut(tween(150))
+                        scaleOut(tween(150)) + fadeOut(tween(150))
                 },
                 label = "sendStopButton"
             ) { generating ->
@@ -674,10 +716,14 @@ fun ChatInputBar(
                         modifier = Modifier.size(48.dp),
                         colors = IconButtonDefaults.filledIconButtonColors(
                             containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor   = MaterialTheme.colorScheme.onErrorContainer
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
                         )
                     ) {
-                        Icon(Icons.Filled.Stop, contentDescription = "إيقاف التوليد", modifier = Modifier.size(20.dp))
+                        Icon(
+                            Icons.Filled.Stop,
+                            contentDescription = "إيقاف التوليد",
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
                 } else {
                     FilledIconButton(
@@ -685,7 +731,11 @@ fun ChatInputBar(
                         enabled = text.isNotBlank(),
                         modifier = Modifier.size(48.dp)
                     ) {
-                        Icon(Icons.Filled.Send, contentDescription = "إرسال الرسالة", modifier = Modifier.size(20.dp))
+                        Icon(
+                            Icons.Filled.Send,
+                            contentDescription = "إرسال الرسالة",
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
                 }
             }
@@ -693,15 +743,143 @@ fun ChatInputBar(
     }
 }
 
+@Composable
+private fun MessageAvatar(isUser: Boolean) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = if (isUser) {
+            MaterialTheme.colorScheme.secondaryContainer
+        } else {
+            MaterialTheme.colorScheme.primaryContainer
+        },
+        modifier = Modifier.size(28.dp)
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                imageVector = if (isUser) Icons.Filled.Person else Icons.Filled.AutoAwesome,
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = if (isUser) {
+                    MaterialTheme.colorScheme.onSecondaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ChatBubbleSurface(
+    isUser: Boolean,
+    text: String
+) {
+    Surface(
+        shape = if (isUser) userBubbleShape() else assistantBubbleShape(),
+        color = if (isUser) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        },
+        modifier = Modifier.widthIn(min = 60.dp, max = 320.dp)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (isUser) {
+                MaterialTheme.colorScheme.onPrimary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
+        )
+    }
+}
+
+@Composable
+private fun MessageMetaRow(
+    isUser: Boolean,
+    formattedTime: String,
+    tokensUsed: Int?
+) {
+    Row(
+        modifier = Modifier.padding(
+            start = if (!isUser) 36.dp else 0.dp,
+            end = if (isUser) 36.dp else 0.dp,
+            top = 3.dp
+        ),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = formattedTime,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.outline
+        )
+
+        tokensUsed?.let {
+            Text(
+                text = "·",
+                color = MaterialTheme.colorScheme.outline,
+                style = MaterialTheme.typography.labelSmall
+            )
+            Text(
+                text = "$it tokens",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.outline
+            )
+        }
+    }
+}
+
+private fun userBubbleShape() = RoundedCornerShape(
+    topStart = 18.dp,
+    topEnd = 18.dp,
+    bottomStart = 18.dp,
+    bottomEnd = 4.dp
+)
+
+private fun assistantBubbleShape() = RoundedCornerShape(
+    topStart = 18.dp,
+    topEnd = 18.dp,
+    bottomStart = 4.dp,
+    bottomEnd = 18.dp
+)
+
+@Composable
+private fun rememberMessageTime(timestamp: Long): String {
+    val formatter = remember {
+        SimpleDateFormat("HH:mm", Locale.getDefault())
+    }
+    return remember(timestamp) {
+        formatter.format(Date(timestamp))
+    }
+}
+
+private suspend fun LazyListState.scrollToBottomIfNeeded(force: Boolean) {
+    val lastIndex = layoutInfo.totalItemsCount - 1
+    if (lastIndex < 0) return
+
+    if (force || isNearBottom()) {
+        animateScrollToItem(lastIndex)
+    }
+}
+
+private fun LazyListState.isNearBottom(threshold: Int = 2): Boolean {
+    val lastVisible = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: return true
+    val total = layoutInfo.totalItemsCount
+    return lastVisible >= total - 1 - threshold
+}
+
 private fun buildMessageAccessibilityLabel(
     message: Message,
-    timeFormatter: SimpleDateFormat
+    formattedTime: String
 ): String {
     val sender = if (message.role == MessageRole.USER) "أنت" else "المساعد"
     return buildString {
         append("رسالة من $sender. ")
         append(message.content)
-        append(". أُرسلت الساعة ${timeFormatter.format(Date(message.createdAt))}")
+        append(". أُرسلت الساعة $formattedTime")
         message.tokensUsed?.let { append(". عدد الرموز $it") }
         append(".")
     }

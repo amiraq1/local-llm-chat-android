@@ -17,34 +17,42 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Runtime-facing MLC engine adapter.
- *
- * This class bridges the app's generic [InferenceEngine] contract to the bundled
- * `mlc4j` JSON FFI runtime when the native TVM bindings are present.
- */
 @Singleton
 class MLCInferenceEngine @Inject constructor(
     @ApplicationContext private val context: Context
 ) : InferenceEngine {
 
-    private val catalogModels: List<CatalogModel> by lazy(LazyThreadSafetyMode.NONE) {
+    private val catalogModels: List<CatalogModel> by lazy {
         CuratedModelCatalog.load(context)
     }
 
+    private val stateMutex = Mutex()
+
+    @Volatile
     private var runtime: MLCEngine? = null
+
+    @Volatile
     private var activeSession: MLCModelSession? = null
+
+    @Volatile
     private var activeModelPath: String? = null
+
+    @Volatile
     private var activeModelLib: String? = null
 
-    override suspend fun loadModel(modelPath: String, config: ModelConfig): Result<ModelSession> =
-        withContext(Dispatchers.IO) {
+    override suspend fun loadModel(
+        modelPath: String,
+        config: ModelConfig
+    ): Result<ModelSession> = withContext(Dispatchers.IO) {
+        stateMutex.withLock {
             runCatching {
                 val modelDir = File(modelPath)
                 require(modelDir.exists()) { "Model path not found: $modelPath" }
@@ -53,9 +61,18 @@ class MLCInferenceEngine @Inject constructor(
                 val modelRecord = resolveModelRecord(modelDir)
                 val installedConfig = validateInstalledAssets(modelDir)
                 validateBundledModelLibrary(modelRecord)
+
+                val currentPath = activeModelPath
+                val currentLib = activeModelLib
+                val shouldReload = currentPath != modelDir.absolutePath || currentLib != modelRecord.modelLib
+
                 val engine = ensureRuntime()
 
-                if (activeModelPath != modelDir.absolutePath || activeModelLib != modelRecord.modelLib) {
+                if (shouldReload) {
+                    // أغلق الجلسة السابقة منطقيًا قبل إعادة التحميل
+                    activeSession?.close()
+                    activeSession = null
+
                     Timber.i(
                         "Loading MLC model %s from %s with model_lib=%s",
                         modelRecord.modelId,
@@ -80,24 +97,39 @@ class MLCInferenceEngine @Inject constructor(
                 }
             }.onFailure { error ->
                 Timber.e(error, "Failed to load MLC model from %s", modelPath)
+                clearActiveState()
             }
         }
+    }
 
-    override fun isModelLoaded(): Boolean =
-        runtime != null && activeSession != null && activeModelPath != null && activeModelLib != null
+    override fun isModelLoaded(): Boolean {
+        return runtime != null &&
+            activeSession != null &&
+            activeModelPath != null &&
+            activeModelLib != null
+    }
 
     override suspend fun unloadModel() {
         withContext(Dispatchers.IO) {
-            runCatching {
-                activeSession?.close()
-                runtime?.unload()
-            }.onFailure { error ->
-                Timber.w(error, "MLC unload encountered an error")
-            }
+            stateMutex.withLock {
+                val currentSession = activeSession
+                val currentRuntime = runtime
 
-            activeSession = null
-            activeModelPath = null
-            activeModelLib = null
+                runCatching {
+                    currentSession?.close()
+                }.onFailure { error ->
+                    Timber.w(error, "MLC session close encountered an error")
+                }
+
+                runCatching {
+                    currentRuntime?.unload()
+                }.onFailure { error ->
+                    Timber.w(error, "MLC unload encountered an error")
+                }
+
+                runtime = null
+                clearActiveState()
+            }
         }
     }
 
@@ -107,11 +139,17 @@ class MLCInferenceEngine @Inject constructor(
         backend = "MLC"
     )
 
-    private fun ensureRuntime(): MLCEngine =
-        runtime ?: createRuntime().also { runtime = it }
+    private fun ensureRuntime(): MLCEngine {
+        val existing = runtime
+        if (existing != null) return existing
 
-    private fun createRuntime(): MLCEngine =
-        try {
+        return createRuntime().also { created ->
+            runtime = created
+        }
+    }
+
+    private fun createRuntime(): MLCEngine {
+        return try {
             MLCEngine()
         } catch (error: Throwable) {
             throw IllegalStateException(
@@ -122,6 +160,13 @@ class MLCInferenceEngine @Inject constructor(
                 error
             )
         }
+    }
+
+    private fun clearActiveState() {
+        activeSession = null
+        activeModelPath = null
+        activeModelLib = null
+    }
 
     private fun resolveModelRecord(modelDir: File): MlcModelRecord {
         catalogModels.firstOrNull { it.slug == modelDir.name }
@@ -184,10 +229,13 @@ private class MLCModelSession(
     private val installedConfig: MlcChatConfig
 ) : ModelSession {
 
+    @Volatile
     private var contextTokenCount = 0
 
     override fun generate(request: GenerationRequest): Flow<GenerationResponse> = flow {
         try {
+            val promptTokensEstimate = request.messages.sumOf { approximateTokenCount(it.content) }
+
             val stream = engine.chat.completions.create(
                 messages = request.messages.map(ChatMessage::toMlcMessage),
                 model = modelId,
@@ -199,44 +247,52 @@ private class MLCModelSession(
                 stream_options = StreamOptions(include_usage = true)
             )
 
-            var emittedCompletionTokens = 0
+            var emittedCompletionChunks = 0
             var finishReason = FinishReason.STOP
+            var finishedEmitted = false
 
             for (response in stream) {
                 response.choices.forEach { choice ->
-                    choice.delta.content?.asText().orEmpty().takeIf { it.isNotEmpty() }?.let { tokenText ->
+                    val tokenText = choice.delta.content?.asText().orEmpty()
+                    if (tokenText.isNotEmpty()) {
                         emit(GenerationResponse.Token(tokenText))
-                        emittedCompletionTokens++
+                        emittedCompletionChunks++
                     }
 
                     finishReason = choice.finish_reason.toFinishReason(finishReason)
                 }
 
                 response.usage?.let { usage ->
-                    contextTokenCount = usage.total_tokens.coerceAtMost(installedConfig.contextWindowSize)
+                    contextTokenCount = usage.total_tokens
+                        .coerceAtMost(installedConfig.contextWindowSize)
+                        .coerceAtMost(config.contextLength)
+
                     emit(
                         GenerationResponse.Finished(
                             finishReason = finishReason,
-                            usage = usage.toTokenUsage(emittedCompletionTokens)
+                            usage = usage.toTokenUsage(emittedCompletionChunks)
                         )
                     )
+                    finishedEmitted = true
                     return@flow
                 }
             }
 
-            contextTokenCount = (
-                request.messages.sumOf { approximateTokenCount(it.content) } + emittedCompletionTokens
-            ).coerceAtMost(installedConfig.contextWindowSize)
+            if (!finishedEmitted) {
+                contextTokenCount = (promptTokensEstimate + emittedCompletionChunks)
+                    .coerceAtMost(installedConfig.contextWindowSize)
+                    .coerceAtMost(config.contextLength)
 
-            emit(
-                GenerationResponse.Finished(
-                    finishReason = finishReason,
-                    usage = TokenUsage(
-                        promptTokens = request.messages.sumOf { approximateTokenCount(it.content) },
-                        completionTokens = emittedCompletionTokens
+                emit(
+                    GenerationResponse.Finished(
+                        finishReason = finishReason,
+                        usage = TokenUsage(
+                            promptTokens = promptTokensEstimate,
+                            completionTokens = emittedCompletionChunks
+                        )
                     )
                 )
-            )
+            }
         } catch (error: Throwable) {
             Timber.e(error, "MLC generation failed for %s", modelLabel)
             emit(GenerationResponse.Error(error))
@@ -252,7 +308,8 @@ private class MLCModelSession(
         }
     }
 
-    override fun getContextLength(): Int = contextTokenCount.coerceAtMost(config.contextLength)
+    override fun getContextLength(): Int =
+        contextTokenCount.coerceAtMost(config.contextLength)
 
     override suspend fun close() {
         contextTokenCount = 0
