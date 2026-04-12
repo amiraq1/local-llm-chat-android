@@ -1,5 +1,21 @@
 -- Merging decision tree log ---
 manifest
+ clean-push
+ADDED from /data/data/com.termux/files/home/local-llm-chat-android/mlc4j/src/main/AndroidManifest.xml:2:1-4:12
+INJECTED from /data/data/com.termux/files/home/local-llm-chat-android/mlc4j/src/main/AndroidManifest.xml:2:1-4:12
+	package
+		INJECTED from /data/data/com.termux/files/home/local-llm-chat-android/mlc4j/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /data/data/com.termux/files/home/local-llm-chat-android/mlc4j/src/main/AndroidManifest.xml:2:11-69
+uses-sdk
+INJECTED from /data/data/com.termux/files/home/local-llm-chat-android/mlc4j/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /data/data/com.termux/files/home/local-llm-chat-android/mlc4j/src/main/AndroidManifest.xml
+INJECTED from /data/data/com.termux/files/home/local-llm-chat-android/mlc4j/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /data/data/com.termux/files/home/local-llm-chat-android/mlc4j/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /data/data/com.termux/files/home/local-llm-chat-android/mlc4j/src/main/AndroidManifest.xml
+
 ADDED from /home/runner/workspace/mlc4j/src/main/AndroidManifest.xml:2:1-4:12
 INJECTED from /home/runner/workspace/mlc4j/src/main/AndroidManifest.xml:2:1-4:12
 	package
@@ -14,3 +30,4 @@ INJECTED from /home/runner/workspace/mlc4j/src/main/AndroidManifest.xml
 		INJECTED from /home/runner/workspace/mlc4j/src/main/AndroidManifest.xml
 	android:minSdkVersion
 		INJECTED from /home/runner/workspace/mlc4j/src/main/AndroidManifest.xml
+ main
