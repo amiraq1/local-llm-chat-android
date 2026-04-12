@@ -22,7 +22,13 @@ import com.example.localllm.mlc.resolveMlcModelAssetUrl
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -33,9 +39,15 @@ import javax.inject.Singleton
 
 @Singleton
 class ModelRepository @Inject constructor(
+    private val db: AppDatabase,
     private val modelDao: ModelDao,
     @ApplicationContext private val context: Context
 ) {
+
+    private val installMutex = Mutex()
+
+    private val _downloadProgress = MutableStateFlow<Map<String, ModelDownloadProgress>>(emptyMap())
+    val downloadProgress = _downloadProgress.asStateFlow()
 
     private val catalogModels: List<CatalogModel> by lazy(LazyThreadSafetyMode.NONE) {
         CuratedModelCatalog.load(context)
@@ -48,20 +60,26 @@ class ModelRepository @Inject constructor(
         modelDao.getAllInstalledModels().map { it.map(InstalledModelEntity::toDomain) }
 
     fun getModelUiStates(): Flow<List<ModelUiState>> =
-        modelDao.getAllInstalledModels().map { installedList ->
+        combine(
+            modelDao.getAllInstalledModels(),
+            _downloadProgress
+        ) { installedList, progressMap ->
             val installedMap = installedList.associateBy { it.id }
             val ramMb = getAvailableRamMb()
             val storageMb = getAvailableStorageMb()
 
             availableModels.map { model ->
                 val installed = installedMap[model.id]
+                val progress = progressMap[model.id]
+
                 ModelUiState(
                     model = model,
-                    downloadState = if (installed != null) {
-                        ModelDownloadState.INSTALLED
-                    } else {
-                        ModelDownloadState.NOT_DOWNLOADED
+                    downloadState = when {
+                        installed != null -> ModelDownloadState.INSTALLED
+                        progress != null -> progress.state
+                        else -> ModelDownloadState.NOT_DOWNLOADED
                     },
+                    downloadProgress = progress?.progress ?: 0f,
                     isInstalled = installed != null,
                     isActive = installed?.isActive ?: false,
                     isCompatible = isCompatibleWith(model, ramMb, storageMb),
@@ -91,9 +109,11 @@ class ModelRepository @Inject constructor(
         null
     }
 
-    suspend fun setActiveModel(modelId: String) {
-        modelDao.deactivateAll()
-        modelDao.setActive(modelId)
+    suspend fun setActiveModel(modelId: String) = withContext(Dispatchers.IO) {
+        db.withTransaction {
+            modelDao.deactivateAll()
+            modelDao.setActive(modelId)
+        }
         Timber.d("Active model set to: %s", modelId)
     }
 
@@ -125,83 +145,138 @@ class ModelRepository @Inject constructor(
     }
 
     suspend fun downloadModel(modelId: String): InstalledModel = withContext(Dispatchers.IO) {
-        val catalogModel = catalogModels.firstOrNull { it.slug == modelId }
-            ?: error("النموذج غير موجود في الكتالوج")
+        installMutex.withLock {
+            val catalogModel = catalogModels.firstOrNull { it.slug == modelId }
+                ?: error("النموذج غير موجود في الكتالوج")
 
-        val modelDir = File(getInstallPath(modelId))
-        val existing = modelDao.getModelById(modelId)
+            val targetDir = File(getInstallPath(modelId))
+            val stagingDir = File(targetDir.parentFile, "${targetDir.name}.staging")
+            val existing = modelDao.getModelById(modelId)
 
-        val resolvedModel = when {
-            isInstalledModelDir(modelDir) -> {
-                Timber.d("Using local model folder for %s", modelId)
-                catalogModel.toLlmModel()
-            }
+            updateDownloadState(modelId, ModelDownloadState.DOWNLOADING, 0f)
 
-            else -> {
-                val record = catalogModel.toMlcModelRecord()
-                    ?: error(buildLocalImportMessage(modelId))
-                val installedConfig = installBoundModel(record, modelDir)
-                catalogModel.toLlmModel().copy(
-                    contextLength = installedConfig.contextWindowSize,
-                    quantization = installedConfig.quantization ?: catalogModel.quantization
+            try {
+                deleteDirectorySafely(stagingDir)
+                stagingDir.mkdirs()
+
+                val resolvedModel = when {
+                    isInstalledModelDir(targetDir) -> {
+                        Timber.d("Using existing local model folder for %s", modelId)
+                        catalogModel.toLlmModel()
+                    }
+
+                    else -> {
+                        val record = catalogModel.toMlcModelRecord()
+                            ?: error(buildLocalImportMessage(modelId))
+
+                        val installedConfig = installBoundModel(
+                            record = record,
+                            modelDir = stagingDir,
+                            totalExpectedSize = catalogModel.sizeBytes,
+                            onProgress = { progress ->
+                                updateDownloadState(modelId, ModelDownloadState.DOWNLOADING, progress)
+                            }
+                        )
+
+                        catalogModel.toLlmModel().copy(
+                            contextLength = installedConfig.contextWindowSize,
+                            quantization = installedConfig.quantization ?: catalogModel.quantization
+                        )
+                    }
+                }
+
+                updateDownloadState(modelId, ModelDownloadState.VERIFYING, 0.99f)
+
+                if (!isInstalledModelDir(targetDir)) {
+                    replaceDirectoryAtomically(stagingDir, targetDir)
+                }
+
+                val entity = InstalledModelEntity(
+                    id = resolvedModel.id,
+                    name = resolvedModel.name,
+                    family = resolvedModel.family,
+                    sizeBytes = resolvedModel.sizeBytes,
+                    filePath = targetDir.absolutePath,
+                    installedAt = existing?.installedAt ?: System.currentTimeMillis(),
+                    checksumVerified = false,
+                    isActive = existing?.isActive ?: false,
+                    quantization = resolvedModel.quantization,
+                    contextLength = resolvedModel.contextLength
                 )
+
+                db.withTransaction {
+                    modelDao.insert(entity)
+                }
+
+                Timber.i("Model %s is available at %s", modelId, targetDir.absolutePath)
+                clearDownloadState(modelId)
+                entity.toDomain()
+            } catch (error: Throwable) {
+                deleteDirectorySafely(stagingDir)
+                updateDownloadState(modelId, ModelDownloadState.ERROR, 0f)
+                Timber.e(error, "Failed to download/install model %s", modelId)
+                throw error
             }
         }
-
-        val entity = InstalledModelEntity(
-            id = resolvedModel.id,
-            name = resolvedModel.name,
-            family = resolvedModel.family,
-            sizeBytes = resolvedModel.sizeBytes,
-            filePath = modelDir.absolutePath,
-            installedAt = existing?.installedAt ?: System.currentTimeMillis(),
-            checksumVerified = false,
-            isActive = existing?.isActive ?: false,
-            quantization = resolvedModel.quantization,
-            contextLength = resolvedModel.contextLength
-        )
-
-        modelDao.insert(entity)
-        Timber.i("Model %s is available at %s", modelId, modelDir.absolutePath)
-        entity.toDomain()
     }
 
-    suspend fun importModelFromTree(modelId: String, treeUri: Uri): InstalledModel = withContext(Dispatchers.IO) {
-        val catalogModel = catalogModels.firstOrNull { it.slug == modelId }
-            ?: error("النموذج غير موجود في الكتالوج")
+    suspend fun importModelFromTree(
+        modelId: String,
+        treeUri: Uri
+    ): InstalledModel = withContext(Dispatchers.IO) {
+        installMutex.withLock {
+            val catalogModel = requireCatalogModel(modelId)
+            val sourceRoot = DocumentFile.fromTreeUri(context, treeUri)
+                ?: error("تعذر فتح المجلد المحدد")
 
-        val root = DocumentFile.fromTreeUri(context, treeUri)
-            ?: error("تعذر فتح المجلد المحدد")
+            val sourceDir = resolveSelectedModelDirectory(sourceRoot, modelId)
+            val targetDir = File(getInstallPath(modelId))
+            val stagingDir = File(targetDir.parentFile, "${targetDir.name}.import_staging")
+            val existing = modelDao.getModelById(modelId)
 
-        val sourceDir = resolveSelectedModelDirectory(root, modelId)
-        val targetDir = File(getInstallPath(modelId))
-        val existing = modelDao.getModelById(modelId)
+            try {
+                deleteDirectorySafely(stagingDir)
+                stagingDir.mkdirs()
 
-        targetDir.deleteRecursively()
-        targetDir.mkdirs()
+                val copiedFiles = copyDocumentTreeContents(sourceDir, stagingDir)
+                if (copiedFiles == 0) {
+                    error("المجلد المحدد فارغ أو لا يمكن قراءة ملفاته")
+                }
 
-        val copiedFiles = copyDocumentTreeContents(sourceDir, targetDir)
-        if (copiedFiles == 0) {
-            targetDir.deleteRecursively()
-            error("المجلد المحدد فارغ أو لا يمكن قراءة ملفاته")
+                if (!isInstalledModelDir(stagingDir)) {
+                    error("المجلد المحدد لا يحتوي بنية نموذج صالحة")
+                }
+
+                replaceDirectoryAtomically(
+                    sourceDir = stagingDir,
+                    targetDir = targetDir
+                )
+
+                val entity = InstalledModelEntity(
+                    id = catalogModel.slug,
+                    name = catalogModel.name,
+                    family = catalogModel.family,
+                    sizeBytes = catalogModel.sizeBytes,
+                    filePath = targetDir.absolutePath,
+                    installedAt = existing?.installedAt ?: System.currentTimeMillis(),
+                    checksumVerified = existing?.checksumVerified ?: false,
+                    isActive = existing?.isActive ?: false,
+                    quantization = catalogModel.quantization,
+                    contextLength = catalogModel.contextLength
+                )
+
+                db.withTransaction {
+                    modelDao.insert(entity)
+                }
+
+                Timber.i("Imported local model %s from %s", modelId, treeUri)
+                entity.toDomain()
+            } catch (error: Throwable) {
+                deleteDirectorySafely(stagingDir)
+                Timber.e(error, "Failed to import model %s", modelId)
+                throw error
+            }
         }
-
-        val entity = InstalledModelEntity(
-            id = catalogModel.slug,
-            name = catalogModel.name,
-            family = catalogModel.family,
-            sizeBytes = catalogModel.sizeBytes,
-            filePath = targetDir.absolutePath,
-            installedAt = existing?.installedAt ?: System.currentTimeMillis(),
-            checksumVerified = false,
-            isActive = existing?.isActive ?: false,
-            quantization = catalogModel.quantization,
-            contextLength = catalogModel.contextLength
-        )
-
-        modelDao.insert(entity)
-        Timber.i("Imported local model %s from %s", modelId, treeUri)
-        entity.toDomain()
     }
 
     suspend fun markChecksumVerified(modelId: String) =
@@ -216,10 +291,15 @@ class ModelRepository @Inject constructor(
     fun getInstallPath(modelId: String): String =
         File(getModelsDir(), modelId).absolutePath
 
-    suspend fun deleteModel(modelId: String) {
-        File(getInstallPath(modelId)).deleteRecursively()
-        modelDao.deleteById(modelId)
-        Timber.d("Deleted model: %s", modelId)
+    suspend fun deleteModel(modelId: String) = withContext(Dispatchers.IO) {
+        installMutex.withLock {
+            val targetDir = File(getInstallPath(modelId))
+            db.withTransaction {
+                modelDao.deleteById(modelId)
+            }
+            deleteDirectorySafely(targetDir)
+            Timber.d("Deleted model: %s", modelId)
+        }
     }
 
     fun isCompatible(model: LLMModel): Boolean =
@@ -255,8 +335,51 @@ class ModelRepository @Inject constructor(
         return stat.availableBlocksLong * stat.blockSizeLong / 1_000_000
     }
 
-    private fun isInstalledModelDir(modelDir: File): Boolean =
-        modelDir.exists() && modelDir.isDirectory && !modelDir.list().isNullOrEmpty()
+    private fun updateDownloadState(modelId: String, state: ModelDownloadState, progress: Float) {
+        _downloadProgress.update { current ->
+            current + (modelId to ModelDownloadProgress(state, progress))
+        }
+    }
+
+    private fun clearDownloadState(modelId: String) {
+        _downloadProgress.update { current ->
+            current - modelId
+        }
+    }
+
+    private fun deleteDirectorySafely(dir: File) {
+        if (dir.exists()) dir.deleteRecursively()
+    }
+
+    private fun replaceDirectoryAtomically(sourceDir: File, targetDir: File) {
+        val backupDir = File(targetDir.parentFile, "${targetDir.name}.backup")
+
+        deleteDirectorySafely(backupDir)
+
+        if (targetDir.exists()) {
+            if (!targetDir.renameTo(backupDir)) {
+                targetDir.copyRecursively(backupDir, overwrite = true)
+                deleteDirectorySafely(targetDir)
+            }
+        }
+
+        if (!sourceDir.renameTo(targetDir)) {
+            sourceDir.copyRecursively(targetDir, overwrite = true)
+            deleteDirectorySafely(sourceDir)
+        }
+
+        deleteDirectorySafely(backupDir)
+    }
+
+    private fun isInstalledModelDir(modelDir: File): Boolean {
+        if (!modelDir.exists() || !modelDir.isDirectory) return false
+
+        val hasChatConfig = File(modelDir, MLC_MODEL_CONFIG_FILENAME).exists()
+        val hasTensorCache = File(modelDir, MLC_TENSOR_CACHE_FILENAME).exists()
+        val hasAnyFiles = !modelDir.list().isNullOrEmpty()
+
+        return (hasChatConfig && hasTensorCache) || hasAnyFiles
+    }
 
     private fun resolveSelectedModelDirectory(root: DocumentFile, modelId: String): DocumentFile {
         if (!root.exists() || !root.canRead()) {
@@ -312,43 +435,63 @@ class ModelRepository @Inject constructor(
         }
     }
 
-    private fun installBoundModel(record: MlcModelRecord, modelDir: File) = run {
+    private fun installBoundModel(
+        record: MlcModelRecord,
+        modelDir: File,
+        totalExpectedSize: Long,
+        onProgress: (Float) -> Unit
+    ): MlcChatConfig {
         modelDir.mkdirs()
+        var currentBytes = 0L
 
-        val chatConfigFile = File(modelDir, MLC_MODEL_CONFIG_FILENAME)
-        val tensorCacheFile = File(modelDir, MLC_TENSOR_CACHE_FILENAME)
+        fun downloadWithProgress(url: String, destination: File) {
+            downloadFileIfMissing(
+                url = url,
+                destination = destination,
+                onProgress = { bytes ->
+                    currentBytes += bytes
+                    if (totalExpectedSize > 0) {
+                        onProgress((currentBytes.toFloat() / totalExpectedSize).coerceIn(0f, 0.95f))
+                    }
+                }
+            )
+        }
 
-        downloadFileIfMissing(
+        downloadWithProgress(
             url = resolveMlcModelAssetUrl(record.modelUrl, MLC_MODEL_CONFIG_FILENAME),
-            destination = chatConfigFile
+            destination = File(modelDir, MLC_MODEL_CONFIG_FILENAME)
         )
-        downloadFileIfMissing(
+        downloadWithProgress(
             url = resolveMlcModelAssetUrl(record.modelUrl, MLC_TENSOR_CACHE_FILENAME),
-            destination = tensorCacheFile
+            destination = File(modelDir, MLC_TENSOR_CACHE_FILENAME)
         )
 
         val chatConfig = readInstalledMlcChatConfig(modelDir)
         val tensorCache = readInstalledMlcTensorCache(modelDir)
 
         chatConfig.tokenizerFiles.forEach { relativePath ->
-            downloadFileIfMissing(
+            downloadWithProgress(
                 url = resolveMlcModelAssetUrl(record.modelUrl, relativePath),
                 destination = File(modelDir, relativePath)
             )
         }
 
         tensorCache.records.forEach { tensorRecord ->
-            downloadFileIfMissing(
+            downloadWithProgress(
                 url = resolveMlcModelAssetUrl(record.modelUrl, tensorRecord.dataPath),
                 destination = File(modelDir, tensorRecord.dataPath)
             )
         }
 
-        chatConfig
+        onProgress(0.98f)
+        return chatConfig
     }
 
-    private fun downloadFileIfMissing(url: String, destination: File) {
-        if (destination.exists()) return
+    private fun downloadFileIfMissing(url: String, destination: File, onProgress: (Long) -> Unit = {}) {
+        if (destination.exists()) {
+            onProgress(destination.length())
+            return
+        }
 
         destination.parentFile?.mkdirs()
         val tempFile = File(destination.parentFile, "${destination.name}.part")
@@ -389,7 +532,12 @@ class ModelRepository @Inject constructor(
 
             inputStream.use { input ->
                 FileOutputStream(tempFile).use { output ->
-                    input.copyTo(output)
+                    val buffer = ByteArray(8192)
+                    var bytesRead: Int
+                    while (input.read(buffer).also { bytesRead = it } != -1) {
+                        output.write(buffer, 0, bytesRead)
+                        onProgress(bytesRead.toLong())
+                    }
                 }
             }
 
@@ -422,7 +570,7 @@ class ModelRepository @Inject constructor(
     }
 }
 
-fun InstalledModelEntity.toDomain() = InstalledModel(
+internal fun InstalledModelEntity.toDomain() = InstalledModel(
     id = id,
     name = name,
     family = family,
@@ -433,4 +581,9 @@ fun InstalledModelEntity.toDomain() = InstalledModel(
     isActive = isActive,
     quantization = quantization,
     contextLength = contextLength
+)
+
+data class ModelDownloadProgress(
+    val state: ModelDownloadState,
+    val progress: Float
 )
