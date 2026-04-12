@@ -73,6 +73,7 @@ fun ModelsScreen(viewModel: ModelsViewModel = hiltViewModel()) {
                         isActive   = modelState.model.id == state.activeModelId,
                         onActivate = { viewModel.activateModel(modelState.model.id) },
                         onDownload = { viewModel.downloadModel(modelState.model.id) },
+                        onCancelDownload = { viewModel.cancelDownload(modelState.model.id) },
                         onDelete   = { viewModel.deleteModel(modelState.model.id) }
                     )
                 }
@@ -131,6 +132,7 @@ fun ModelCard(
     isActive: Boolean,
     onActivate: () -> Unit,
     onDownload: () -> Unit,
+    onCancelDownload: () -> Unit,
     onDelete: () -> Unit
 ) {
     val model = modelState.model
@@ -287,74 +289,14 @@ fun ModelCard(
 
             // ── Action buttons ──
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
-            when {
-                modelState.downloadState == ModelDownloadState.DOWNLOADING -> {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        LinearProgressIndicator(
-                            modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp))
-                        )
-                        Text(
-                            "جارٍ التنزيل...",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                modelState.isInstalled && !isActive -> {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(
-                            onClick = onActivate,
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(10.dp)
-                        ) {
-                            Icon(Icons.Filled.PlayCircle, null, modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text("تفعيل")
-                        }
-                        OutlinedButton(
-                            onClick = onDelete,
-                            modifier = Modifier.semantics {
-                                contentDescription = "حذف ${model.name}"
-                            },
-                            shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.error
-                            ),
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
-                        ) {
-                            Icon(Icons.Outlined.DeleteOutline, null, modifier = Modifier.size(16.dp))
-                        }
-                    }
-                }
-                modelState.isInstalled && isActive -> {
-                    OutlinedButton(
-                        onClick = onDelete,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(10.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        ),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.4f))
-                    ) {
-                        Icon(Icons.Outlined.DeleteOutline, null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text("إلغاء التثبيت")
-                    }
-                }
-                else -> {
-                    Button(
-                        onClick = onDownload,
-                        enabled = modelState.isCompatible,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Icon(Icons.Outlined.Download, null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text(if (modelState.isCompatible) "استيراد محلي" else "غير متوافق")
-                    }
-                }
-            }
+            ModelItem(
+                modelState = modelState,
+                isActive = isActive,
+                onDownload = onDownload,
+                onCancel = onCancelDownload,
+                onLoad = onActivate,
+                onDelete = onDelete
+            )
         }
     }
 }

@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.localllm.data.datastore.SettingsDataStore
 import com.example.localllm.data.repository.ModelRepository
+import com.example.localllm.domain.model.ModelDownloadState
 import com.example.localllm.domain.model.ModelUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -26,6 +29,8 @@ class ModelsViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(ModelsScreenState())
     val state: StateFlow<ModelsScreenState> = _state.asStateFlow()
+    private val transientDownloads = MutableStateFlow<Map<String, TransientDownloadState>>(emptyMap())
+    private val downloadJobs = mutableMapOf<String, Job>()
 
     init {
         // Auto-sync local storage models on startup
@@ -44,18 +49,41 @@ class ModelsViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 modelRepository.getModelUiStates(),
-                settingsDataStore.settings
-            ) { modelStates, settings ->
-                Pair(modelStates, settings)
-            }.collect { (modelStates, settings) ->
+                settingsDataStore.settings,
+                transientDownloads
+            ) { modelStates, settings, downloads ->
+                Triple(modelStates, settings, downloads)
+            }.collect { (modelStates, settings, downloads) ->
+                val mergedModelStates = modelStates.map { modelState ->
+                    val transientState = downloads[modelState.model.id]
+                    if (transientState == null) {
+                        modelState.copy(
+                            downloadProgress = if (modelState.isInstalled) 1f else modelState.downloadProgress
+                        )
+                    } else {
+                        modelState.copy(
+                            downloadState = transientState.downloadState,
+                            downloadProgress = transientState.progress
+                        )
+                    }
+                }
+
                 val activeModelId = runCatching {
-                    reconcileActiveModelState(modelStates, settings.activeModelId)
+                    reconcileActiveModelState(mergedModelStates, settings.activeModelId)
                 }.onFailure { error ->
                     Timber.e(error, "Failed to reconcile active model state")
                     _state.update { it.copy(errorMessage = "فشل مزامنة النموذج النشط") }
                 }.getOrDefault("")
 
-                _state.update { it.copy(models = modelStates, activeModelId = activeModelId) }
+                _state.update {
+                    it.copy(
+                        models = mergedModelStates,
+                        activeModelId = activeModelId,
+                        isLoading = downloads.values.any { state ->
+                            state.downloadState == ModelDownloadState.DOWNLOADING
+                        }
+                    )
+                }
             }
         }
     }
@@ -74,6 +102,8 @@ class ModelsViewModel @Inject constructor(
     }
 
     fun downloadModel(modelId: String) {
+        if (downloadJobs.containsKey(modelId)) return
+
         viewModelScope.launch {
             val model = modelRepository.availableModels.find { it.id == modelId }
             if (model == null) {
@@ -85,34 +115,81 @@ class ModelsViewModel @Inject constructor(
             val dir = java.io.File(path)
             if (modelRepository.isInstallComplete(model.id)) {
                 modelRepository.markAsInstalled(model, path)
+                transientDownloads.update { downloads ->
+                    downloads + (modelId to TransientDownloadState(ModelDownloadState.INSTALLED, 1f))
+                }
                 Timber.d("Model found in local storage and synced: $modelId at $path")
                 _state.update { it.copy(errorMessage = null) }
                 return@launch
             }
 
-            if (dir.exists()) {
-                dir.deleteRecursively()
+            transientDownloads.update { downloads ->
+                downloads + (modelId to TransientDownloadState(ModelDownloadState.DOWNLOADING, 0f))
             }
 
-            _state.update { it.copy(isLoading = true) }
-            try {
-                modelRepository.downloadModel(modelId)
-                Timber.d("Model installed: $modelId")
-            } catch (e: Exception) {
-                if (modelRepository.isInstallComplete(modelId)) {
-                    modelRepository.markAsInstalled(model, path)
-                    Timber.w(e, "Recovered from download error after completing model install: $modelId")
-                    _state.update { it.copy(errorMessage = null) }
-                } else {
-                    Timber.e(e, "Failed to download model")
-                    _state.update {
-                        it.copy(errorMessage = e.message ?: "فشل تنزيل النموذج")
+            val job = viewModelScope.launch {
+                try {
+                    modelRepository.downloadModel(modelId) { progress ->
+                        transientDownloads.update { downloads ->
+                            val current = downloads[modelId]
+                            downloads + (
+                                modelId to TransientDownloadState(
+                                    downloadState = ModelDownloadState.DOWNLOADING,
+                                    progress = progress.coerceIn(
+                                        current?.progress ?: 0f,
+                                        1f
+                                    )
+                                )
+                            )
+                        }
                     }
+                    transientDownloads.update { downloads ->
+                        downloads + (modelId to TransientDownloadState(ModelDownloadState.INSTALLED, 1f))
+                    }
+                    Timber.d("Model installed: $modelId")
+                } catch (cancelled: CancellationException) {
+                    transientDownloads.update { downloads ->
+                        downloads + (
+                            modelId to TransientDownloadState(
+                                downloadState = ModelDownloadState.PAUSED,
+                                progress = downloads[modelId]?.progress ?: 0f
+                            )
+                        )
+                    }
+                    throw cancelled
+                } catch (e: Exception) {
+                    if (modelRepository.isInstallComplete(modelId)) {
+                        modelRepository.markAsInstalled(model, path)
+                        transientDownloads.update { downloads ->
+                            downloads + (modelId to TransientDownloadState(ModelDownloadState.INSTALLED, 1f))
+                        }
+                        Timber.w(e, "Recovered from download error after completing model install: $modelId")
+                        _state.update { it.copy(errorMessage = null) }
+                    } else {
+                        Timber.e(e, "Failed to download model")
+                        transientDownloads.update { downloads ->
+                            downloads + (
+                                modelId to TransientDownloadState(
+                                    downloadState = ModelDownloadState.ERROR,
+                                    progress = downloads[modelId]?.progress ?: 0f
+                                )
+                            )
+                        }
+                        _state.update {
+                            it.copy(errorMessage = e.message ?: "فشل تنزيل النموذج")
+                        }
+                    }
+                } finally {
+                    downloadJobs.remove(modelId)
                 }
-            } finally {
-                _state.update { it.copy(isLoading = false) }
             }
+
+            downloadJobs[modelId] = job
         }
+    }
+
+    fun cancelDownload(modelId: String) {
+        downloadJobs.remove(modelId)?.cancel()
     }
 
     fun deleteModel(modelId: String) {
@@ -164,3 +241,8 @@ class ModelsViewModel @Inject constructor(
         }
     }
 }
+
+private data class TransientDownloadState(
+    val downloadState: ModelDownloadState,
+    val progress: Float
+)

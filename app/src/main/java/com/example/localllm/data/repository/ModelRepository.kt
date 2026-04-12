@@ -11,17 +11,17 @@ import com.example.localllm.domain.model.ModelUiState
 import com.example.localllm.domain.model.ModelDownloadState
 import com.example.localllm.mlc.MLC_MODEL_CONFIG_FILENAME
 import com.example.localllm.mlc.MLC_TENSOR_CACHE_FILENAME
-import com.example.localllm.mlc.MlcModelRecord
 import com.example.localllm.mlc.isInstalledMlcModelComplete
-import com.example.localllm.mlc.loadBundledMlcAppConfig
 import com.example.localllm.mlc.readInstalledMlcChatConfig
 import com.example.localllm.mlc.readInstalledMlcTensorCache
 import com.example.localllm.mlc.resolveMlcRedirectUrl
 import com.example.localllm.mlc.resolveMlcModelAssetUrl
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -34,12 +34,8 @@ class ModelRepository @Inject constructor(
     private val modelDao: ModelDao,
     @ApplicationContext private val context: Context
 ) {
-    private val bundledModels: List<BundledMlcModel> by lazy(LazyThreadSafetyMode.NONE) {
-        loadBundledModels()
-    }
-
     val availableModels: List<LLMModel>
-        get() = bundledModels.map(BundledMlcModel::uiModel)
+        get() = gemmaModels
 
     // ─── Installed Model Queries ───────────────────────────────────────────────
 
@@ -100,16 +96,25 @@ class ModelRepository @Inject constructor(
         )
     }
 
-    suspend fun downloadModel(modelId: String): InstalledModel = withContext(Dispatchers.IO) {
-        val bundledModel = bundledModels.firstOrNull { it.uiModel.id == modelId }
-            ?: error("النموذج غير موجود في mlc-app-config.json")
+    suspend fun downloadModel(
+        modelId: String,
+        onProgress: (Float) -> Unit = {}
+    ): InstalledModel = withContext(Dispatchers.IO) {
+        val model = availableModels.firstOrNull { it.id == modelId }
+            ?: error("النموذج غير موجود في القائمة")
+
+        ensureEnoughStorage(model)
 
         val modelDir = File(getInstallPath(modelId))
-        val installedConfig = installBundledModel(bundledModel.manifest, modelDir)
+        val installedConfig = installModelFromUrl(
+            model = model,
+            modelDir = modelDir,
+            onProgress = onProgress
+        )
         val existing = modelDao.getModelById(modelId)
-        val resolvedModel = bundledModel.uiModel.copy(
+        val resolvedModel = model.copy(
             contextLength = installedConfig.contextWindowSize,
-            quantization = installedConfig.quantization ?: bundledModel.uiModel.quantization
+            quantization = installedConfig.quantization ?: model.quantization
         )
 
         val entity = InstalledModelEntity(
@@ -125,6 +130,7 @@ class ModelRepository @Inject constructor(
             contextLength = resolvedModel.contextLength
         )
         modelDao.insert(entity)
+        onProgress(1f)
         Timber.i("Installed MLC model %s at %s", modelId, modelDir.absolutePath)
         entity.toDomain()
     }
@@ -183,86 +189,109 @@ class ModelRepository @Inject constructor(
         return stat.availableBlocksLong * stat.blockSizeLong / 1_000_000
     }
 
-    private fun loadBundledModels(): List<BundledMlcModel> = runCatching {
-        loadBundledMlcAppConfig(context).modelList.map(::toBundledModel)
-    }.onFailure { error ->
-        Timber.e(error, "Failed to load bundled mlc-app-config.json")
-    }.getOrDefault(emptyList())
-
-    private fun toBundledModel(record: MlcModelRecord): BundledMlcModel {
-        val modelSlug = record.modelId.removeSuffix("-MLC")
-        val quantizationSegment = modelSlug.substringAfterLast('-', missingDelimiterValue = "")
-        val quantization = if (quantizationSegment.startsWith("q", ignoreCase = true)) {
-            quantizationSegment.uppercase()
-        } else {
-            "MLC"
-        }
-        val displayBase = if (quantizationSegment.startsWith("q", ignoreCase = true)) {
-            modelSlug.removeSuffix("-$quantizationSegment")
-        } else {
-            modelSlug
-        }
-        val estimatedBytes = record.estimatedVramBytes ?: 0L
-        val minRamMb = max(2048, (estimatedBytes / 1_000_000L).toInt())
-        val recommendedRamMb = max(minRamMb + 1024, minRamMb * 2)
-
-        return BundledMlcModel(
-            uiModel = LLMModel(
-                id = record.modelId,
-                name = displayBase.replace('-', ' '),
-                family = displayBase.substringBefore('-').lowercase(),
-                sizeBytes = estimatedBytes,
-                downloadUrl = record.modelUrl,
-                checksumSha256 = "",
-                minRamMb = minRamMb,
-                recommendedRamMb = recommendedRamMb,
-                contextLength = 2048,
-                quantization = quantization,
-                tags = listOf("mlc", "on-device"),
-                minAndroidApi = 28
-            ),
-            manifest = record
-        )
+    private fun getAvailableStorageBytes(): Long {
+        val stat = StatFs(installRootDir().absolutePath)
+        return stat.availableBlocksLong * stat.blockSizeLong
     }
 
-    private fun installBundledModel(record: MlcModelRecord, modelDir: File) =
-        run {
-            modelDir.mkdirs()
+    private fun ensureEnoughStorage(model: LLMModel) {
+        val availableBytes = getAvailableStorageBytes()
+        require(availableBytes >= model.sizeBytes) {
+            val requiredGb = "%.1f".format(model.sizeBytes / 1_000_000_000.0)
+            val availableGb = "%.1f".format(availableBytes / 1_000_000_000.0)
+            "المساحة غير كافية لتنزيل ${model.name}. المطلوب $requiredGb GB والمتاح $availableGb GB."
+        }
+    }
 
-            val chatConfigFile = File(modelDir, MLC_MODEL_CONFIG_FILENAME)
-            val tensorCacheFile = File(modelDir, MLC_TENSOR_CACHE_FILENAME)
+    private suspend fun installModelFromUrl(
+        model: LLMModel,
+        modelDir: File,
+        onProgress: (Float) -> Unit
+    ) = run {
+        modelDir.mkdirs()
 
-            downloadFileIfMissing(
-                url = resolveMlcModelAssetUrl(record.modelUrl, MLC_MODEL_CONFIG_FILENAME),
-                destination = chatConfigFile
-            )
-            downloadFileIfMissing(
-                url = resolveMlcModelAssetUrl(record.modelUrl, MLC_TENSOR_CACHE_FILENAME),
-                destination = tensorCacheFile
-            )
+        val chatConfigFile = File(modelDir, MLC_MODEL_CONFIG_FILENAME)
+        val tensorCacheFile = File(modelDir, MLC_TENSOR_CACHE_FILENAME)
 
-            val chatConfig = readInstalledMlcChatConfig(modelDir)
-            val tensorCache = readInstalledMlcTensorCache(modelDir)
+        downloadFileWithResume(
+            url = resolveMlcModelAssetUrl(model.downloadUrl, MLC_MODEL_CONFIG_FILENAME),
+            destination = chatConfigFile,
+            onProgress = { _, _ -> onProgress(0.02f) }
+        )
+        downloadFileWithResume(
+            url = resolveMlcModelAssetUrl(model.downloadUrl, MLC_TENSOR_CACHE_FILENAME),
+            destination = tensorCacheFile,
+            onProgress = { _, _ -> onProgress(0.05f) }
+        )
 
+        val chatConfig = readInstalledMlcChatConfig(modelDir)
+        val tensorCache = readInstalledMlcTensorCache(modelDir)
+
+        val downloadPlan = buildList {
             chatConfig.tokenizerFiles.forEach { relativePath ->
-                downloadFileIfMissing(
-                    url = resolveMlcModelAssetUrl(record.modelUrl, relativePath),
-                    destination = File(modelDir, relativePath)
+                add(
+                    ModelAsset(
+                        url = resolveMlcModelAssetUrl(model.downloadUrl, relativePath),
+                        destination = File(modelDir, relativePath)
+                    )
                 )
             }
 
             tensorCache.records.forEach { tensorRecord ->
-                downloadFileIfMissing(
-                    url = resolveMlcModelAssetUrl(record.modelUrl, tensorRecord.dataPath),
-                    destination = File(modelDir, tensorRecord.dataPath)
+                add(
+                    ModelAsset(
+                        url = resolveMlcModelAssetUrl(model.downloadUrl, tensorRecord.dataPath),
+                        destination = File(modelDir, tensorRecord.dataPath)
+                    )
                 )
             }
-
-            chatConfig
         }
 
-    private fun downloadFileIfMissing(url: String, destination: File) {
+        val totalBytes = downloadPlan.sumOf { asset ->
+            resolveContentLength(asset.url).coerceAtLeast(existingBytes(asset.destination))
+        }.coerceAtLeast(model.sizeBytes)
+
+        var completedBytes = downloadPlan.sumOf { asset ->
+            existingBytes(asset.destination).coerceAtMost(resolveContentLength(asset.url).takeIf { it > 0L } ?: Long.MAX_VALUE)
+        }
+
+        onProgress((completedBytes.toDouble() / totalBytes.toDouble()).toFloat().coerceIn(0f, 1f))
+
+        downloadPlan.forEach { asset ->
+            val initialBytes = existingBytes(asset.destination)
+            downloadFileWithResume(
+                url = asset.url,
+                destination = asset.destination
+            ) { written, fileTotal ->
+                val normalizedInitial = initialBytes.coerceAtMost(fileTotal.takeIf { it > 0L } ?: initialBytes)
+                val currentCompleted = completedBytes - normalizedInitial + written
+                val progress = if (totalBytes > 0L) {
+                    currentCompleted.toDouble() / totalBytes.toDouble()
+                } else {
+                    0.0
+                }
+                onProgress(progress.toFloat().coerceIn(0f, 1f))
+            }
+            completedBytes = completedBytes - initialBytes + existingBytes(asset.destination)
+            onProgress((completedBytes.toDouble() / totalBytes.toDouble()).toFloat().coerceIn(0f, 1f))
+        }
+
+        chatConfig
+    }
+
+    private fun existingBytes(destination: File): Long {
+        if (destination.exists()) return destination.length()
+        val tempFile = File(checkNotNull(destination.parentFile), "${destination.name}.part")
+        return if (tempFile.exists()) tempFile.length() else 0L
+    }
+
+    private suspend fun downloadFileWithResume(
+        url: String,
+        destination: File,
+        onProgress: (downloadedBytes: Long, totalBytes: Long) -> Unit
+    ) {
         if (destination.exists()) {
+            onProgress(destination.length(), destination.length())
             return
         }
 
@@ -273,11 +302,11 @@ class ModelRepository @Inject constructor(
             error("Failed to create destination directory: $parentDir")
         }
         val tempFile = File(destination.parentFile, "${destination.name}.part")
-
         var currentUrl = url
         var redirectCount = 0
         var connection: java.net.HttpURLConnection? = null
         var inputStream: java.io.InputStream? = null
+        var outputStream: java.io.RandomAccessFile? = null
 
         try {
             while (redirectCount < 10) {
@@ -285,6 +314,10 @@ class ModelRepository @Inject constructor(
                 connection.instanceFollowRedirects = false
                 connection.connectTimeout = 15000
                 connection.readTimeout = 60000
+                val resumeBytes = if (tempFile.exists()) tempFile.length() else 0L
+                if (resumeBytes > 0L) {
+                    connection.setRequestProperty("Range", "bytes=$resumeBytes-")
+                }
 
                 val responseCode = connection.responseCode
                 if (responseCode in 300..399) {
@@ -308,16 +341,38 @@ class ModelRepository @Inject constructor(
                 error("Failed to connect or too many redirects")
             }
 
-            tempFile.delete()
-            if (!tempFile.createNewFile()) {
+            val resumeBytes = if (tempFile.exists()) tempFile.length() else 0L
+            if (!tempFile.exists() && !tempFile.createNewFile()) {
                 error("Failed to create temp file for download: $tempFile")
             }
 
+            val contentRange = connection?.getHeaderField("Content-Range")
+            val contentLength = connection?.contentLengthLong ?: -1L
+            val totalBytes = when {
+                contentRange?.substringAfterLast('/')?.toLongOrNull() != null ->
+                    contentRange.substringAfterLast('/').toLong()
+                contentLength > 0L -> resumeBytes + contentLength
+                else -> -1L
+            }
+
             inputStream.use { input ->
-                java.io.FileOutputStream(tempFile).use { output ->
-                    input.copyTo(output)
-                    output.fd.sync()
+                outputStream = java.io.RandomAccessFile(tempFile, "rw").apply {
+                    seek(resumeBytes)
                 }
+
+                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                var downloadedBytes = resumeBytes
+
+                while (true) {
+                    currentCoroutineContext().ensureActive()
+                    val read = input.read(buffer)
+                    if (read < 0) break
+                    outputStream?.write(buffer, 0, read)
+                    downloadedBytes += read
+                    onProgress(downloadedBytes, totalBytes)
+                }
+
+                outputStream?.fd?.sync()
             }
 
             if (tempFile.exists()) {
@@ -331,17 +386,85 @@ class ModelRepository @Inject constructor(
             } else {
                 error("Downloaded temp file was not created properly: $tempFile")
             }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (error: Exception) {
-            tempFile.delete()
             throw error
         } finally {
+            try { outputStream?.close() } catch (_: Exception) { }
             try { inputStream?.close() } catch (e: Exception) { }
             try { connection?.disconnect() } catch (e: Exception) { }
         }
     }
 
+    private fun resolveContentLength(url: String): Long {
+        var currentUrl = url
+        var redirectCount = 0
+
+        while (redirectCount < 10) {
+            val connection = (java.net.URL(currentUrl).openConnection() as java.net.HttpURLConnection).apply {
+                requestMethod = "HEAD"
+                instanceFollowRedirects = false
+                connectTimeout = 15000
+                readTimeout = 30000
+            }
+
+            try {
+                val responseCode = connection.responseCode
+                if (responseCode in 300..399) {
+                    val redirectLocation = connection.getHeaderField("Location")
+                        ?: return -1L
+                    currentUrl = resolveMlcRedirectUrl(currentUrl, redirectLocation)
+                    redirectCount++
+                    continue
+                }
+
+                return connection.contentLengthLong
+            } catch (_: Exception) {
+                return -1L
+            } finally {
+                connection.disconnect()
+            }
+        }
+
+        return -1L
+    }
+
     private fun installRootDir(): File =
         context.getExternalFilesDir(null) ?: context.filesDir
+
+    private companion object {
+        val gemmaModels = listOf(
+            LLMModel(
+                id = "gemma-4-4b-it-q4f16_1-MLC",
+                name = "Gemma 4 E4B",
+                family = "gemma",
+                sizeBytes = 3_600_000_000L,
+                downloadUrl = "https://huggingface.co/mlc-ai/gemma-4-4b-it-q4f16_1-MLC",
+                checksumSha256 = "",
+                minRamMb = 6144,
+                recommendedRamMb = 8192,
+                contextLength = 8192,
+                quantization = "Q4F16_1",
+                tags = listOf("gemma-4", "on-device", "mlc"),
+                minAndroidApi = 28
+            ),
+            LLMModel(
+                id = "gemma-4-2b-it-q4f16_1-MLC",
+                name = "Gemma 4 E2B",
+                family = "gemma",
+                sizeBytes = 2_600_000_000L,
+                downloadUrl = "https://huggingface.co/mlc-ai/gemma-4-2b-it-q4f16_1-MLC",
+                checksumSha256 = "",
+                minRamMb = 4096,
+                recommendedRamMb = 6144,
+                contextLength = 8192,
+                quantization = "Q4F16_1",
+                tags = listOf("gemma-4", "on-device", "mlc"),
+                minAndroidApi = 28
+            )
+        )
+    }
 }
 
 // ─── Mapper ───────────────────────────────────────────────────────────────────
@@ -359,7 +482,7 @@ fun InstalledModelEntity.toDomain() = InstalledModel(
     contextLength = contextLength
 )
 
-private data class BundledMlcModel(
-    val uiModel: LLMModel,
-    val manifest: MlcModelRecord
+private data class ModelAsset(
+    val url: String,
+    val destination: File
 )
