@@ -28,3 +28,5 @@ build/
 app/build/
 mlc4j/build/
 main
+scripts/__pycache__/
+

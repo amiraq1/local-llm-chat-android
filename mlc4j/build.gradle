@@ -30,6 +30,13 @@ android {
             jniLibs.srcDirs = ['output']
         }
     }
+
+    packaging {
+        jniLibs {
+            // Keep debug symbols for TVM/MLC native crash diagnosis
+            keepDebugSymbols += ['**/*.so']
+        }
+    }
 }
 
 dependencies {
@@ -43,4 +50,75 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'com.google.android.material:material:1.12.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3'
+}
+
+// ---------------------------------------------------------------------------
+// Validation: ensure every model_lib referenced in mlc-app-config.json has a
+// corresponding .so file in output/arm64-v8a/ before the native merge tasks.
+// ---------------------------------------------------------------------------
+
+def mlcAppConfigFile = file("src/main/assets/mlc-app-config.json")
+def nativeOutputDir  = file("output/arm64-v8a")
+
+tasks.register('validateModelLibs') {
+    group = 'verification'
+    description = 'Checks that all MLC model .so libraries listed in mlc-app-config.json are present.'
+
+    doLast {
+        if (!mlcAppConfigFile.exists()) {
+            logger.warn("mlc-app-config.json not found – skipping model lib validation.")
+            return
+        }
+
+        def config = new groovy.json.JsonSlurper().parse(mlcAppConfigFile)
+        def modelList = config?.model_list ?: []
+
+        if (modelList.isEmpty()) {
+            logger.warn("No models found in mlc-app-config.json")
+            return
+        }
+
+        // TVM runtime is always required
+        def requiredLibs = ['libtvm4j_runtime_packed.so']
+
+        // Per-model compiled libraries
+        modelList.each { model ->
+            def lib = model.model_lib
+            if (lib) {
+                requiredLibs << "lib${lib}.so"
+            }
+        }
+
+        def missing = []
+        requiredLibs.each { libName ->
+            def libFile = new File(nativeOutputDir, libName)
+            if (libFile.exists()) {
+                def sizeMb = String.format("%.1f", libFile.length() / (1024.0 * 1024.0))
+                logger.lifecycle("  ✓ ${libName} (${sizeMb} MB)")
+            } else {
+                missing << libName
+                logger.error("  ✗ ${libName} – MISSING")
+            }
+        }
+
+        if (!missing.isEmpty()) {
+            def hint = missing.collect { "  • ${it}" }.join('\n')
+            logger.warn(
+                "\n⚠ Missing ${missing.size()} model library file(s) in ${nativeOutputDir}:\n" +
+                "${hint}\n\n" +
+                "The TVM runtime is bundled, but per-model compiled .so files are needed\n" +
+                "for actual inference. Without them the app will fall back to the error path.\n\n" +
+                "To fix:\n" +
+                "  1. Run:  python scripts/fetch_model_libs.py\n" +
+                "  2. Or compile manually — see mlc4j/build-model-libs.md\n"
+            )
+        }
+    }
+}
+
+// Wire validation into native merge tasks when they exist
+afterEvaluate {
+    tasks.matching { it.name =~ /merge(Debug|Release)JniLibFolders/ }.configureEach {
+        dependsOn 'validateModelLibs'
+    }
 }

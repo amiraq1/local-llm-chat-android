@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.room.Room
 import com.example.localllm.data.db.AppDatabase
 import com.example.localllm.data.db.dao.*
+import com.example.localllm.engine.FallbackInferenceEngine
 import com.example.localllm.engine.InferenceEngine
-import com.example.localllm.engine.MLCInferenceEngine
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -67,10 +67,11 @@ object CoroutineModule {
 @InstallIn(SingletonComponent::class)
 abstract class EngineModule {
     /**
-     * Route the app through the MLC engine implementation so the active backend
-     * matches what the UI and installed model catalog expose.
+     * Route through the smart fallback engine: tries MLC native first,
+     * falls back to fake engine if native .so files are missing.
+     * Switch to MLCInferenceEngine when all model libs are bundled.
      */
     @Binds
     @Singleton
-    abstract fun bindInferenceEngine(engine: MLCInferenceEngine): InferenceEngine
+    abstract fun bindInferenceEngine(engine: FallbackInferenceEngine): InferenceEngine
 }

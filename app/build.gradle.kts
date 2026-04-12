@@ -51,6 +51,12 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+        jniLibs {
+            // MLC .so files are large; use legacy uncompressed packaging
+            // so they can be mmap'd directly from the APK at runtime
+            useLegacyPackaging = true
+            keepDebugSymbols += setOf("**/*.so")
+        }
     }
 }
 
