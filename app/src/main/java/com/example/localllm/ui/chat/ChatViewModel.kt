@@ -100,7 +100,10 @@ class ChatViewModel @Inject constructor(
         val text = _uiState.value.inputText.trim()
         if (text.isBlank() || _uiState.value.isGenerating) return
 
-        val history = _uiState.value.messages.map(Message::toChatMessage)
+        // TOOL messages are device-tool results; they must not be sent to the LLM.
+        val history = _uiState.value.messages
+            .filter { it.role != MessageRole.TOOL }
+            .map(Message::toChatMessage)
         _uiState.update { it.copy(inputText = "", isGenerating = true, streamingText = "") }
 
         generationJob = viewModelScope.launch {
