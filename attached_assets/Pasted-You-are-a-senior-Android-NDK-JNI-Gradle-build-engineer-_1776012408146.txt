@@ -1,0 +1,101 @@
+You are a senior Android NDK / JNI / Gradle build engineer.
+
+I have an Android project called `local-llm-chat-android`, and I suspect there are problems related to native libraries integration.
+
+The project may involve:
+- Android Gradle modules
+- `jniLibs`
+- possible `.so` loading
+- MLC / TVM integration
+- module wiring issues
+- Gradle version catalog mismatches
+- ABI compatibility problems
+- Java/Kotlin target mismatches
+- native runtime initialization failures
+
+I want you to act like a build/debug reviewer and audit the project specifically for native library problems.
+
+## Your goals
+Please inspect the project and determine:
+
+1. Whether the native library integration is actually complete
+2. Whether Gradle is wiring the native module correctly
+3. Whether there are missing `.so` files, ABI issues, or packaging issues
+4. Whether the module is included correctly in `settings.gradle`
+5. Whether `app/build.gradle` is actually depending on the native-related module
+6. Whether the version catalog / plugin aliases / dependencies are consistent
+7. Whether Java/Kotlin target versions are mismatched between modules
+8. Whether runtime code expects native components that are not actually packaged
+9. What the most likely root cause is
+10. What should be fixed first, in priority order
+
+## What I want from you
+Please produce the answer in this exact order:
+
+### Step 1: Native integration audit
+Tell me whether native integration is:
+- complete
+- partially wired
+- or broken from the build setup itself
+
+### Step 2: Gradle/module audit
+Check:
+- `settings.gradle(.kts)`
+- `app/build.gradle(.kts)`
+- native-related module build files
+- version catalog usage
+
+I want you to explicitly identify:
+- missing `include(...)`
+- missing `implementation(project(...))`
+- broken aliases
+- missing dependencies
+- mismatched config between modules
+
+### Step 3: Native packaging audit
+Check for likely problems involving:
+- `jniLibs.srcDirs(...)`
+- missing `.so` outputs
+- wrong ABI packaging
+- `arm64-v8a` / `armeabi-v7a` / `x86_64` compatibility
+- duplicate or missing native binaries
+- whether the native outputs are actually packaged into the APK
+
+### Step 4: Runtime risk audit
+Identify code paths that likely fail at runtime due to incomplete native integration, such as:
+- `System.loadLibrary(...)`
+- JNI bindings
+- TVM / MLC runtime initialization
+- backend fallback logic
+- code that assumes native libs already exist
+
+### Step 5: Root cause analysis
+Give me the most likely root causes ranked from most likely to least likely.
+
+### Step 6: Fix plan
+Give me a practical repair plan in priority order:
+- what to fix first
+- what to fix second
+- what to verify after each fix
+
+### Step 7: Exact patch suggestions
+Where possible, show exact code snippets for likely fixes, such as:
+- `settings.gradle.kts`
+- `app/build.gradle.kts`
+- version catalog additions
+- module dependency wiring
+- ABI / packaging configuration
+
+## Important constraints
+- Be strict and specific
+- Do not give generic Android advice
+- Focus only on native library / module wiring / Gradle / ABI / packaging issues
+- If something is missing, say it clearly
+- If the project is not even fully wired yet, say that before discussing runtime bugs
+- Prefer concrete diagnosis over speculation
+
+## Output style
+- concise but technical
+- structured with headings
+- direct and decisive
+- prioritize root causes and actionable fixes

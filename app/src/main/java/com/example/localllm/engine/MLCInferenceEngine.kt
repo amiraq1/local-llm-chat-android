@@ -246,6 +246,9 @@ private fun ChatMessage.toMlcMessage(): ChatCompletionMessage = ChatCompletionMe
         MessageRole.SYSTEM -> ChatCompletionRole.system
         MessageRole.USER -> ChatCompletionRole.user
         MessageRole.ASSISTANT -> ChatCompletionRole.assistant
+        MessageRole.TOOL -> throw IllegalArgumentException(
+            "TOOL-role messages must not be forwarded to the LLM"
+        )
     },
     content = content
 )

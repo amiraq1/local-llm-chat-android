@@ -1,0 +1,105 @@
+Act as a strict Android NDK / JNI / MLC-LLM integration verifier.
+
+Execute this task directly. Do not describe what you plan to do — do it.
+
+Goal
+
+Validate and integrate this model-native library into the Android project if it is correct:
+
+"libqwen3_q0f16_e709b04052d95e24b38d40e4259e1f14.so"
+
+The target project uses:
+
+- "mlc4j/output" as "jniLibs"
+- "arm64-v8a" only
+- Gradle packaging through the "mlc4j" module
+
+Phase 1: Locate and verify the binary
+
+If the file is not in the current working directory, locate it first.
+
+Then run:
+
+ls -la libqwen3_q0f16_e709b04052d95e24b38d40e4259e1f14.so
+file libqwen3_q0f16_e709b04052d95e24b38d40e4259e1f14.so
+readelf -h libqwen3_q0f16_e709b04052d95e24b38d40e4259e1f14.so
+readelf -d libqwen3_q0f16_e709b04052d95e24b38d40e4259e1f14.so
+
+Phase 2: Decide whether it is valid
+
+Use the real command outputs to determine:
+
+- whether the filename matches exactly
+- whether the file is ELF
+- whether it is a shared object
+- whether it is AArch64 / ARM64
+- whether it looks suitable for Android packaging
+- whether dependencies are acceptable
+- whether there are bad signs such as:
+  - wrong architecture
+  - desktop/host build
+  - dependency on "libtvm.so"
+  - suspicious non-Android dependencies
+
+If the file is not valid, stop and report "DO NOT INTEGRATE".
+
+Phase 3: Place the file
+
+If valid, copy it to this exact path:
+
+mlc4j/output/arm64-v8a/
+
+Use a command that preserves the exact filename.
+
+Phase 4: Verify Gradle packaging
+
+Run:
+
+./gradlew :mlc4j:mergeDebugJniLibFolders
+./gradlew :app:assembleDebug
+unzip -l app/build/outputs/apk/debug/app-debug.apk | grep "\.so"
+
+Verify that the APK contains:
+
+- "lib/arm64-v8a/libtvm4j_runtime_packed.so"
+- "lib/arm64-v8a/libqwen3_q0f16_e709b04052d95e24b38d40e4259e1f14.so"
+
+Phase 5: Final verdict
+
+Reply in exactly this structure:
+
+Raw command outputs
+
+[paste the outputs of all verification/build commands]
+
+Binary verdict
+
+[valid / invalid / inconclusive]
+
+Placement verdict
+
+[copied correctly / not copied / skipped]
+
+Packaging verdict
+
+[packaged into APK / not packaged / build failed]
+
+Final verdict
+
+SAFE TO INTEGRATE
+or
+DO NOT INTEGRATE
+or
+NEEDS MORE VERIFICATION
+
+Reason
+
+[short technical reason based only on the command outputs]
+
+Rules
+
+- Do not ask me to run anything manually
+- Do not give generic advice
+- Use only actual command outputs as evidence
+- Be strict
+- If build fails, show the failure and give the verdict based on that
