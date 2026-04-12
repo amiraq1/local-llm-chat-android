@@ -8,6 +8,7 @@ import com.google.common.truth.Truth.assertThat
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -30,7 +31,7 @@ class TasksViewModelTest {
     private fun failureResult(name: String) =
         ToolResult(toolName = name, success = false, resultText = "", errorMessage = "error from $name")
 
-    // ── Initial state ────────────────────────────────────────────────────────────
+    // ── Initial state ─────────────────────────────────────────────────────────────
 
     @Test
     fun `initial state is clean`() {
@@ -42,7 +43,7 @@ class TasksViewModelTest {
         assertThat(state.errorMessage).isNull()
     }
 
-    // ── runDeviceInfo ────────────────────────────────────────────────────────────
+    // ── runDeviceInfo ─────────────────────────────────────────────────────────────
 
     @Test
     fun `runDeviceInfo sets loading then success state`() = runTest {
@@ -59,8 +60,7 @@ class TasksViewModelTest {
 
             val success = awaitItem()                     // done
             assertThat(success.isLoading).isFalse()
-            assertThat(success.result).isNotNull()
-            assertThat(success.result!!.toolName).isEqualTo("get_device_info")
+            assertThat(success.result).isEqualTo("result for get_device_info")
             assertThat(success.errorMessage).isNull()
 
             cancelAndIgnoreRemainingEvents()
@@ -82,7 +82,7 @@ class TasksViewModelTest {
     // ── runClipboard ──────────────────────────────────────────────────────────────
 
     @Test
-    fun `runClipboard produces success state with result`() = runTest {
+    fun `runClipboard produces success state with result text`() = runTest {
         coEvery { orchestrator.execute("get_clipboard", any()) } returns
             successResult("get_clipboard")
         val vm = viewModel()
@@ -92,14 +92,14 @@ class TasksViewModelTest {
 
         val state = vm.uiState.value
         assertThat(state.isLoading).isFalse()
-        assertThat(state.result!!.toolName).isEqualTo("get_clipboard")
+        assertThat(state.result).isEqualTo("result for get_clipboard")
         assertThat(state.errorMessage).isNull()
     }
 
     // ── runBatteryStatus ──────────────────────────────────────────────────────────
 
     @Test
-    fun `runBatteryStatus produces success state with result`() = runTest {
+    fun `runBatteryStatus produces success state with result text`() = runTest {
         coEvery { orchestrator.execute("get_battery_status", any()) } returns
             successResult("get_battery_status")
         val vm = viewModel()
@@ -109,14 +109,14 @@ class TasksViewModelTest {
 
         val state = vm.uiState.value
         assertThat(state.isLoading).isFalse()
-        assertThat(state.result!!.toolName).isEqualTo("get_battery_status")
+        assertThat(state.result).isEqualTo("result for get_battery_status")
         assertThat(state.errorMessage).isNull()
     }
 
-    // ── Tool failure ──────────────────────────────────────────────────────────────
+    // ── Tool failure (ToolResult.success = false) ─────────────────────────────────
 
     @Test
-    fun `tool failure sets errorMessage and clears result`() = runTest {
+    fun `tool failure sets errorMessage and result stays null`() = runTest {
         coEvery { orchestrator.execute("get_device_info", any()) } returns
             failureResult("get_device_info")
         val vm = viewModel()
@@ -142,7 +142,36 @@ class TasksViewModelTest {
         assertThat(vm.uiState.value.errorMessage).isNotNull()
     }
 
-    // ── clearResult ────────────────────────────────────────────────────────────────
+    // ── Uncaught exception ────────────────────────────────────────────────────────
+
+    @Test
+    fun `uncaught exception from orchestrator sets errorMessage and clears loading`() = runTest {
+        coEvery { orchestrator.execute("get_device_info", any()) } throws
+            RuntimeException("network failure")
+        val vm = viewModel()
+
+        vm.runDeviceInfo()
+        advanceUntilIdle()
+
+        val state = vm.uiState.value
+        assertThat(state.isLoading).isFalse()
+        assertThat(state.result).isNull()
+        assertThat(state.errorMessage).isEqualTo("network failure")
+    }
+
+    @Test
+    fun `exception with null message falls back to generic message`() = runTest {
+        coEvery { orchestrator.execute("get_device_info", any()) } throws
+            RuntimeException(null as String?)
+        val vm = viewModel()
+
+        vm.runDeviceInfo()
+        advanceUntilIdle()
+
+        assertThat(vm.uiState.value.errorMessage).isNotNull()
+    }
+
+    // ── clearResult ───────────────────────────────────────────────────────────────
 
     @Test
     fun `clearResult resets state to clean`() = runTest {
@@ -177,35 +206,44 @@ class TasksViewModelTest {
         assertThat(vm.uiState.value.errorMessage).isNull()
     }
 
-    // ── Duplicate call guard ───────────────────────────────────────────────────────
+    @Test
+    fun `clearResult cancels in-flight coroutine and prevents stale state update`() = runTest {
+        coEvery { orchestrator.execute("get_device_info", any()) } coAnswers {
+            delay(1_000)
+            successResult("get_device_info")
+        }
+        val vm = viewModel()
+
+        vm.runDeviceInfo()     // starts coroutine, suspends at delay
+        vm.clearResult()       // cancels the job before delay elapses
+
+        advanceUntilIdle()     // advance past the 1s delay
+
+        // The cancelled coroutine must not write its result to state
+        val state = vm.uiState.value
+        assertThat(state.isLoading).isFalse()
+        assertThat(state.result).isNull()
+        assertThat(state.errorMessage).isNull()
+    }
+
+    // ── Duplicate call guard ──────────────────────────────────────────────────────
 
     @Test
     fun `second call while loading is ignored`() = runTest {
+        coEvery { orchestrator.execute("get_clipboard", any()) } coAnswers {
+            delay(1_000)
+            successResult("get_clipboard")
+        }
         coEvery { orchestrator.execute("get_device_info", any()) } returns
             successResult("get_device_info")
         val vm = viewModel()
 
-        // Simulate already-loading state by calling twice in rapid succession.
-        // The ViewModel guard prevents re-entry while isLoading is true.
-        // With UnconfinedTestDispatcher the first call completes synchronously,
-        // so we prime the loading state manually to cover the guard branch.
-        vm.runDeviceInfo()               // completes with UnconfinedTestDispatcher
-        advanceUntilIdle()
-
-        // Now clear and set loading manually via a slow mock
-        coEvery { orchestrator.execute("get_clipboard", any()) } coAnswers {
-            kotlinx.coroutines.delay(1_000)
-            successResult("get_clipboard")
-        }
-        vm.clearResult()
-        vm.runClipboard()                // starts but suspends inside delay
-
-        // While clipboard is still loading, calling runDeviceInfo should be ignored
-        vm.runDeviceInfo()
+        vm.runClipboard()      // starts, suspends at delay — isLoading becomes true
+        vm.runDeviceInfo()     // guard fires: isLoading is true, call is dropped
 
         advanceUntilIdle()
 
-        // Only get_clipboard should have been called once; get_device_info not a second time during load
         coVerify(exactly = 1) { orchestrator.execute("get_clipboard", any()) }
+        coVerify(exactly = 0) { orchestrator.execute("get_device_info", any()) }
     }
 }

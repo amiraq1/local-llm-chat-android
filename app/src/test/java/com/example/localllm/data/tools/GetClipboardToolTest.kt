@@ -43,11 +43,16 @@ class GetClipboardToolTest {
 
     @Test
     fun `execute with whitespace-only string returns success with empty message`() = runTest {
-        // SystemClipboardReader trims and returns null for blank strings; simulate that here
-        val result = toolWith(StaticClipboardReader(null)).execute()
+        // The tool calls isNullOrEmpty() on the reader's return value.
+        // "   " is not null and not empty, so this test exercises the branch where
+        // the reader returns whitespace directly (e.g. a reader that does not trim).
+        val result = toolWith(StaticClipboardReader("   ")).execute()
 
+        // isNullOrEmpty("   ") is false, so the non-empty branch is taken and
+        // "   " is returned as the resultText — the tool does not trim on its own.
         assertThat(result.success).isTrue()
-        assertThat(result.payload!!["content"]).isEmpty()
+        assertThat(result.resultText).isEqualTo("   ")
+        assertThat(result.payload!!["content"]).isEqualTo("   ")
     }
 
     @Test

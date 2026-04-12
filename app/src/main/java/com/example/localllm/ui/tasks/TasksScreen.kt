@@ -74,11 +74,10 @@ fun TasksScreen(
             }
 
             AnimatedVisibility(visible = uiState.result != null, enter = fadeIn(), exit = fadeOut()) {
-                uiState.result?.let { result ->
+                uiState.result?.let { text ->
                     ResultCard(
-                        toolName = result.toolName,
-                        resultText = result.resultText,
-                        onDismiss = viewModel::clearResult
+                        resultText = text,
+                        onDismiss  = viewModel::clearResult
                     )
                 }
             }
@@ -120,7 +119,6 @@ private fun ToolButton(
 
 @Composable
 private fun ResultCard(
-    toolName: String,
     resultText: String,
     onDismiss: () -> Unit
 ) {
@@ -131,11 +129,6 @@ private fun ResultCard(
         )
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                text = toolName,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
-            )
             Text(
                 text = resultText,
                 style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
