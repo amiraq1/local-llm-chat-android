@@ -23,11 +23,23 @@ class AgentLoopManager(
     private val uiDispatcher: CoroutineDispatcher = Dispatchers.Main
 ) {
 
+    sealed class LoopUpdate {
+        data class AnalyzingScreen(val step: Int) : LoopUpdate()
+        data class Thinking(val step: Int) : LoopUpdate()
+        data class ExecutingAction(
+            val step: Int,
+            val action: ToolCall,
+            val description: String
+        ) : LoopUpdate()
+        data class Finished(val result: AgentRunResult) : LoopUpdate()
+    }
+
     suspend fun run(
         userGoal: String,
         tools: List<ToolDefinition> = defaultTools(),
         maxSteps: Int = 10,
-        settleDelayMs: Long = 750L
+        settleDelayMs: Long = 750L,
+        onUpdate: suspend (LoopUpdate) -> Unit = {}
     ): AgentRunResult = withContext(logicDispatcher) {
         require(userGoal.isNotBlank()) { "userGoal must not be blank" }
         require(maxSteps > 0) { "maxSteps must be greater than 0" }
@@ -37,6 +49,7 @@ class AgentLoopManager(
 
         repeat(maxSteps) { index ->
             val stepNumber = index + 1
+            onUpdate(LoopUpdate.AnalyzingScreen(stepNumber))
             val screenState = screenStateProvider.getCurrentScreenState()
             val prompt = systemPromptBuilder.build(
                 userGoal = userGoal,
@@ -47,6 +60,7 @@ class AgentLoopManager(
 
             Timber.d("AgentLoopManager: Step %d prompt built", stepNumber)
 
+            onUpdate(LoopUpdate.Thinking(stepNumber))
             val rawModelOutput = gemmaInferenceEngine.generate(prompt)
             val decision = parseDecision(rawModelOutput)
             toolRegistry.validate(decision.action)
@@ -71,14 +85,23 @@ class AgentLoopManager(
                         message = finalMessage
                     )
                 )
-                return@withContext AgentRunResult(
+                val result = AgentRunResult(
                     status = AgentRunStatus.FINISHED,
                     totalSteps = history.size,
                     finalMessage = finalMessage,
                     history = history.toList()
                 )
+                onUpdate(LoopUpdate.Finished(result))
+                return@withContext result
             }
 
+            onUpdate(
+                LoopUpdate.ExecutingAction(
+                    step = stepNumber,
+                    action = decision.action,
+                    description = decision.action.describe()
+                )
+            )
             val executionResult = withContext(uiDispatcher) {
                 actionExecutor.execute(decision.action)
             }
@@ -92,23 +115,27 @@ class AgentLoopManager(
             )
 
             if (!executionResult.success) {
-                return@withContext AgentRunResult(
+                val result = AgentRunResult(
                     status = AgentRunStatus.FAILED,
                     totalSteps = history.size,
                     finalMessage = executionResult.message,
                     history = history.toList()
                 )
+                onUpdate(LoopUpdate.Finished(result))
+                return@withContext result
             }
 
             delay(settleDelayMs)
         }
 
-        AgentRunResult(
+        val result = AgentRunResult(
             status = AgentRunStatus.MAX_STEPS_REACHED,
             totalSteps = history.size,
             finalMessage = "Stopped after reaching the maximum of $maxSteps steps.",
             history = history.toList()
         )
+        onUpdate(LoopUpdate.Finished(result))
+        result
     }
 
     private fun parseDecision(rawModelOutput: String): AgentDecision {
@@ -250,3 +277,24 @@ class AgentLoopManager(
 
 private fun JsonObject.stringValue(key: String): String? =
     (this[key] as? JsonPrimitive)?.content
+
+private fun ToolCall.describe(): String = when (name) {
+    "click" -> "Clicking node ${args.intValue("id") ?: "?"}"
+    "type" -> {
+        val id = args.intValue("id") ?: "?"
+        val text = args.stringValue("text").orEmpty().ifBlank { "text" }
+        "Typing \"$text\" into node $id"
+    }
+    AgentLoopManager.FINISH_TOOL -> "Finishing task"
+    else -> buildString {
+        append("Executing ")
+        append(name)
+        if (args.isNotEmpty()) {
+            append(" ")
+            append(args)
+        }
+    }
+}
+
+private fun JsonObject.intValue(key: String): Int? =
+    (this[key] as? JsonPrimitive)?.content?.toIntOrNull()
