@@ -69,7 +69,7 @@ class ChatViewModel @Inject constructor(
     }
 
     fun loadConversation(conversationId: Long) {
-        if (currentConversationId == conversationId) return
+        if (currentConversationId == conversationId && messagesCollectionJob?.isActive == true) return
         currentConversationId = conversationId
         _uiState.update { it.copy(conversationId = conversationId) }
 
@@ -97,7 +97,14 @@ class ChatViewModel @Inject constructor(
         val text = _uiState.value.inputText.trim()
         if (text.isBlank() || _uiState.value.isGenerating) return
 
-        _uiState.update { it.copy(inputText = "", isGenerating = true, streamingText = "") }
+        _uiState.update {
+            it.copy(
+                inputText = "",
+                isGenerating = true,
+                streamingText = "",
+                errorMessage = null
+            )
+        }
 
         generationJob = viewModelScope.launch {
             try {
@@ -115,10 +122,17 @@ class ChatViewModel @Inject constructor(
                 conversationRepo.addMessage(convId, MessageRole.USER, text)
 
                 // Fetch active model from DB
-                val activeModel = modelRepository.getActiveModel()
+                val activeModel = modelRepository.ensureActiveModel(_uiState.value.activeModelId)
                 if (activeModel == null) {
-                    _uiState.update { it.copy(isGenerating = false, streamingText = "") }
-                    _events.emit(ChatEvent.ShowError("لا يوجد نموذج نشط. الرجاء اختيار نموذج من الإعدادات قبل بدء المحادثة."))
+                    val message = "لا يوجد نموذج نشط. الرجاء اختيار نموذج من الإعدادات قبل بدء المحادثة."
+                    _uiState.update {
+                        it.copy(
+                            isGenerating = false,
+                            streamingText = "",
+                            errorMessage = message
+                        )
+                    }
+                    _events.emit(ChatEvent.ShowError(message))
                     return@launch
                 }
 
@@ -169,23 +183,39 @@ class ChatViewModel @Inject constructor(
                                 it.copy(
                                     isGenerating = false,
                                     streamingText = "",
-                                    tokensPerSecond = tps
+                                    tokensPerSecond = tps,
+                                    errorMessage = null
                                 )
                             }
                             _events.emit(ChatEvent.ScrollToBottom)
                         }
                         is GenerationResponse.Error -> {
                             Timber.e(response.throwable, "Generation error")
-                            _uiState.update { it.copy(isGenerating = false, streamingText = "") }
-                            _events.emit(ChatEvent.ShowError("حدث خطأ أثناء التوليد"))
+                            val message = response.throwable.userFacingMessage()
+                            _uiState.update {
+                                it.copy(
+                                    isGenerating = false,
+                                    streamingText = "",
+                                    errorMessage = message
+                                )
+                            }
+                            _events.emit(ChatEvent.ShowError(message))
                         }
                     }
                 }
 
             } catch (e: Exception) {
                 Timber.e(e, "sendMessage error")
-                _uiState.update { it.copy(isGenerating = false, isModelLoading = false, streamingText = "") }
-                _events.emit(ChatEvent.ShowError("خطأ: ${e.message}"))
+                val message = e.userFacingMessage()
+                _uiState.update {
+                    it.copy(
+                        isGenerating = false,
+                        isModelLoading = false,
+                        streamingText = "",
+                        errorMessage = message
+                    )
+                }
+                _events.emit(ChatEvent.ShowError(message))
             }
         }
     }
@@ -228,3 +258,6 @@ class ChatViewModel @Inject constructor(
         }
     }
 }
+
+private fun Throwable.userFacingMessage(): String =
+    message?.takeIf { it.isNotBlank() } ?: "حدث خطأ أثناء التوليد"

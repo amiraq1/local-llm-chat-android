@@ -16,6 +16,9 @@ interface ModelDao {
     @Query("SELECT * FROM installed_models WHERE isActive = 1 LIMIT 1")
     suspend fun getActiveModel(): InstalledModelEntity?
 
+    @Query("SELECT * FROM installed_models ORDER BY installedAt DESC LIMIT 1")
+    suspend fun getLatestInstalledModel(): InstalledModelEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(model: InstalledModelEntity)
 

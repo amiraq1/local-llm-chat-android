@@ -27,6 +27,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
+import java.net.URI
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -72,6 +73,24 @@ class ModelRepository @Inject constructor(
     suspend fun getActiveModel(): InstalledModel? =
         modelDao.getActiveModel()?.toDomain()
 
+    suspend fun ensureActiveModel(preferredModelId: String): InstalledModel? = withContext(Dispatchers.IO) {
+        syncDiscoveredModels()
+
+        modelDao.getActiveModel()?.toDomain()?.let { return@withContext it }
+
+        modelDao.getModelById(preferredModelId)?.let { preferred ->
+            setActiveModel(preferred.id)
+            return@withContext preferred.copy(isActive = true).toDomain()
+        }
+
+        modelDao.getLatestInstalledModel()?.let { fallback ->
+            setActiveModel(fallback.id)
+            return@withContext fallback.copy(isActive = true).toDomain()
+        }
+
+        null
+    }
+
     suspend fun setActiveModel(modelId: String) {
         modelDao.deactivateAll()
         modelDao.setActive(modelId)
@@ -79,6 +98,7 @@ class ModelRepository @Inject constructor(
     }
 
     suspend fun markAsInstalled(model: LLMModel, filePath: String) {
+        val existing = modelDao.getModelById(model.id)
         modelDao.insert(
             InstalledModelEntity(
                 id = model.id,
@@ -86,8 +106,9 @@ class ModelRepository @Inject constructor(
                 family = model.family,
                 sizeBytes = model.sizeBytes,
                 filePath = filePath,
-                checksumVerified = false,
-                isActive = false,
+                installedAt = existing?.installedAt ?: System.currentTimeMillis(),
+                checksumVerified = existing?.checksumVerified ?: false,
+                isActive = existing?.isActive ?: false,
                 quantization = model.quantization,
                 contextLength = model.contextLength
             )
@@ -346,7 +367,9 @@ class ModelRepository @Inject constructor(
 
                 val responseCode = connection.responseCode
                 if (responseCode in 300..399) {
-                    currentUrl = connection.getHeaderField("Location")
+                    val location = connection.getHeaderField("Location")
+                        ?: error("Redirect response missing Location header for $currentUrl")
+                    currentUrl = resolveRedirectUrl(currentUrl, location)
                     connection.disconnect()
                     redirectCount++
                     continue
@@ -388,6 +411,14 @@ class ModelRepository @Inject constructor(
             } catch (_: Exception) {
             }
         }
+    }
+
+    private fun resolveRedirectUrl(currentUrl: String, location: String): String {
+        val trimmedLocation = location.trim()
+        if (trimmedLocation.isEmpty()) {
+            error("Redirect response included an empty Location header for $currentUrl")
+        }
+        return URI(currentUrl).resolve(trimmedLocation).toString()
     }
 }
 

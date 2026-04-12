@@ -108,6 +108,10 @@ fun ChatScreen(
                         item { ModelLoadingIndicator() }
                     }
 
+                    uiState.errorMessage?.let { errorMessage ->
+                        item { ChatErrorCard(message = errorMessage) }
+                    }
+
                     if (uiState.streamingText.isNotEmpty()) {
                         item { StreamingBubble(text = uiState.streamingText) }
                     } else if (uiState.isGenerating && uiState.streamingText.isEmpty()) {
@@ -573,6 +577,38 @@ private fun ModelLoadingIndicator() {
                 "جاري تحميل النموذج...",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        }
+    }
+}
+
+@Composable
+private fun ChatErrorCard(message: String) {
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.errorContainer,
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                liveRegion = LiveRegionMode.Polite
+                contentDescription = "خطأ في التوليد. $message"
+            }
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Icon(
+                Icons.Outlined.Warning,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onErrorContainer,
+                modifier = Modifier.size(18.dp)
+            )
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer
             )
         }
     }
