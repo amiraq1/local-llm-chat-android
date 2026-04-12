@@ -70,6 +70,32 @@ download_model.py             Utility script for fetching model weights
 
 The configured workflow runs `./gradlew --no-daemon tasks --console=plain` to display available build tasks. This is a console-only project — no web preview is available since it's an Android application.
 
+## Tool Calling Layer (Day 1 — Action Assistant)
+
+A clean, extensible tool-calling architecture lives above the `InferenceEngine`:
+
+```
+domain/tools/
+  Tool.kt                 Interface: name, description, keywords, execute()
+  ToolResult.kt           Typed result: success, resultText, payload, errorMessage
+  ToolRegistry.kt         Central registry populated via Hilt multibindings
+  ActionOrchestrator.kt   Deterministic keyword-based tool selection + execution
+
+data/tools/
+  GetDeviceInfoTool.kt    Reads Build.* — no permissions required
+  GetClipboardTool.kt     Reads ClipboardManager — foreground-only, no permissions
+  GetBatteryStatusTool.kt Reads ACTION_BATTERY_CHANGED sticky broadcast — no permissions
+
+di/
+  ToolsModule.kt          @IntoSet multibindings; add new tools here only
+
+ui/tasks/
+  TasksViewModel.kt       @HiltViewModel — delegates to ActionOrchestrator
+  TasksScreen.kt          3-button Compose screen (Device Info / Clipboard / Battery)
+```
+
+The Tasks screen is accessible from the bottom navigation bar ("المهام").
+
 ## Notes
 
 - The `InferenceEngine` bound via Hilt is `MLCInferenceEngine` (not `FakeInferenceEngine`)
