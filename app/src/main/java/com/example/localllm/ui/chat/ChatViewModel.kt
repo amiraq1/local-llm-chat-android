@@ -20,6 +20,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.yield
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -123,9 +124,12 @@ class ChatViewModel @Inject constructor(
                 when (val classification = classifier.classify(text)) {
 
                     is ClassificationResult.ToolCall -> {
-                        // Show ephemeral trace in the StreamingBubble
+                        // Show ephemeral trace in the StreamingBubble.
+                        // yield() lets the UI frame update (and tests observe the state)
+                        // before the tool starts executing.
                         _uiState.update { it.copy(streamingText = "⚙ جارٍ تنفيذ: ${classification.toolName}…") }
                         _events.emit(ChatEvent.ScrollToBottom)
+                        yield()
 
                         val startTime = System.currentTimeMillis()
                         val toolResult = orchestrator.execute(classification.toolName)

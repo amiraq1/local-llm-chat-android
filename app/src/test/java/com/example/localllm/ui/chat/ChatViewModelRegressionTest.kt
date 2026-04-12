@@ -7,6 +7,9 @@ import com.example.localllm.domain.model.AppSettings
 import com.example.localllm.domain.model.InstalledModel
 import com.example.localllm.domain.model.Message
 import com.example.localllm.domain.model.MessageRole
+import com.example.localllm.domain.tools.ActionOrchestrator
+import com.example.localllm.domain.tools.ClassificationResult
+import com.example.localllm.domain.tools.ToolCallClassifier
 import com.example.localllm.engine.EngineInfo
 import com.example.localllm.engine.FinishReason
 import com.example.localllm.engine.GenerationRequest
@@ -39,17 +42,22 @@ class ChatViewModelRegressionTest {
     private val conversationRepo = mockk<ConversationRepository>()
     private val modelRepository = mockk<ModelRepository>()
     private val settingsDataStore = mockk<SettingsDataStore>()
+    private val classifier = mockk<ToolCallClassifier>()
+    private val orchestrator = mockk<ActionOrchestrator>()
 
     private fun createViewModel(
         inferenceEngine: InferenceEngine,
         appScope: CoroutineScope
     ): ChatViewModel {
         every { settingsDataStore.settings } returns flowOf(AppSettings(activeModelId = "dummy_model"))
+        every { classifier.classify(any()) } returns ClassificationResult.LlmChat
         return ChatViewModel(
             inferenceEngine = inferenceEngine,
             conversationRepo = conversationRepo,
             modelRepository = modelRepository,
             settingsDataStore = settingsDataStore,
+            classifier = classifier,
+            orchestrator = orchestrator,
             appScope = appScope
         )
     }
