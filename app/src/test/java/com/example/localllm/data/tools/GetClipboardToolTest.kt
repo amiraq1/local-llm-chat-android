@@ -42,14 +42,16 @@ class GetClipboardToolTest {
     }
 
     @Test
-    fun `execute with whitespace-only string returns success with empty message`() = runTest {
-        // The tool calls isNullOrEmpty() on the reader's return value.
-        // "   " is not null and not empty, so this test exercises the branch where
-        // the reader returns whitespace directly (e.g. a reader that does not trim).
+    fun `execute does not normalize whitespace — that is the reader's responsibility`() = runTest {
+        // GetClipboardTool uses isNullOrEmpty(), which is false for "   ".
+        // Whitespace normalization (.trim().ifEmpty { null }) lives exclusively in
+        // SystemClipboardReader; the tool must not duplicate that logic.
+        // In production this branch is unreachable because SystemClipboardReader
+        // always delivers null for blank input — but the contract must be explicit.
+        // The normalization behaviour of SystemClipboardReader is verified separately
+        // in an instrumented / Robolectric test.
         val result = toolWith(StaticClipboardReader("   ")).execute()
 
-        // isNullOrEmpty("   ") is false, so the non-empty branch is taken and
-        // "   " is returned as the resultText — the tool does not trim on its own.
         assertThat(result.success).isTrue()
         assertThat(result.resultText).isEqualTo("   ")
         assertThat(result.payload!!["content"]).isEqualTo("   ")
