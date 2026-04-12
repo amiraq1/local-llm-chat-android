@@ -114,6 +114,7 @@ dependencies {
     implementation(libs.core.ktx)
     implementation(libs.splashscreen)
     implementation(libs.documentfile)
+    implementation(libs.mediapipe.tasks.genai)
 
     // Test
     testImplementation("junit:junit:4.13.2")
