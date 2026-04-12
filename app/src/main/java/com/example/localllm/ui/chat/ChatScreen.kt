@@ -20,6 +20,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -311,6 +312,7 @@ private fun SuggestionItem(text: String, onClick: (String) -> Unit) {
 @Composable
 fun MessageBubble(message: Message) {
     val isUser = message.role == MessageRole.USER
+    val isTool = message.role == MessageRole.TOOL
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
     Column(
@@ -322,19 +324,25 @@ fun MessageBubble(message: Message) {
             horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
             verticalAlignment = Alignment.Bottom
         ) {
-            // Assistant avatar
+            // Assistant / tool avatar
             if (!isUser) {
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer,
+                    color = if (isTool)
+                        MaterialTheme.colorScheme.tertiaryContainer
+                    else
+                        MaterialTheme.colorScheme.primaryContainer,
                     modifier = Modifier.size(28.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            Icons.Filled.AutoAwesome,
-                            contentDescription = "المساعد",
+                            if (isTool) Icons.Outlined.Build else Icons.Filled.AutoAwesome,
+                            contentDescription = if (isTool) "نتيجة أداة" else "المساعد",
                             modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            tint = if (isTool)
+                                MaterialTheme.colorScheme.onTertiaryContainer
+                            else
+                                MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 }
@@ -344,24 +352,29 @@ fun MessageBubble(message: Message) {
             // Bubble
             Surface(
                 shape = RoundedCornerShape(
-                    topStart = 18.dp,
-                    topEnd   = 18.dp,
+                    topStart    = 18.dp,
+                    topEnd      = 18.dp,
                     bottomStart = if (isUser) 18.dp else 4.dp,
                     bottomEnd   = if (isUser) 4.dp else 18.dp
                 ),
-                color = if (isUser)
-                    MaterialTheme.colorScheme.primary
-                else
-                    MaterialTheme.colorScheme.surfaceVariant,
+                color = when {
+                    isUser -> MaterialTheme.colorScheme.primary
+                    isTool -> MaterialTheme.colorScheme.tertiaryContainer
+                    else   -> MaterialTheme.colorScheme.surfaceVariant
+                },
                 modifier = Modifier.widthIn(min = 60.dp, max = 300.dp)
             ) {
                 Text(
-                    text = message.content,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (isUser)
-                        MaterialTheme.colorScheme.onPrimary
+                    text  = message.content,
+                    style = if (isTool)
+                        MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace)
                     else
-                        MaterialTheme.colorScheme.onSurfaceVariant,
+                        MaterialTheme.typography.bodyMedium,
+                    color = when {
+                        isUser -> MaterialTheme.colorScheme.onPrimary
+                        isTool -> MaterialTheme.colorScheme.onTertiaryContainer
+                        else   -> MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
                 )
             }

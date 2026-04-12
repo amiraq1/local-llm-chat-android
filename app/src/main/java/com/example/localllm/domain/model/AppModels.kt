@@ -30,7 +30,9 @@ data class Message(
 enum class MessageRole(val storageValue: String) {
     USER("user"),
     ASSISTANT("assistant"),
-    SYSTEM("system");
+    SYSTEM("system"),
+    /** Result of a device-tool execution persisted verbatim in the conversation. */
+    TOOL("tool");
 
     companion object {
         fun fromStorageValue(value: String): MessageRole =
