@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">نبض</string>
+    <string name="accessibility_service_description">Local Gemma Agent Service</string>
 </resources>

@@ -6,4 +6,4 @@
     android:canRetrieveWindowContent="true"
     android:canPerformGestures="true"
     android:notificationTimeout="100"
-    android:description="Local Gemma Agent Service" />
+    android:description="@string/accessibility_service_description" />
