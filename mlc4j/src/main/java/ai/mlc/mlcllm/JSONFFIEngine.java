@@ -1,12 +1,16 @@
 package ai.mlc.mlcllm;
 
+import android.util.Log;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 
 public class JSONFFIEngine {
+    private static final String TAG = "JSONFFIEngine";
     private static final String TVM_MISSING_MESSAGE =
             "MLC TVM bindings are not available in this build. "
                     + "Enable -PenableBundledTvm4j=true with a compatible tvm4j_core.jar "
@@ -44,39 +48,52 @@ public class JSONFFIEngine {
     }
 
     public void initBackgroundEngine(KotlinFunction callback) {
-        Object device = openClDevice();
+        DeviceSelection device = openPreferredDevice();
         requestStreamCallback = createStreamCallback(callback);
+        Object deviceType = readField(device.device, "deviceType");
+        Object deviceId = readField(device.device, "deviceId");
+
+        Log.i(
+                TAG,
+                "Initializing background engine with backend="
+                        + device.backend
+                        + " deviceType="
+                        + deviceType
+                        + " deviceId="
+                        + deviceId
+        );
 
         invokeFunction(
+                "init_background_engine",
                 initBackgroundEngineFunc,
-                readField(device, "deviceType"),
-                readField(device, "deviceId"),
+                deviceType,
+                deviceId,
                 requestStreamCallback
         );
     }
 
     public void reload(String engineConfigJSONStr) {
-        invokeFunction(reloadFunc, engineConfigJSONStr);
+        invokeFunction("reload", reloadFunc, engineConfigJSONStr);
     }
 
     public void chatCompletion(String requestJSONStr, String requestId) {
-        invokeFunction(chatCompletionFunc, requestJSONStr, requestId);
+        invokeFunction("chat_completion", chatCompletionFunc, requestJSONStr, requestId);
     }
 
     public void runBackgroundLoop() {
-        invokeFunction(runBackgroundLoopFunc);
+        invokeFunction("run_background_loop", runBackgroundLoopFunc);
     }
 
     public void runBackgroundStreamBackLoop() {
-        invokeFunction(runBackgroundStreamBackLoopFunc);
+        invokeFunction("run_background_stream_back_loop", runBackgroundStreamBackLoopFunc);
     }
 
     public void exitBackgroundLoop() {
-        invokeFunction(exitBackgroundLoopFunc);
+        invokeFunction("exit_background_loop", exitBackgroundLoopFunc);
     }
 
     public void unload() {
-        invokeFunction(unloadFunc);
+        invokeFunction("unload", unloadFunc);
     }
 
     public interface KotlinFunction {
@@ -84,7 +101,7 @@ public class JSONFFIEngine {
     }
 
     public void reset() {
-        invokeFunction(resetFunc);
+        invokeFunction("reset", resetFunc);
     }
 
     private static Object getGlobalFunction(String functionName) {
@@ -100,9 +117,33 @@ public class JSONFFIEngine {
         return call(value, "asModule");
     }
 
-    private static Object openClDevice() {
+    private static DeviceSelection openPreferredDevice() {
         Class<?> deviceClass = requireClass("org.apache.tvm.Device");
-        return callStatic(deviceClass, "opencl");
+        String[] backends = {"vulkan", "opencl", "cpu"};
+        Throwable lastFailure = null;
+
+        for (String backend : backends) {
+            try {
+                Object device = callStatic(deviceClass, backend);
+                Object exists = call(device, "exist");
+                Log.i(TAG, "TVM backend probe " + backend + " exist=" + exists);
+                if (Boolean.TRUE.equals(exists)) {
+                    return new DeviceSelection(backend, device);
+                }
+            } catch (Throwable error) {
+                lastFailure = error;
+                Log.w(
+                        TAG,
+                        "TVM backend probe failed for " + backend + ": " + rootCauseMessage(error),
+                        error
+                );
+            }
+        }
+
+        throw new IllegalStateException(
+                "No usable TVM device was found. Tried: vulkan, opencl, cpu.",
+                lastFailure
+        );
     }
 
     private static Object createStreamCallback(KotlinFunction callback) {
@@ -158,13 +199,22 @@ public class JSONFFIEngine {
         return args;
     }
 
-    private static void invokeFunction(Object function, Object... args) {
+    private void invokeFunction(String functionName, Object function, Object... args) {
         Object current = function;
-        for (Object arg : args) {
-            Object next = call(current, "pushArg", arg);
-            current = next != null ? next : current;
+        try {
+            for (Object arg : args) {
+                Object next = call(current, "pushArg", arg);
+                current = next != null ? next : current;
+            }
+            call(current, "invoke");
+        } catch (IllegalStateException error) {
+            String lastError = readLastErrorSafely();
+            String message = "Failed to invoke MLC function " + functionName;
+            if (lastError != null && !lastError.isEmpty()) {
+                message += ". TVM last error: " + lastError;
+            }
+            throw new IllegalStateException(message, error);
         }
-        call(current, "invoke");
     }
 
     private static Object readField(Object target, String fieldName) {
@@ -188,6 +238,13 @@ public class JSONFFIEngine {
         Method method = findMethod(target.getClass(), methodName, false, args);
         try {
             return method.invoke(target, args);
+        } catch (InvocationTargetException e) {
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            throw new IllegalStateException(
+                    "Failed to call " + target.getClass().getName() + "." + methodName
+                            + ": " + rootCauseMessage(cause),
+                    cause
+            );
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("Failed to call " + target.getClass().getName() + "." + methodName, e);
         }
@@ -197,12 +254,64 @@ public class JSONFFIEngine {
         Method method = findMethod(type, methodName, true, args);
         try {
             return method.invoke(null, args);
+        } catch (InvocationTargetException e) {
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            throw new IllegalStateException(
+                    "Failed to call static " + type.getName() + "." + methodName
+                            + ": " + rootCauseMessage(cause),
+                    cause
+            );
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("Failed to call static " + type.getName() + "." + methodName, e);
         }
     }
 
+    private String readLastErrorSafely() {
+        try {
+            Object value = call(getLastErrorFunc, "invoke");
+            return valueToString(value);
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private static String valueToString(Object value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            Object asString = call(value, "asString");
+            return asString != null ? String.valueOf(asString) : null;
+        } catch (Throwable ignored) {
+            return String.valueOf(value);
+        }
+    }
+
+    private static String rootCauseMessage(Throwable error) {
+        Throwable current = error;
+        while (current.getCause() != null && current.getCause() != current) {
+            current = current.getCause();
+        }
+        String message = current.getMessage();
+        return message != null && !message.isEmpty()
+                ? current.getClass().getSimpleName() + ": " + message
+                : current.getClass().getSimpleName();
+    }
+
+    private static final class DeviceSelection {
+        final String backend;
+        final Object device;
+
+        DeviceSelection(String backend, Object device) {
+            this.backend = backend;
+            this.device = device;
+        }
+    }
+
     private static Method findMethod(Class<?> type, String methodName, boolean requireStatic, Object... args) {
+        Method bestMethod = null;
+        int bestScore = Integer.MIN_VALUE;
+
         for (Method method : type.getMethods()) {
             if (!method.getName().equals(methodName)) {
                 continue;
@@ -210,42 +319,96 @@ public class JSONFFIEngine {
             if (Modifier.isStatic(method.getModifiers()) != requireStatic) {
                 continue;
             }
-            if (!parametersMatch(method.getParameterTypes(), args)) {
+            int score = parametersMatchScore(method.getParameterTypes(), args);
+            if (score < 0) {
                 continue;
             }
-            return method;
-        }
-        throw new IllegalStateException("Unable to resolve method " + type.getName() + "." + methodName);
-    }
-
-    private static boolean parametersMatch(Class<?>[] parameterTypes, Object[] args) {
-        if (parameterTypes.length != args.length) {
-            return false;
-        }
-        for (int i = 0; i < parameterTypes.length; i++) {
-            if (!isCompatible(parameterTypes[i], args[i])) {
-                return false;
+            if (score > bestScore) {
+                bestMethod = method;
+                bestScore = score;
             }
         }
-        return true;
+
+        if (bestMethod != null) {
+            return bestMethod;
+        }
+
+        throw new IllegalStateException(
+                "Unable to resolve method " + type.getName() + "." + methodName
+        );
     }
 
-    private static boolean isCompatible(Class<?> parameterType, Object arg) {
+    private static int parametersMatchScore(Class<?>[] parameterTypes, Object[] args) {
+        if (parameterTypes.length != args.length) {
+            return -1;
+        }
+
+        int totalScore = 0;
+        for (int i = 0; i < parameterTypes.length; i++) {
+            int argumentScore = compatibilityScore(parameterTypes[i], args[i]);
+            if (argumentScore < 0) {
+                return -1;
+            }
+            totalScore += argumentScore;
+        }
+
+        return totalScore;
+    }
+
+    private static int compatibilityScore(Class<?> parameterType, Object arg) {
         if (arg == null) {
-            return !parameterType.isPrimitive();
+            return parameterType.isPrimitive() ? -1 : 1;
         }
         if (parameterType.isInstance(arg)) {
-            return true;
+            return parameterType == arg.getClass() ? 100 : 90;
         }
         if (!parameterType.isPrimitive()) {
-            return parameterType.isAssignableFrom(arg.getClass());
+            return parameterType.isAssignableFrom(arg.getClass()) ? 80 : -1;
         }
+
         if (parameterType == boolean.class) {
-            return arg instanceof Boolean;
+            return arg instanceof Boolean ? 100 : -1;
         }
         if (parameterType == char.class) {
-            return arg instanceof Character;
+            return arg instanceof Character ? 100 : -1;
         }
-        return arg instanceof Number;
+
+        if (!(arg instanceof Number)) {
+            return -1;
+        }
+
+        Class<?> wrapperType = arg.getClass();
+
+        if (parameterType == byte.class) {
+            return wrapperType == Byte.class ? 100 : -1;
+        }
+        if (parameterType == short.class) {
+            return wrapperType == Short.class ? 100 : wrapperType == Byte.class ? 90 : -1;
+        }
+        if (parameterType == int.class) {
+            if (wrapperType == Integer.class) return 100;
+            if (wrapperType == Short.class || wrapperType == Byte.class) return 90;
+            return -1;
+        }
+        if (parameterType == long.class) {
+            if (wrapperType == Long.class) return 100;
+            if (wrapperType == Integer.class) return 80;
+            if (wrapperType == Short.class || wrapperType == Byte.class) return 70;
+            return -1;
+        }
+        if (parameterType == float.class) {
+            if (wrapperType == Float.class) return 100;
+            if (wrapperType == Integer.class || wrapperType == Short.class || wrapperType == Byte.class) return 30;
+            return -1;
+        }
+        if (parameterType == double.class) {
+            if (wrapperType == Double.class) return 100;
+            if (wrapperType == Float.class) return 80;
+            if (wrapperType == Long.class) return 50;
+            if (wrapperType == Integer.class || wrapperType == Short.class || wrapperType == Byte.class) return 20;
+            return -1;
+        }
+
+        return -1;
     }
 }

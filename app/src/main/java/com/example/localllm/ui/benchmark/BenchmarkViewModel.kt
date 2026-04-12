@@ -305,7 +305,7 @@ class BenchmarkViewModel @Inject constructor(
         val request = GenerationRequest(
             messages = listOf(
                 ChatMessage(
-                    role = MessageRole.USER.name.lowercase(),
+                    role = MessageRole.USER,
                     content = prompt
                 )
             ),
@@ -333,7 +333,7 @@ class BenchmarkViewModel @Inject constructor(
                 }
 
                 is GenerationResponse.Error -> {
-                    generationError = response.error
+                    generationError = response.throwable
                 }
             }
         }

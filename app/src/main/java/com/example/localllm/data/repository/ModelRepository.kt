@@ -4,7 +4,9 @@ import android.app.ActivityManager
 import android.content.Context
 import android.net.Uri
 import android.os.StatFs
+import androidx.room.withTransaction
 import androidx.documentfile.provider.DocumentFile
+import com.example.localllm.data.db.AppDatabase
 import com.example.localllm.data.db.dao.ModelDao
 import com.example.localllm.data.db.entity.InstalledModelEntity
 import com.example.localllm.domain.model.CatalogModel
@@ -15,6 +17,7 @@ import com.example.localllm.domain.model.ModelDownloadState
 import com.example.localllm.domain.model.ModelUiState
 import com.example.localllm.mlc.MLC_MODEL_CONFIG_FILENAME
 import com.example.localllm.mlc.MLC_TENSOR_CACHE_FILENAME
+import com.example.localllm.mlc.MlcChatConfig
 import com.example.localllm.mlc.MlcModelRecord
 import com.example.localllm.mlc.readInstalledMlcChatConfig
 import com.example.localllm.mlc.readInstalledMlcTensorCache
@@ -395,6 +398,10 @@ class ModelRepository @Inject constructor(
 
         return matchingChild ?: root
     }
+
+    private fun requireCatalogModel(modelId: String): CatalogModel =
+        catalogModels.firstOrNull { it.slug == modelId }
+            ?: error("النموذج غير موجود في الكتالوج")
 
     private fun buildLocalImportMessage(modelId: String): String =
         "يرجى نسخ مجلد النموذج إلى المسار التالي ثم المحاولة مجددًا:\n\n" +

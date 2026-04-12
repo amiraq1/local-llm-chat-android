@@ -60,7 +60,8 @@ class MLCInferenceEngine @Inject constructor(
 
                 val modelRecord = resolveModelRecord(modelDir)
                 val installedConfig = validateInstalledAssets(modelDir)
-                validateBundledModelLibrary(modelRecord)
+                validateBundledRuntimeLibrary(modelRecord)
+                validateRequiredBackend(modelRecord)
 
                 val currentPath = activeModelPath
                 val currentLib = activeModelLib
@@ -203,16 +204,51 @@ class MLCInferenceEngine @Inject constructor(
         return chatConfig
     }
 
-    private fun validateBundledModelLibrary(modelRecord: MlcModelRecord) {
-        val expectedLibrary = File(
+    private fun validateBundledRuntimeLibrary(modelRecord: MlcModelRecord) {
+        val runtimeLibrary = File(
             context.applicationInfo.nativeLibraryDir,
-            "lib${modelRecord.modelLib}.so"
+            "libtvm4j_runtime_packed.so"
         )
 
-        require(expectedLibrary.exists()) {
-            "مكتبة النموذج الأصلية ${expectedLibrary.name} غير مضمنة في هذا البناء. " +
-                "الـ runtime موجود، لكن يلزم إضافة مكتبات MLC المولدة لكل نموذج قبل التوليد الحقيقي."
+        require(runtimeLibrary.exists()) {
+            "مكتبة MLC الأصلية libtvm4j_runtime_packed.so غير مضمنة في هذا البناء."
         }
+
+        Timber.d(
+            "MLC runtime library found at %s; model_lib=%s will be resolved by the packed runtime",
+            runtimeLibrary.absolutePath,
+            modelRecord.modelLib
+        )
+    }
+
+    private fun validateRequiredBackend(modelRecord: MlcModelRecord) {
+        val backend = modelRecord.modelBackend.trim().lowercase()
+        if (backend.isBlank() || backend == "auto") return
+
+        require(isTvmDeviceAvailable(backend)) {
+            buildString {
+                append("مكتبة النموذج ")
+                append(modelRecord.modelLib)
+                append(" مبنية لتسريع ")
+                append(backend)
+                append("، لكن هذا الـ backend غير متاح على الجهاز الحالي. ")
+                append("أعد بناء model_lib لـ cpu أو vulkan، أو استخدم جهازًا يدعم ")
+                append(backend)
+                append(" فعليًا.")
+            }
+        }
+    }
+
+    private fun isTvmDeviceAvailable(backend: String): Boolean {
+        return runCatching {
+            val deviceClass = Class.forName("org.apache.tvm.Device")
+            val factory = deviceClass.getMethod(backend)
+            val device = factory.invoke(null)
+            val existsMethod = deviceClass.getMethod("exist")
+            existsMethod.invoke(device) as? Boolean ?: false
+        }.onFailure { error ->
+            Timber.w(error, "TVM backend %s is not available", backend)
+        }.getOrDefault(false)
     }
 
     private fun isBundledTvmAvailable(): Boolean =

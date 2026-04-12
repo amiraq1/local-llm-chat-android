@@ -53,16 +53,42 @@ dependencies {
 }
 
 // ---------------------------------------------------------------------------
-// Validation: ensure every model_lib referenced in mlc-app-config.json has a
-// corresponding .so file in output/arm64-v8a/ before the native merge tasks.
+// Validation: ensure the packed Android runtime is present and that it embeds
+// every model_lib referenced in mlc-app-config.json.
 // ---------------------------------------------------------------------------
 
 def mlcAppConfigFile = file("src/main/assets/mlc-app-config.json")
 def nativeOutputDir  = file("output/arm64-v8a")
+def packedRuntimeLib = new File(nativeOutputDir, "libtvm4j_runtime_packed.so")
+
+def fileContainsAsciiMarker = { File file, String marker ->
+    if (!file.exists()) {
+        return false
+    }
+
+    byte[] haystack = file.bytes
+    byte[] needle = marker.getBytes("US-ASCII")
+    int limit = haystack.length - needle.length
+
+    for (int start = 0; start <= limit; start++) {
+        boolean matched = true
+        for (int offset = 0; offset < needle.length; offset++) {
+            if (haystack[start + offset] != needle[offset]) {
+                matched = false
+                break
+            }
+        }
+        if (matched) {
+            return true
+        }
+    }
+
+    return false
+}
 
 tasks.register('validateModelLibs') {
     group = 'verification'
-    description = 'Checks that all MLC model .so libraries listed in mlc-app-config.json are present.'
+    description = 'Checks that libtvm4j_runtime_packed.so embeds all MLC model libraries listed in mlc-app-config.json.'
 
     doLast {
         if (!mlcAppConfigFile.exists()) {
@@ -78,39 +104,51 @@ tasks.register('validateModelLibs') {
             return
         }
 
-        // TVM runtime is always required
-        def requiredLibs = ['libtvm4j_runtime_packed.so']
+        if (!packedRuntimeLib.exists()) {
+            logger.error("  ✗ libtvm4j_runtime_packed.so – MISSING")
+            logger.warn(
+                "\n⚠ Missing packed MLC runtime in ${nativeOutputDir}.\n\n" +
+                "Build or copy libtvm4j_runtime_packed.so into mlc4j/output/arm64-v8a " +
+                "before packaging the app.\n"
+            )
+            return
+        }
 
-        // Per-model compiled libraries
+        def runtimeSizeMb = String.format("%.1f", packedRuntimeLib.length() / (1024.0 * 1024.0))
+        logger.lifecycle("  ✓ libtvm4j_runtime_packed.so (${runtimeSizeMb} MB)")
+
+        def missing = []
         modelList.each { model ->
             def lib = model.model_lib
             if (lib) {
-                requiredLibs << "lib${lib}.so"
-            }
-        }
-
-        def missing = []
-        requiredLibs.each { libName ->
-            def libFile = new File(nativeOutputDir, libName)
-            if (libFile.exists()) {
-                def sizeMb = String.format("%.1f", libFile.length() / (1024.0 * 1024.0))
-                logger.lifecycle("  ✓ ${libName} (${sizeMb} MB)")
+                def normalizedLib = lib.replace('-', '_')
+                def ctxMarker = "${normalizedLib}___tvm_ffi__library_ctx"
+                def binMarker = "${normalizedLib}___tvm_ffi__library_bin"
+                if (
+                    fileContainsAsciiMarker(packedRuntimeLib, ctxMarker) ||
+                    fileContainsAsciiMarker(packedRuntimeLib, binMarker)
+                ) {
+                    logger.lifecycle("  ✓ ${lib} embedded in packed runtime")
+                } else {
+                    missing << lib
+                    logger.error("  ✗ ${lib} – NOT EMBEDDED IN PACKED RUNTIME")
+                }
             } else {
-                missing << libName
-                logger.error("  ✗ ${libName} – MISSING")
+                logger.warn("  • model entry without model_lib, skipping packed-runtime validation")
             }
         }
 
         if (!missing.isEmpty()) {
             def hint = missing.collect { "  • ${it}" }.join('\n')
             logger.warn(
-                "\n⚠ Missing ${missing.size()} model library file(s) in ${nativeOutputDir}:\n" +
+                "\n⚠ Missing ${missing.size()} embedded model library marker(s) in ${packedRuntimeLib}:\n" +
                 "${hint}\n\n" +
-                "The TVM runtime is bundled, but per-model compiled .so files are needed\n" +
-                "for actual inference. Without them the app will fall back to the error path.\n\n" +
+                "Current MLC Android packaging embeds model_lib artifacts inside " +
+                "libtvm4j_runtime_packed.so rather than shipping separate lib<model>.so files.\n" +
+                "Without the embedded symbols for each model, the app will fall back to the fake engine.\n\n" +
                 "To fix:\n" +
-                "  1. Run:  python scripts/fetch_model_libs.py\n" +
-                "  2. Or compile manually — see mlc4j/build-model-libs.md\n"
+                "  1. Rebuild libtvm4j_runtime_packed.so with the desired model_lib inputs\n" +
+                "  2. Or follow the official mlc_llm Android packaging flow to regenerate the packed runtime\n"
             )
         }
     }

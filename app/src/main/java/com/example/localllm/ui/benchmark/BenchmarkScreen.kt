@@ -147,7 +147,7 @@ private fun PromptCard() {
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    BenchmarkViewModel.BENCHMARK_PROMPT,
+                    BenchmarkConfig.BENCHMARK_PROMPT,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
