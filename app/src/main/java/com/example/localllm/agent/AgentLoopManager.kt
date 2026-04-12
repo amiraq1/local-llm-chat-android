@@ -180,7 +180,7 @@ class AgentLoopManager(
                 parameters = listOf(
                     ToolParameterDefinition(
                         name = "id",
-                        type = "string",
+                        type = "integer",
                         required = true,
                         description = "The exact node id from CurrentScreenState.nodes[].id."
                     )
@@ -190,7 +190,7 @@ class AgentLoopManager(
                     put(
                         "args",
                         buildJsonObject {
-                            put("id", "send_button")
+                            put("id", 1)
                         }
                     )
                 }
@@ -201,7 +201,7 @@ class AgentLoopManager(
                 parameters = listOf(
                     ToolParameterDefinition(
                         name = "id",
-                        type = "string",
+                        type = "integer",
                         required = true,
                         description = "The exact editable node id from CurrentScreenState.nodes[].id."
                     ),
@@ -217,7 +217,7 @@ class AgentLoopManager(
                     put(
                         "args",
                         buildJsonObject {
-                            put("id", "message_input")
+                            put("id", 2)
                             put("text", "Hello John")
                         }
                     )
