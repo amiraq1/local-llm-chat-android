@@ -1,0 +1,113 @@
+You are a senior Android NDK / JNI / MLC-LLM / TVM integration engineer.
+
+I have an Android project called `local-llm-chat-android` with an `app` module and an `mlc4j` module.
+
+My Gradle wiring and native packaging path are already mostly correct:
+- `implementation(project(":mlc4j"))` is present
+- `jniLibs.srcDirs("output")` is configured in `mlc4j/build.gradle.kts`
+- the app uses `abiFilters += "arm64-v8a"`
+- `libtvm4j_runtime_packed.so` is already present and packaged correctly
+
+The remaining blocker is the model-specific native library required by MLC runtime.
+
+My config references:
+- `"model_lib": "qwen3_q0f16_e709b04052d95e24b38d40e4259e1f14"`
+
+So the Android runtime expects this exact file:
+- `libqwen3_q0f16_e709b04052d95e24b38d40e4259e1f14.so`
+
+I now have a candidate `.so` file and I want you to verify whether it is the correct artifact for my project before I integrate it.
+
+## Your goals
+Please determine:
+
+1. whether this `.so` is actually an Android `arm64-v8a` shared library
+2. whether its filename matches the required `model_lib` exactly
+3. whether it looks like a model library and not the TVM runtime library
+4. whether it is likely built for Android and not desktop Linux/macOS
+5. whether its dynamic dependencies look valid for packaging in my APK
+6. whether it is safe to place under `mlc4j/output/arm64-v8a/`
+7. what remaining risks would still exist even if the file is valid
+
+## Inputs I will provide
+I may provide one or more of the following:
+- the exact filename
+- output of `file <lib>.so`
+- output of `readelf -h <lib>.so`
+- output of `readelf -d <lib>.so`
+- output of `strings <lib>.so | head`
+- APK packaging output after copy
+- logcat output after install
+
+## What I want from you
+Please answer in this exact order:
+
+### Step 1: Artifact identity check
+Tell me whether the file appears to be:
+- the correct model-specific Android `.so`
+- the wrong architecture
+- the wrong type of library
+- or inconclusive
+
+### Step 2: Filename and config match
+Check whether the filename matches the `model_lib` value exactly.
+Be strict about:
+- missing `lib` prefix
+- wrong hash suffix
+- wrong quantization name
+- wrong extension
+- wrong ABI assumptions
+
+### Step 3: ELF / ABI validation
+Based on the provided `file` / `readelf` output, determine:
+- whether it is ELF
+- whether it is AArch64
+- whether it is shared
+- whether it is suitable for Android packaging
+
+### Step 4: Dynamic dependency audit
+Based on `readelf -d`, tell me whether the dependencies are acceptable.
+Call out bad signs such as:
+- `libtvm.so`
+- host-side runtime deps
+- desktop toolchain traces
+- anything that suggests this is not a packed Android model library
+
+### Step 5: Placement verdict
+Tell me whether the file should be copied to this exact path:
+- `mlc4j/output/arm64-v8a/`
+
+If yes, say that clearly.
+If no, explain exactly why not.
+
+### Step 6: Packaging verification
+Tell me exactly how to verify that the file is packaged into the APK after copying it.
+Give concrete commands.
+
+### Step 7: Runtime verification
+Tell me what success and failure would look like in logcat after install:
+- success signals
+- `UnsatisfiedLinkError` patterns
+- config mismatch patterns
+- model load failure patterns
+
+### Step 8: Final verdict
+End with one of these:
+- SAFE TO INTEGRATE
+- DO NOT INTEGRATE
+- NEEDS MORE VERIFICATION
+
+Then give a short reason.
+
+## Important constraints
+- Be strict and technical
+- Focus only on verifying this native artifact
+- Do not give general Android advice
+- Do not speculate loosely
+- If the evidence is incomplete, say exactly what additional command output is needed
+
+## Output style
+- concise
+- technical
+- structured by steps
+- decisive

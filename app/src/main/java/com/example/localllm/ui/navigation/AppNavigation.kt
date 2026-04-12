@@ -18,6 +18,7 @@ import com.example.localllm.ui.chat.ChatScreen
 import com.example.localllm.ui.history.HistoryScreen
 import com.example.localllm.ui.models.ModelsScreen
 import com.example.localllm.ui.settings.SettingsScreen
+import com.example.localllm.ui.tasks.TasksScreen
 
 sealed class Screen(val route: String) {
     object Chat      : Screen("chat")
@@ -25,6 +26,7 @@ sealed class Screen(val route: String) {
     object History   : Screen("history")
     object Benchmark : Screen("benchmark")
     object Settings  : Screen("settings")
+    object Tasks     : Screen("tasks")
 }
 
 data class NavItem(
@@ -36,9 +38,9 @@ data class NavItem(
 
 private val navItems = listOf(
     NavItem(Screen.Chat,      "الدردشة",    Icons.Filled.Chat,          Icons.Outlined.Chat),
+    NavItem(Screen.Tasks,     "المهام",     Icons.Filled.Build,          Icons.Outlined.Build),
     NavItem(Screen.Models,    "النماذج",    Icons.Filled.Memory,         Icons.Outlined.Memory),
     NavItem(Screen.History,   "السجل",      Icons.Filled.History,        Icons.Outlined.History),
-    NavItem(Screen.Benchmark, "الأداء",     Icons.Filled.Speed,          Icons.Outlined.Speed),
     NavItem(Screen.Settings,  "الإعدادات",  Icons.Filled.Settings,       Icons.Outlined.Settings)
 )
 
@@ -107,6 +109,7 @@ fun AppNavigation() {
                 val id = back.arguments?.getString("conversationId")?.toLongOrNull() ?: -1L
                 ChatScreen(conversationId = id, onOpenConversation = {})
             }
+            composable(Screen.Tasks.route)     { TasksScreen() }
             composable(Screen.Models.route)    { ModelsScreen() }
             composable(Screen.History.route)   { HistoryScreen(onOpenConversation = { id -> navController.navigate("chat/$id") }) }
             composable(Screen.Benchmark.route) { BenchmarkScreen() }

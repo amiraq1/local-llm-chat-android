@@ -7,6 +7,9 @@ import com.example.localllm.data.repository.ConversationRepository
 import com.example.localllm.di.ApplicationScope
 import com.example.localllm.domain.model.Message
 import com.example.localllm.domain.model.MessageRole
+import com.example.localllm.domain.tools.ActionOrchestrator
+import com.example.localllm.domain.tools.ClassificationResult
+import com.example.localllm.domain.tools.ToolCallClassifier
 import com.example.localllm.engine.*
 import com.example.localllm.data.repository.ModelRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +20,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.yield
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -43,6 +47,8 @@ class ChatViewModel @Inject constructor(
     private val conversationRepo: ConversationRepository,
     private val modelRepository: ModelRepository,
     private val settingsDataStore: SettingsDataStore,
+    private val classifier: ToolCallClassifier,
+    private val orchestrator: ActionOrchestrator,
     @ApplicationScope private val appScope: CoroutineScope
 ) : ViewModel() {
 
@@ -73,7 +79,6 @@ class ChatViewModel @Inject constructor(
         currentConversationId = conversationId
         _uiState.update { it.copy(conversationId = conversationId) }
 
-        // Cancel previous collection to avoid ghost updates from old conversation
         messagesCollectionJob?.cancel()
         messagesCollectionJob = viewModelScope.launch {
             conversationRepo.getMessagesForConversation(conversationId)
@@ -88,7 +93,6 @@ class ChatViewModel @Inject constructor(
         _uiState.update { it.copy(inputText = text) }
     }
 
-    /** Fill the input bar with a suggestion chip's text. */
     fun onSuggestionClicked(text: String) {
         _uiState.update { it.copy(inputText = text) }
     }
@@ -97,12 +101,15 @@ class ChatViewModel @Inject constructor(
         val text = _uiState.value.inputText.trim()
         if (text.isBlank() || _uiState.value.isGenerating) return
 
-        val history = _uiState.value.messages.map(Message::toChatMessage)
+        // TOOL messages are device-tool results; they must not be sent to the LLM.
+        val history = _uiState.value.messages
+            .filter { it.role != MessageRole.TOOL }
+            .map(Message::toChatMessage)
         _uiState.update { it.copy(inputText = "", isGenerating = true, streamingText = "") }
 
         generationJob = viewModelScope.launch {
             try {
-                // Create conversation if first message
+                // ── Create conversation on first message ──────────────────────
                 val convId = currentConversationId ?: run {
                     val title = text.take(40).let { if (text.length > 40) "$it…" else it }
                     val newId = conversationRepo.createConversation(title, _uiState.value.activeModelId)
@@ -110,70 +117,105 @@ class ChatViewModel @Inject constructor(
                     newId
                 }
 
-                // Persist user message
+                // ── Persist user message ──────────────────────────────────────
                 conversationRepo.addMessage(convId, MessageRole.USER, text)
 
-                // Fetch active model from DB
-                val activeModel = modelRepository.getActiveModel()
-                if (activeModel == null) {
-                    _uiState.update { it.copy(isGenerating = false, streamingText = "") }
-                    _events.emit(ChatEvent.ShowError("لا يوجد نموذج نشط. الرجاء اختيار نموذج من الإعدادات قبل بدء المحادثة."))
-                    return@launch
-                }
+                // ── Classify: tool call or LLM conversation? ──────────────────
+                when (val classification = classifier.classify(text)) {
 
-                // Ensure engine is loaded and session is ready
-                if (currentSession == null || !inferenceEngine.isModelLoaded()) {
-                    _uiState.update { it.copy(isModelLoading = true) }
-                    val config = ModelConfig(contextLength = activeModel.contextLength)
-                    currentSession = inferenceEngine.loadModel(activeModel.filePath, config).getOrThrow()
-                    _uiState.update { it.copy(isModelLoading = false) }
-                }
+                    is ClassificationResult.ToolCall -> {
+                        // Show ephemeral trace in the StreamingBubble.
+                        // yield() lets the UI frame update (and tests observe the state)
+                        // before the tool starts executing.
+                        _uiState.update { it.copy(streamingText = "⚙ جارٍ تنفيذ: ${classification.toolName}…") }
+                        _events.emit(ChatEvent.ScrollToBottom)
+                        yield()
 
-                val session = currentSession!!
+                        val startTime = System.currentTimeMillis()
+                        val toolResult = orchestrator.execute(classification.toolName)
+                        val execTimeMs = System.currentTimeMillis() - startTime
 
-                val request = GenerationRequest(
-                    messages = history + ChatMessage(role = MessageRole.USER, content = text),
-                    maxTokens = 512,
-                    temperature = 0.7f
-                )
-
-                val startTime = System.currentTimeMillis()
-                var totalTokens = 0
-                val builder = StringBuilder()
-
-                session.generate(request).collect { response ->
-                    when (response) {
-                        is GenerationResponse.Token -> {
-                            builder.append(response.text)
-                            totalTokens++
-                            _uiState.update { it.copy(streamingText = builder.toString()) }
-                            _events.emit(ChatEvent.ScrollToBottom)
+                        val content = if (toolResult.success) {
+                            toolResult.resultText
+                        } else {
+                            "⚠ ${toolResult.errorMessage ?: "حدث خطأ غير معروف"}"
                         }
-                        is GenerationResponse.Finished -> {
-                            val elapsedSec = (System.currentTimeMillis() - startTime) / 1000.0
-                            val tps = if (elapsedSec > 0) totalTokens / elapsedSec else 0.0
 
-                            conversationRepo.addMessage(
-                                conversationId = convId,
-                                role = MessageRole.ASSISTANT,
-                                content = builder.toString(),
-                                tokensUsed = response.usage.completionTokens,
-                                generationTimeMs = System.currentTimeMillis() - startTime
-                            )
+                        conversationRepo.addMessage(
+                            conversationId = convId,
+                            role           = MessageRole.TOOL,
+                            content        = content,
+                            generationTimeMs = execTimeMs
+                        )
 
-                            _uiState.update {
-                                it.copy(
-                                    isGenerating = false,
-                                    streamingText = "",
-                                    tokensPerSecond = tps
-                                )
-                            }
-                            _events.emit(ChatEvent.ScrollToBottom)
-                        }
-                        is GenerationResponse.Error -> {
-                            Timber.e(response.throwable, "Generation error")
+                        _uiState.update { it.copy(isGenerating = false, streamingText = "") }
+                        _events.emit(ChatEvent.ScrollToBottom)
+                    }
+
+                    is ClassificationResult.LlmChat -> {
+                        // ── Fetch active model ────────────────────────────────
+                        val activeModel = modelRepository.getActiveModel()
+                        if (activeModel == null) {
                             _uiState.update { it.copy(isGenerating = false, streamingText = "") }
-                            _events.emit(ChatEvent.ShowError("حدث خطأ أثناء التوليد"))
+                            _events.emit(ChatEvent.ShowError("لا يوجد نموذج نشط. الرجاء اختيار نموذج من الإعدادات قبل بدء المحادثة."))
+                            return@launch
+                        }
+
+                        // ── Load model session if needed ──────────────────────
+                        if (currentSession == null || !inferenceEngine.isModelLoaded()) {
+                            _uiState.update { it.copy(isModelLoading = true) }
+                            val config = ModelConfig(contextLength = activeModel.contextLength)
+                            currentSession = inferenceEngine.loadModel(activeModel.filePath, config).getOrThrow()
+                            _uiState.update { it.copy(isModelLoading = false) }
+                        }
+
+                        val session = currentSession!!
+
+                        val request = GenerationRequest(
+                            messages   = history + ChatMessage(role = MessageRole.USER, content = text),
+                            maxTokens  = 512,
+                            temperature = 0.7f
+                        )
+
+                        val startTime = System.currentTimeMillis()
+                        var totalTokens = 0
+                        val builder = StringBuilder()
+
+                        session.generate(request).collect { response ->
+                            when (response) {
+                                is GenerationResponse.Token -> {
+                                    builder.append(response.text)
+                                    totalTokens++
+                                    _uiState.update { it.copy(streamingText = builder.toString()) }
+                                    _events.emit(ChatEvent.ScrollToBottom)
+                                }
+                                is GenerationResponse.Finished -> {
+                                    val elapsedSec = (System.currentTimeMillis() - startTime) / 1000.0
+                                    val tps = if (elapsedSec > 0) totalTokens / elapsedSec else 0.0
+
+                                    conversationRepo.addMessage(
+                                        conversationId  = convId,
+                                        role            = MessageRole.ASSISTANT,
+                                        content         = builder.toString(),
+                                        tokensUsed      = response.usage.completionTokens,
+                                        generationTimeMs = System.currentTimeMillis() - startTime
+                                    )
+
+                                    _uiState.update {
+                                        it.copy(
+                                            isGenerating    = false,
+                                            streamingText   = "",
+                                            tokensPerSecond = tps
+                                        )
+                                    }
+                                    _events.emit(ChatEvent.ScrollToBottom)
+                                }
+                                is GenerationResponse.Error -> {
+                                    Timber.e(response.throwable, "Generation error")
+                                    _uiState.update { it.copy(isGenerating = false, streamingText = "") }
+                                    _events.emit(ChatEvent.ShowError("حدث خطأ أثناء التوليد"))
+                                }
+                            }
                         }
                     }
                 }
@@ -214,8 +256,6 @@ class ChatViewModel @Inject constructor(
         messagesCollectionJob?.cancel()
         val sessionToClose = currentSession
         currentSession = null
-        // viewModelScope is cancelled in onCleared, so we use the application-scoped
-        // CoroutineScope to ensure native C++ engine resources are safely released.
         appScope.launch(NonCancellable + Dispatchers.IO) {
             withTimeoutOrNull(5_000L) {
                 sessionToClose?.close()

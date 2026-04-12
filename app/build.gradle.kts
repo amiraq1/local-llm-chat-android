@@ -122,6 +122,7 @@ dependencies {
     testImplementation(libs.coroutines.test)
     testImplementation(libs.turbine)
     testImplementation(libs.mockk)
+    testImplementation(libs.truth)
 
     implementation(project(":mlc4j"))
 }

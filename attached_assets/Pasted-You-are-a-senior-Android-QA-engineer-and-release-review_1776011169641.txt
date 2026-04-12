@@ -1,0 +1,92 @@
+You are a senior Android QA engineer and release reviewer.
+
+I have completed Day 1 of a Tools architecture in my Android app `local-llm-chat-android`.
+
+Day 1 includes:
+- `Tool`
+- `ToolResult`
+- `ToolRegistry`
+- `ActionOrchestrator`
+- `GetDeviceInfoTool`
+- `GetClipboardTool`
+- `GetBatteryStatusTool`
+- `TasksViewModel`
+- `TasksScreen`
+
+I also added a thin abstraction layer for Android APIs:
+- `DeviceInfoProvider`
+- `ClipboardReader`
+- `BatteryInfoProvider`
+
+There are local JVM unit tests for:
+- `GetDeviceInfoToolTest`
+- `GetClipboardToolTest`
+- `GetBatteryStatusToolTest`
+- `ToolRegistryTest`
+- `ActionOrchestratorTest`
+- `TasksViewModelTest`
+
+Your task is to help me verify that Day 1 is truly complete.
+
+## What I want from you
+
+Please evaluate completion in two dimensions:
+
+### 1) Test validation
+Review whether the current Day 1 test suite is sufficient and whether “all tests passing” is enough to consider the feature stable.
+
+I want you to check:
+- whether the listed tests cover the critical Day 1 scenarios
+- whether there are obvious missing edge cases
+- whether the abstraction layer is minimal and justified
+- whether any test smells or fragile tests are likely
+
+Then give me a **final passing checklist** I can use before merging.
+
+### 2) Manual QA validation
+Create a practical manual QA plan for validating Day 1 on a real Android device or emulator.
+
+The manual QA must verify:
+- `TasksScreen` loads correctly
+- Device Info action works
+- Clipboard action works when clipboard has text
+- Clipboard action works when clipboard is empty
+- Battery Status action works
+- loading state appears correctly
+- error state appears correctly if a tool fails
+- existing chat flow still works and was not broken by Day 1 changes
+
+## Important constraints
+- Keep the scope limited to Day 1 only
+- Do not jump ahead to Accessibility, agent loops, remote tools, or Day 2 chat integration
+- Assume I want a strict go/no-go decision for Day 1 readiness
+- Be critical and practical, not optimistic by default
+
+## Output format
+Please answer in this exact order:
+
+### Step 1: Day 1 readiness review
+Tell me whether Day 1 appears ready or not, based on the described architecture and tests.
+
+### Step 2: Test coverage audit
+List:
+- what is already well covered
+- what is weak or missing
+- whether all tests passing would be enough for Day 1 signoff
+
+### Step 3: Manual QA checklist
+Provide a checkbox checklist for real-device/manual validation.
+
+### Step 4: Pass/fail gate
+Define exact criteria for:
+- PASS
+- PASS WITH MINOR ISSUES
+- FAIL
+
+### Step 5: Final recommendation
+Tell me whether I should:
+- merge Day 1
+- fix a few issues first
+- or block Day 2 entirely until gaps are closed
+
+Be concrete and decisive.

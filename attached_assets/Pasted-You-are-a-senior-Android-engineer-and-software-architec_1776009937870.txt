@@ -1,0 +1,143 @@
+You are a senior Android engineer and software architect.
+
+I have an Android app called `local-llm-chat-android`. The app already uses a clean Android stack with:
+- Kotlin
+- Jetpack Compose
+- MVVM
+- Hilt
+- Room
+- DataStore
+- a local inference abstraction centered around `InferenceEngine`
+- a concrete implementation like `MLCInferenceEngine`
+
+Your task is to design and implement **Day 1** of a transition from a local chat app into a **local action assistant**.
+
+## Goal
+Do NOT build a full AI agent.
+Do NOT add Accessibility automation yet.
+Do NOT change the existing app architecture unless necessary.
+
+Instead, add a clean and extensible **Tool Calling layer** above the existing `InferenceEngine`.
+
+## What I want built
+Implement a minimal but production-style architecture with these concepts:
+
+1. `Tool`
+   - a common interface for app tools/actions
+   - each tool has:
+     - unique name
+     - description
+     - input schema or clearly typed params
+     - suspend execute function
+     - structured result
+
+2. `ToolResult`
+   - typed result model
+   - includes:
+     - tool name
+     - success/failure
+     - result text
+     - optional structured payload
+     - optional error message
+
+3. `ToolRegistry`
+   - central registry that exposes available tools
+   - can return tool by name
+   - can list all available tools
+
+4. `ActionOrchestrator`
+   - receives a user request
+   - decides which tool to call using simple deterministic logic for now
+   - no LLM-based tool selection yet unless it is optional and clearly isolated
+   - returns a final response that can later be shown in UI
+
+5. Initial tools to implement:
+   - `GetDeviceInfoTool`
+   - `GetClipboardTool`
+   - `GetBatteryStatusTool`
+
+## Important constraints
+- Preserve clean architecture and separation of concerns.
+- Reuse existing dependency injection with Hilt.
+- Keep code easy to extend for future tools.
+- Avoid overengineering.
+- Prefer strongly typed Kotlin models over vague maps where possible.
+- If Android permission or platform limitations apply, handle them safely and explicitly.
+- Clipboard and battery access should use Android APIs appropriately.
+- Device info should return useful but simple data like manufacturer, model, Android version, SDK level.
+
+## What I need from you
+I want you to produce the solution in this exact order:
+
+### Step 1: Architecture proposal
+Briefly explain:
+- where the new files should live
+- how the new layer interacts with existing `InferenceEngine`
+- why this design is clean and scalable
+
+### Step 2: File/folder plan
+Give me a concrete proposed package structure, for example:
+- `domain/tools/...`
+- `domain/orchestrator/...`
+- `data/tools/...`
+- `di/...`
+
+Use package names that fit an Android project cleanly.
+
+### Step 3: Full Kotlin code
+Generate complete code for:
+- `Tool.kt`
+- `ToolResult.kt`
+- `ToolRegistry.kt`
+- `ActionOrchestrator.kt`
+- `GetDeviceInfoTool.kt`
+- `GetClipboardTool.kt`
+- `GetBatteryStatusTool.kt`
+- any small helper models needed
+- Hilt module wiring
+
+The code should be realistic, compile-ready, and consistent.
+
+### Step 4: Integration example
+Show how to inject and call `ActionOrchestrator` from a ViewModel.
+Create a sample `TasksViewModel` or equivalent.
+Use `StateFlow` for UI state.
+
+### Step 5: Simple Compose UI example
+Create a basic `TasksScreen` with 3 buttons:
+- Device Info
+- Clipboard
+- Battery Status
+
+When user taps a button:
+- execute the corresponding action through the ViewModel
+- show loading state
+- show result text
+- show error message if any
+
+Keep the UI simple and clean.
+
+### Step 6: Explain decisions
+After the code, explain:
+- why this is a good Day 1 implementation
+- what should be done on Day 2
+- what should explicitly NOT be built yet
+
+## Code quality requirements
+- Kotlin idiomatic
+- clear naming
+- small focused classes
+- comments only where they add value
+- no pseudocode
+- no TODO placeholders unless absolutely unavoidable
+- no skipping files
+
+## Output format
+Very important:
+- Start with the architecture proposal
+- then package structure
+- then full code file by file
+- then integration example
+- then UI example
+- then explanation
+- keep everything concrete and implementation-ready
