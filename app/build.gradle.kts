@@ -116,6 +116,7 @@ dependencies {
     // Core
     implementation(libs.core.ktx)
     implementation(libs.splashscreen)
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     // Test
     testImplementation(libs.junit4)

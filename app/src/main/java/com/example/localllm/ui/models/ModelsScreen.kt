@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.localllm.domain.model.ModelDownloadState
 import com.example.localllm.domain.model.ModelUiState
+import com.example.localllm.ui.models.ModelItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -260,7 +261,8 @@ fun ModelCard(
             }
 
             // ── Incompatibility warning ──
-            if (!modelState.isCompatible && modelState.incompatibilityReason != null) {
+            val incompatibilityReason = modelState.incompatibilityReason
+            if (!modelState.isCompatible && incompatibilityReason != null) {
                 Surface(
                     shape = RoundedCornerShape(8.dp),
                     color = MaterialTheme.colorScheme.errorContainer
@@ -279,7 +281,7 @@ fun ModelCard(
                             modifier = Modifier.size(14.dp)
                         )
                         Text(
-                            modelState.incompatibilityReason,
+                            incompatibilityReason,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
