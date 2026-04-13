@@ -401,7 +401,7 @@ private companion object {
                 name = "Gemma 4 E2B",
                 family = "gemma",
                 sizeBytes = 2_600_000_000L,
-                downloadUrl = "https://huggingface.co/welcoma/gemma-4-E2B-it-q4f16_1-MLC/resolve/main/",
+                downloadUrl = "https://huggingface.co/welcoma/gemma-4-E2B-it-q4f16_1-MLC/",
                 checksumSha256 = "",
                 minRamMb = 4096,
                 recommendedRamMb = 6144,
