@@ -68,12 +68,12 @@ fun ModelsScreen(viewModel: ModelsViewModel = hiltViewModel()) {
                 }
 
                 items(state.models, key = { it.model.id }) { modelState ->
-                    ModelCard(
+                    ModelItem(
                         modelState = modelState,
                         isActive   = modelState.model.id == state.activeModelId,
-                        onActivate = { viewModel.activateModel(modelState.model.id) },
                         onDownload = { viewModel.downloadModel(modelState.model.id) },
-                        onCancelDownload = { viewModel.cancelDownload(modelState.model.id) },
+                        onCancel = { viewModel.cancelDownload(modelState.model.id) },
+                        onLoad = { viewModel.activateModel(modelState.model.id) },
                         onDelete   = { viewModel.deleteModel(modelState.model.id) }
                     )
                 }

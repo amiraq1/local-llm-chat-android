@@ -23,4 +23,5 @@ dependencyResolutionManagement {
 rootProject.name = "LocalLLM"
 include(":app")
 include(":mlc4j")
+include(":download-core")
 project(":mlc4j").projectDir = file("mlc4j")

@@ -21,6 +21,24 @@ data class ModelsScreenState(
     val activeModelId: String = ""
 )
 
+sealed class DownloadStatus {
+    data object Idle : DownloadStatus()
+    data class Downloading(
+        val downloadedBytes: Long,
+        val totalBytes: Long
+    ) : DownloadStatus()
+    data class Paused(
+        val downloadedBytes: Long,
+        val totalBytes: Long
+    ) : DownloadStatus()
+    data object Completed : DownloadStatus()
+    data class Error(
+        val message: String,
+        val downloadedBytes: Long = 0L,
+        val totalBytes: Long = 0L
+    ) : DownloadStatus()
+}
+
 @HiltViewModel
 class ModelsViewModel @Inject constructor(
     private val modelRepository: ModelRepository,
@@ -29,7 +47,8 @@ class ModelsViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(ModelsScreenState())
     val state: StateFlow<ModelsScreenState> = _state.asStateFlow()
-    private val transientDownloads = MutableStateFlow<Map<String, TransientDownloadState>>(emptyMap())
+    private val _downloadStatuses = MutableStateFlow<Map<String, DownloadStatus>>(emptyMap())
+    val downloadStatuses: StateFlow<Map<String, DownloadStatus>> = _downloadStatuses.asStateFlow()
     private val downloadJobs = mutableMapOf<String, Job>()
 
     init {
@@ -50,20 +69,30 @@ class ModelsViewModel @Inject constructor(
             combine(
                 modelRepository.getModelUiStates(),
                 settingsDataStore.settings,
-                transientDownloads
-            ) { modelStates, settings, downloads ->
-                Triple(modelStates, settings, downloads)
-            }.collect { (modelStates, settings, downloads) ->
+                downloadStatuses
+            ) { modelStates, settings, downloads -> Triple(modelStates, settings, downloads) }
+                .collect { (modelStates, settings, downloads) ->
                 val mergedModelStates = modelStates.map { modelState ->
-                    val transientState = downloads[modelState.model.id]
-                    if (transientState == null) {
-                        modelState.copy(
+                    when (val status = downloads[modelState.model.id]) {
+                        null,
+                        DownloadStatus.Idle -> modelState.copy(
                             downloadProgress = if (modelState.isInstalled) 1f else modelState.downloadProgress
                         )
-                    } else {
-                        modelState.copy(
-                            downloadState = transientState.downloadState,
-                            downloadProgress = transientState.progress
+                        DownloadStatus.Completed -> modelState.copy(
+                            downloadState = ModelDownloadState.INSTALLED,
+                            downloadProgress = 1f
+                        )
+                        is DownloadStatus.Downloading -> modelState.copy(
+                            downloadState = ModelDownloadState.DOWNLOADING,
+                            downloadProgress = status.progressFloat()
+                        )
+                        is DownloadStatus.Paused -> modelState.copy(
+                            downloadState = ModelDownloadState.PAUSED,
+                            downloadProgress = status.progressFloat()
+                        )
+                        is DownloadStatus.Error -> modelState.copy(
+                            downloadState = ModelDownloadState.ERROR,
+                            downloadProgress = status.progressFloat()
                         )
                     }
                 }
@@ -79,9 +108,7 @@ class ModelsViewModel @Inject constructor(
                     it.copy(
                         models = mergedModelStates,
                         activeModelId = activeModelId,
-                        isLoading = downloads.values.any { state ->
-                            state.downloadState == ModelDownloadState.DOWNLOADING
-                        }
+                        isLoading = downloads.values.any { it is DownloadStatus.Downloading }
                     )
                 }
             }
@@ -115,63 +142,59 @@ class ModelsViewModel @Inject constructor(
             val dir = java.io.File(path)
             if (modelRepository.isInstallComplete(model.id)) {
                 modelRepository.markAsInstalled(model, path)
-                transientDownloads.update { downloads ->
-                    downloads + (modelId to TransientDownloadState(ModelDownloadState.INSTALLED, 1f))
+                _downloadStatuses.update { downloads ->
+                    downloads + (modelId to DownloadStatus.Completed)
                 }
                 Timber.d("Model found in local storage and synced: $modelId at $path")
                 _state.update { it.copy(errorMessage = null) }
                 return@launch
             }
 
-            transientDownloads.update { downloads ->
-                downloads + (modelId to TransientDownloadState(ModelDownloadState.DOWNLOADING, 0f))
+            _downloadStatuses.update { downloads ->
+                downloads + (modelId to DownloadStatus.Downloading(0L, model.sizeBytes))
             }
 
             val job = viewModelScope.launch {
                 try {
-                    modelRepository.downloadModel(modelId) { progress ->
-                        transientDownloads.update { downloads ->
-                            val current = downloads[modelId]
+                    modelRepository.downloadModel(modelId) { downloadedBytes, totalBytes ->
+                        _downloadStatuses.update { downloads ->
                             downloads + (
-                                modelId to TransientDownloadState(
-                                    downloadState = ModelDownloadState.DOWNLOADING,
-                                    progress = progress.coerceIn(
-                                        current?.progress ?: 0f,
-                                        1f
-                                    )
+                                modelId to DownloadStatus.Downloading(
+                                    downloadedBytes = downloadedBytes,
+                                    totalBytes = totalBytes.coerceAtLeast(model.sizeBytes)
                                 )
                             )
                         }
                     }
-                    transientDownloads.update { downloads ->
-                        downloads + (modelId to TransientDownloadState(ModelDownloadState.INSTALLED, 1f))
+                    _downloadStatuses.update { downloads ->
+                        downloads + (modelId to DownloadStatus.Completed)
                     }
                     Timber.d("Model installed: $modelId")
                 } catch (cancelled: CancellationException) {
-                    transientDownloads.update { downloads ->
-                        downloads + (
-                            modelId to TransientDownloadState(
-                                downloadState = ModelDownloadState.PAUSED,
-                                progress = downloads[modelId]?.progress ?: 0f
-                            )
-                        )
+                    _downloadStatuses.update { downloads ->
+                        val current = downloads[modelId]
+                        val downloadedBytes = current.downloadedBytes()
+                        val totalBytes = current.totalBytes(model.sizeBytes)
+                        downloads + (modelId to DownloadStatus.Paused(downloadedBytes, totalBytes))
                     }
                     throw cancelled
                 } catch (e: Exception) {
                     if (modelRepository.isInstallComplete(modelId)) {
                         modelRepository.markAsInstalled(model, path)
-                        transientDownloads.update { downloads ->
-                            downloads + (modelId to TransientDownloadState(ModelDownloadState.INSTALLED, 1f))
+                        _downloadStatuses.update { downloads ->
+                            downloads + (modelId to DownloadStatus.Completed)
                         }
                         Timber.w(e, "Recovered from download error after completing model install: $modelId")
                         _state.update { it.copy(errorMessage = null) }
                     } else {
                         Timber.e(e, "Failed to download model")
-                        transientDownloads.update { downloads ->
+                        _downloadStatuses.update { downloads ->
+                            val current = downloads[modelId]
                             downloads + (
-                                modelId to TransientDownloadState(
-                                    downloadState = ModelDownloadState.ERROR,
-                                    progress = downloads[modelId]?.progress ?: 0f
+                                modelId to DownloadStatus.Error(
+                                    message = e.message ?: "فشل تنزيل النموذج",
+                                    downloadedBytes = current.downloadedBytes(),
+                                    totalBytes = current.totalBytes(model.sizeBytes)
                                 )
                             )
                         }
@@ -242,7 +265,28 @@ class ModelsViewModel @Inject constructor(
     }
 }
 
-private data class TransientDownloadState(
-    val downloadState: ModelDownloadState,
-    val progress: Float
-)
+private fun DownloadStatus?.downloadedBytes(): Long = when (this) {
+    is DownloadStatus.Downloading -> downloadedBytes
+    is DownloadStatus.Paused -> downloadedBytes
+    is DownloadStatus.Error -> downloadedBytes
+    else -> 0L
+}
+
+private fun DownloadStatus?.totalBytes(fallback: Long): Long = when (this) {
+    is DownloadStatus.Downloading -> totalBytes
+    is DownloadStatus.Paused -> totalBytes
+    is DownloadStatus.Error -> totalBytes
+    else -> fallback
+}
+
+private fun DownloadStatus.Downloading.progressFloat(): Float =
+    if (totalBytes > 0L) (downloadedBytes.toDouble() / totalBytes.toDouble()).toFloat().coerceIn(0f, 1f)
+    else 0f
+
+private fun DownloadStatus.Paused.progressFloat(): Float =
+    if (totalBytes > 0L) (downloadedBytes.toDouble() / totalBytes.toDouble()).toFloat().coerceIn(0f, 1f)
+    else 0f
+
+private fun DownloadStatus.Error.progressFloat(): Float =
+    if (totalBytes > 0L) (downloadedBytes.toDouble() / totalBytes.toDouble()).toFloat().coerceIn(0f, 1f)
+    else 0f

@@ -1,7 +1,5 @@
 package com.example.localllm.data.repository
 
-import com.example.localllm.data.db.dao.ModelDao
-import com.example.localllm.data.db.entity.InstalledModelEntity
 import com.example.localllm.domain.model.LLMModel
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -9,28 +7,28 @@ import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.fail
 import org.junit.Test
+import java.io.File
 
 class ModelRepositoryTest {
 
-    private val modelDao = mockk<ModelDao>(relaxed = true)
-    // ApplicationContext is not strictly needed for the tested paths, pass a mock
-    private val repository = ModelRepository(modelDao, mockk(relaxed = true))
+    private val modelStore = mockk<ModelStore>(relaxed = true)
+    private val repository = ModelRepository(modelStore, File("build/test-model-repository"))
 
     @Test
     fun `setActiveModel deactivates all others and sets the new one active`() = runTest {
-        coEvery { modelDao.getModelById("test-model-id") } returns installedEntity(id = "test-model-id")
+        coEvery { modelStore.getModelById("test-model-id") } returns installedEntity(id = "test-model-id")
 
         // Act
         repository.setActiveModel("test-model-id")
 
         // Assert
-        coVerify { modelDao.deactivateAll() }
-        coVerify { modelDao.setActive("test-model-id") }
+        coVerify { modelStore.deactivateAll() }
+        coVerify { modelStore.setActive("test-model-id") }
     }
 
     @Test
     fun `setActiveModel rejects unknown model ids`() = runTest {
-        coEvery { modelDao.getModelById("missing-model") } returns null
+        coEvery { modelStore.getModelById("missing-model") } returns null
 
         try {
             repository.setActiveModel("missing-model")
@@ -39,8 +37,8 @@ class ModelRepositoryTest {
             // Expected path.
         }
 
-        coVerify(exactly = 0) { modelDao.deactivateAll() }
-        coVerify(exactly = 0) { modelDao.setActive(any()) }
+        coVerify(exactly = 0) { modelStore.deactivateAll() }
+        coVerify(exactly = 0) { modelStore.setActive(any()) }
     }
 
     @Test
@@ -53,14 +51,14 @@ class ModelRepositoryTest {
             tags = emptyList(), minAndroidApi = 28
         )
         val filePath = "/test/path"
-        coEvery { modelDao.getModelById("test_id") } returns null
+        coEvery { modelStore.getModelById("test_id") } returns null
 
         // Act
         repository.markAsInstalled(model, filePath)
 
         // Assert
         coVerify {
-            modelDao.insert(match { 
+            modelStore.insert(match {
                 it.id == "test_id" && it.filePath == "/test/path" && !it.isActive 
             })
         }
@@ -74,7 +72,7 @@ class ModelRepositoryTest {
             recommendedRamMb = 2048, contextLength = 2048, quantization = "Q4",
             tags = emptyList(), minAndroidApi = 28
         )
-        coEvery { modelDao.getModelById("test_id") } returns installedEntity(
+        coEvery { modelStore.getModelById("test_id") } returns installedEntity(
             id = "test_id",
             filePath = "/old/path",
             installedAt = 1234L,
@@ -87,7 +85,7 @@ class ModelRepositoryTest {
         repository.markAsInstalled(model, "/new/path")
 
         coVerify {
-            modelDao.insert(match {
+            modelStore.insert(match {
                 it.id == "test_id" &&
                     it.filePath == "/new/path" &&
                     it.installedAt == 1234L &&
@@ -107,7 +105,7 @@ class ModelRepositoryTest {
         isActive: Boolean = false,
         quantization: String = "Q4",
         contextLength: Int = 2048
-    ) = InstalledModelEntity(
+    ) = InstalledModelRecord(
         id = id,
         name = "Test Model",
         family = "llama",
