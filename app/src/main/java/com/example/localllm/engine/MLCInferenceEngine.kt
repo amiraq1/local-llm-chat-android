@@ -59,7 +59,9 @@ class MLCInferenceEngine @Inject constructor(
                 runCatching { mlcEngine.unload() }
                     .onFailure { Timber.w(it, "MLCInferenceEngine: Engine unload before reload failed") }
 
-                mlcEngine.reload(modelDir.absolutePath, manifestRecord.modelLib)
+                               val engineConfig = "{\"max_total_sequence_length\": 2048, \"prefill_chunk_size\": 256}"
+                mlcEngine.reload(modelDir.absolutePath, manifestRecord.modelLib, engineConfig)
+
 
                 val session = MLCModelSession(mlcEngine, config)
                 activeSession = session
