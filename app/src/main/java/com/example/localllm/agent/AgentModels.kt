@@ -9,19 +9,20 @@ data class CurrentScreenState(
     val packageName: String? = null,
     val activityName: String? = null,
     val screenTitle: String? = null,
-    val focusedNodeId: String? = null,
+    val focusedNodeId: Int? = null,
     val nodes: List<UiNodeSnapshot> = emptyList()
 )
 
 @Serializable
 data class UiNodeSnapshot(
-    val id: String,
+    val id: Int,
     val text: String? = null,
     val hintText: String? = null,
     val contentDescription: String? = null,
     val className: String? = null,
     val clickable: Boolean = false,
     val editable: Boolean = false,
+    val scrollable: Boolean = false,
     val enabled: Boolean = true,
     val visible: Boolean = true,
     val checked: Boolean? = null,

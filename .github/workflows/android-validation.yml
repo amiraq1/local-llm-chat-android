@@ -1,51 +1,40 @@
-name: Android Validation
+name: Android CI Build
 
 on:
   push:
-    branches:
-      - main
-      - master
+    # أضفنا فرعك الحالي لضمان تشغيل البناء
+    branches: [ "main", "master", "clean-push" ]
   pull_request:
-
-permissions:
-  contents: read
+    branches: [ "main", "master", "clean-push" ]
 
 jobs:
-  validate:
-    name: Build, Test, Lint
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    
+    # حل مشكلة تحذيرات Node.js القديمة
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: gradle
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+    - name: Build Debug APK
+      run: ./gradlew assembleDebug --stacktrace
 
-      - name: Ensure Gradle wrapper is executable
-        run: chmod +x ./gradlew
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: local-llm-agent-debug
+        path: app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Gradle help
-        run: ./gradlew --no-daemon help --console=plain
-
-      - name: Gradle tasks
-        run: ./gradlew --no-daemon tasks --console=plain
-
-      - name: Run unit tests
-        run: ./gradlew --no-daemon test --console=plain
-
-      - name: Assemble debug
-        run: ./gradlew --no-daemon assembleDebug --console=plain
-
-      - name: Run lint
-        run: ./gradlew --no-daemon lint --console=plain

@@ -123,6 +123,8 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(libs.mockk)
     testImplementation(libs.truth)
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
 
+    implementation(project(":download-core"))
     implementation(project(":mlc4j"))
 }
