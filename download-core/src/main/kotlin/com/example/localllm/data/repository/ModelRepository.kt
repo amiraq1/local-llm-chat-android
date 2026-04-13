@@ -354,7 +354,7 @@ class ModelRepository(
                     if (!headOnly && resumeBytes > 0L) {
                         header("Range", "bytes=$resumeBytes-")
                     }
-                    header("Authorization", "Bearer hf_+YiUwjzZaeqwfkRuABSWMKcHlzcNFBeFAxX")
+                  
                 }
                 .build()
 
@@ -395,40 +395,26 @@ class ModelRepository(
         downloadFileWithResume(url, destination, onProgress)
     }
 
-    private companion object {
-        val gemmaModels = listOf(
-            LLMModel(
-                id = "gemma-4-4b-it-q4f16_1-MLC",
-                name = "Gemma 4 E4B",
-                family = "gemma",
-                sizeBytes = 3_600_000_000L,
-                downloadUrl = "https://huggingface.co/mlc-ai/gemma-4-4b-it-q4f16_1-MLC",
-                checksumSha256 = "",
-                minRamMb = 6144,
-                recommendedRamMb = 8192,
-                contextLength = 8192,
-                quantization = "Q4F16_1",
-                tags = listOf("gemma-4", "on-device", "mlc"),
-                minAndroidApi = 28
-            ),
-            LLMModel(
-                id = "gemma-4-2b-it-q4f16_1-MLC",
-                name = "Gemma 4 E2B",
-                family = "gemma",
-                sizeBytes = 2_600_000_000L,
-                downloadUrl = "https://huggingface.co/mlc-ai/gemma-4-2b-it-q4f16_1-MLC",
-                checksumSha256 = "",
-                minRamMb = 4096,
-                recommendedRamMb = 6144,
-                contextLength = 8192,
-                quantization = "Q4F16_1",
-                tags = listOf("gemma-4", "on-device", "mlc"),
-                minAndroidApi = 28
-            )
+   private companion object {
+    val gemmaModels = listOf(
+        LLMModel(
+            id = "gemma-4-E2B-it-q4f16_1-MLC",
+            name = "Gemma 4 E2B",
+            family = "gemma",
+            sizeBytes = 2_600_000_000L,
+            downloadUrl = "https://huggingface.co/welcoma/gemma-4-E2B-it-q4f16_1-MLC/resolve/main/",
+            checksumSha256 = "",
+            minRamMb = 4096,
+            recommendedRamMb = 6144,
+            contextLength = 8192,
+            quantization = "Q4F16_1",
+            tags = listOf("gemma-4", "on-device", "mlc", "E2B"),
+            minAndroidApi = 28
         )
-    }
+    )
 }
 
+        
 interface ModelStore {
     fun getAllInstalledModels(): Flow<List<InstalledModelRecord>>
     suspend fun getModelById(id: String): InstalledModelRecord?
