@@ -342,6 +342,7 @@ class ModelRepository(
     }
 
     private fun openRequest(url: String, resumeBytes: Long, headOnly: Boolean): HttpResponse {
+        
         var currentUrl = url
         var redirectCount = 0
 
@@ -353,8 +354,10 @@ class ModelRepository(
                     if (!headOnly && resumeBytes > 0L) {
                         header("Range", "bytes=$resumeBytes-")
                     }
+                    header("Authorization", "Bearer hf_+YiUwjzZaeqwfkRuABSWMKcHlzcNFBeFAxX")
                 }
                 .build()
+
 
             val response = httpClient.newCall(request).execute()
             if (response.isRedirect) {
