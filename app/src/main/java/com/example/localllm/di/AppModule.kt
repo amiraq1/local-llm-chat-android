@@ -1,12 +1,13 @@
 package com.example.localllm.di
 
+import android.app.ActivityManager
 import android.content.Context
 import androidx.room.Room
 import com.example.localllm.data.db.AppDatabase
-import com.example.localllm.data.db.dao.BenchmarkDao
-import com.example.localllm.data.db.dao.ConversationDao
-import com.example.localllm.data.db.dao.MessageDao
-import com.example.localllm.data.db.dao.ModelDao
+import com.example.localllm.data.db.dao.*
+import com.example.localllm.data.repository.ModelRepository
+import com.example.localllm.data.repository.InstalledModelRecord
+import com.example.localllm.data.repository.ModelStore
 import com.example.localllm.engine.FallbackInferenceEngine
 import com.example.localllm.engine.InferenceEngine
 import dagger.Binds
@@ -19,6 +20,8 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import okhttp3.OkHttpClient
 import javax.inject.Qualifier
 import javax.inject.Singleton
@@ -54,15 +57,6 @@ object DispatcherModule {
 @InstallIn(SingletonComponent::class)
 object CoroutineScopeModule {
 
-    /**
-     * Scope يعيش طوال عمر التطبيق.
-     *
-     * مناسب للأعمال التي يجب ألا تتوقف بخروج الشاشة:
-     * - cleanup
-     * - model unload
-     * - deferred persistence
-     * - background coordination
-     */
     @Provides
     @Singleton
     @ApplicationScope
@@ -88,41 +82,101 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             DATABASE_NAME
-        )
-            /**
-             * فعّل هذا فقط أثناء التطوير إذا لم تكن migrations جاهزة.
-             *
-             * في الإنتاج الحقيقي:
-             * الأفضل تعريف migrations صريحة بدل حذف البيانات.
-             */
-            // .fallbackToDestructiveMigration()
-            .build()
+        ).build()
     }
 
     @Provides
-    @Singleton
-    fun provideConversationDao(
-        db: AppDatabase
-    ): ConversationDao = db.conversationDao()
+    fun provideConversationDao(db: AppDatabase): ConversationDao = db.conversationDao()
+
+    @Provides
+    fun provideMessageDao(db: AppDatabase): MessageDao = db.messageDao()
+
+    @Provides
+    fun provideModelDao(db: AppDatabase): ModelDao = db.modelDao()
+
+    @Provides
+    fun provideBenchmarkDao(db: AppDatabase): BenchmarkDao = db.benchmarkDao()
 
     @Provides
     @Singleton
-    fun provideMessageDao(
-        db: AppDatabase
-    ): MessageDao = db.messageDao()
+    fun provideModelRepository(
+        modelDao: ModelDao,
+        @ApplicationContext context: Context,
+        okHttpClient: OkHttpClient
+    ): ModelRepository {
+        val installRootDir = context.getExternalFilesDir(null) ?: context.filesDir
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
 
-    @Provides
-    @Singleton
-    fun provideModelDao(
-        db: AppDatabase
-    ): ModelDao = db.modelDao()
+        return ModelRepository(
+            okHttpClient = okHttpClient,
+            modelStore = object : ModelStore {
+                override fun getAllInstalledModels(): Flow<List<InstalledModelRecord>> =
+                    modelDao.getAllInstalledModels().map { list -> list.map { it.toRecord() } }
 
-    @Provides
-    @Singleton
-    fun provideBenchmarkDao(
-        db: AppDatabase
-    ): BenchmarkDao = db.benchmarkDao()
+                override suspend fun getModelById(id: String): InstalledModelRecord? =
+                    modelDao.getModelById(id)?.toRecord()
+
+                override suspend fun getActiveModel(): InstalledModelRecord? =
+                    modelDao.getActiveModel()?.toRecord()
+
+                override suspend fun insert(model: InstalledModelRecord) {
+                    modelDao.insert(model.toEntity())
+                }
+
+                override suspend fun deactivateAll() {
+                    modelDao.deactivateAll()
+                }
+
+                override suspend fun setActive(id: String) {
+                    modelDao.setActive(id)
+                }
+
+                override suspend fun setChecksumVerified(id: String, verified: Boolean) {
+                    modelDao.setChecksumVerified(id, verified)
+                }
+
+                override suspend fun deleteById(id: String) {
+                    modelDao.deleteById(id)
+                }
+            },
+            installRootDir = installRootDir,
+            availableRamMbProvider = {
+                val memInfo = ActivityManager.MemoryInfo()
+                activityManager.getMemoryInfo(memInfo)
+                (memInfo.availMem / 1_000_000L).toInt()
+            },
+            availableStorageBytesProvider = {
+                installRootDir.usableSpace
+            }
+        )
+    }
 }
+
+private fun com.example.localllm.data.db.entity.InstalledModelEntity.toRecord() = InstalledModelRecord(
+    id = id,
+    name = name,
+    family = family,
+    sizeBytes = sizeBytes,
+    filePath = filePath,
+    installedAt = installedAt,
+    checksumVerified = checksumVerified,
+    isActive = isActive,
+    quantization = quantization,
+    contextLength = contextLength
+)
+
+private fun InstalledModelRecord.toEntity() = com.example.localllm.data.db.entity.InstalledModelEntity(
+    id = id,
+    name = name,
+    family = family,
+    sizeBytes = sizeBytes,
+    filePath = filePath,
+    installedAt = installedAt,
+    checksumVerified = checksumVerified,
+    isActive = isActive,
+    quantization = quantization,
+    contextLength = contextLength
+)
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -130,8 +184,8 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): okhttp3.OkHttpClient {
-        return okhttp3.OkHttpClient.Builder()
+    fun provideOkHttpClient(): OkHttpClient {
+        return OkHttpClient.Builder()
             .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
             .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
             .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
@@ -143,16 +197,8 @@ object NetworkModule {
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class EngineBindingModule {
+abstract class EngineModule {
 
-    /**
-     * الربط الحالي:
-     * - يجرب MLC الحقيقي أولًا
-     * - ثم ينتقل إلى Fake إذا كانت المكتبات الأصلية غير جاهزة
-     *
-     * غيّر الربط هنا لاحقًا إلى MLCInferenceEngine فقط
-     * عندما تصبح كل model libs مضمّنة ومضمونة.
-     */
     @Binds
     @Singleton
     abstract fun bindInferenceEngine(

@@ -1,382 +1,260 @@
 package com.example.localllm.engine
 
-import android.content.Context
 import ai.mlc.mlcllm.MLCEngine
 import ai.mlc.mlcllm.OpenAIProtocol.ChatCompletionMessage
 import ai.mlc.mlcllm.OpenAIProtocol.ChatCompletionRole
-import ai.mlc.mlcllm.OpenAIProtocol.CompletionUsage
+import ai.mlc.mlcllm.OpenAIProtocol.ChatCompletionStreamResponse
 import ai.mlc.mlcllm.OpenAIProtocol.StreamOptions
-import com.example.localllm.domain.model.CatalogModel
-import com.example.localllm.domain.model.CuratedModelCatalog
-import com.example.localllm.mlc.MlcChatConfig
-import com.example.localllm.mlc.MlcModelRecord
+import android.content.Context
+import com.example.localllm.domain.model.MessageRole
 import com.example.localllm.mlc.findBundledMlcModel
-import com.example.localllm.mlc.readInstalledMlcChatConfig
-import com.example.localllm.mlc.readInstalledMlcTensorCache
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
-import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 
-@Singleton
 class MLCInferenceEngine @Inject constructor(
     @ApplicationContext private val context: Context
 ) : InferenceEngine {
 
-    private val catalogModels: List<CatalogModel> by lazy {
-        CuratedModelCatalog.load(context)
-    }
-
-    private val stateMutex = Mutex()
-
-    @Volatile
-    private var runtime: MLCEngine? = null
-
-    @Volatile
+    private var engine: MLCEngine? = null
     private var activeSession: MLCModelSession? = null
-
-    @Volatile
-    private var activeModelPath: String? = null
-
-    @Volatile
-    private var activeModelLib: String? = null
+    private var activeModelId: String? = null
 
     override suspend fun loadModel(
         modelPath: String,
         config: ModelConfig
-    ): Result<ModelSession> = withContext(Dispatchers.IO) {
-        stateMutex.withLock {
-            runCatching {
+    ): Result<ModelSession> {
+        return withContext(Dispatchers.IO) {
+            try {
                 val modelDir = File(modelPath)
                 require(modelDir.exists()) { "Model path not found: $modelPath" }
-                require(modelDir.isDirectory) { "MLC requires a model directory: $modelPath" }
-
-                val modelRecord = resolveModelRecord(modelDir)
-                val installedConfig = validateInstalledAssets(modelDir)
-                validateBundledRuntimeLibrary(modelRecord)
-                validateRequiredBackend(modelRecord)
-
-                val currentPath = activeModelPath
-                val currentLib = activeModelLib
-                val shouldReload = currentPath != modelDir.absolutePath || currentLib != modelRecord.modelLib
-
-                val engine = ensureRuntime()
-
-                if (shouldReload) {
-                    // أغلق الجلسة السابقة منطقيًا قبل إعادة التحميل
-                    activeSession?.close()
-                    activeSession = null
-
-                    Timber.i(
-                        "Loading MLC model %s from %s with model_lib=%s",
-                        modelRecord.modelId,
-                        modelDir.absolutePath,
-                        modelRecord.modelLib
-                    )
-                    engine.reload(modelDir.absolutePath, modelRecord.modelLib)
-                } else {
-                    Timber.d("Reusing loaded MLC model %s", modelRecord.modelId)
+                require(modelDir.isDirectory) {
+                    "MLC requires a model directory, not a single file: $modelPath"
                 }
 
-                MLCModelSession(
-                    engine = engine,
-                    config = config,
-                    modelId = modelRecord.modelId,
-                    modelLabel = modelDir.name,
-                    installedConfig = installedConfig
-                ).also { session ->
-                    activeSession = session
-                    activeModelPath = modelDir.absolutePath
-                    activeModelLib = modelRecord.modelLib
-                }
-            }.onFailure { error ->
-                Timber.e(error, "Failed to load MLC model from %s", modelPath)
-                clearActiveState()
+                val modelId = modelDir.name
+                val manifestRecord = findBundledMlcModel(context, modelId)
+                    ?: error("Model \"$modelId\" is missing from mlc-app-config.json")
+
+                Timber.i("MLCInferenceEngine: Loading model %s from %s", modelId, modelPath)
+
+                val mlcEngine = engine ?: MLCEngine().also { engine = it }
+
+                runCatching { activeSession?.close() }
+                    .onFailure {
+                        Timber.e(it, "MLCInferenceEngine: Failed to close active session before reload")
+                    }
+                activeSession = null
+
+                runCatching { mlcEngine.unload() }
+                    .onFailure { Timber.w(it, "MLCInferenceEngine: Engine unload before reload failed") }
+
+                mlcEngine.reload(modelDir.absolutePath, manifestRecord.modelLib)
+
+                val session = MLCModelSession(mlcEngine, config)
+                activeSession = session
+                activeModelId = modelId
+
+                Result.success(session)
+            } catch (e: Exception) {
+                Timber.e(e, "MLCInferenceEngine: Failed to load model")
+                activeSession = null
+                activeModelId = null
+                Result.failure(e)
             }
         }
     }
 
-    override fun isModelLoaded(): Boolean {
-        return runtime != null &&
-            activeSession != null &&
-            activeModelPath != null &&
-            activeModelLib != null
-    }
+    override fun isModelLoaded(): Boolean = activeSession != null && activeModelId != null
 
     override suspend fun unloadModel() {
         withContext(Dispatchers.IO) {
-            stateMutex.withLock {
-                val currentSession = activeSession
-                val currentRuntime = runtime
+            Timber.i("MLCInferenceEngine: Unloading model and releasing VRAM")
 
-                runCatching {
-                    currentSession?.close()
-                }.onFailure { error ->
-                    Timber.w(error, "MLC session close encountered an error")
-                }
+            runCatching { activeSession?.close() }
+                .onFailure { Timber.e(it, "MLCInferenceEngine: Error while closing active session") }
 
-                runCatching {
-                    currentRuntime?.unload()
-                }.onFailure { error ->
-                    Timber.w(error, "MLC unload encountered an error")
-                }
+            activeSession = null
+            activeModelId = null
 
-                runtime = null
-                clearActiveState()
-            }
+            runCatching { engine?.unload() }
+                .onFailure { Timber.e(it, "MLCInferenceEngine: Error during model unload") }
         }
     }
 
     override fun getEngineInfo(): EngineInfo = EngineInfo(
         name = "MLC LLM Engine",
-        version = if (isBundledTvmAvailable()) "native" else "missing-tvm4j",
+        version = "mlc4j-local",
         backend = "MLC"
     )
-
-    private fun ensureRuntime(): MLCEngine {
-        val existing = runtime
-        if (existing != null) return existing
-
-        return createRuntime().also { created ->
-            runtime = created
-        }
-    }
-
-    private fun createRuntime(): MLCEngine {
-        return try {
-            MLCEngine()
-        } catch (error: Throwable) {
-            throw IllegalStateException(
-                buildString {
-                    append("تعذر تهيئة محرك MLC الحقيقي. ")
-                    append("تأكد من تضمين tvm4j ومن وجود المكتبات الأصلية المناسبة لهذا الجهاز.")
-                },
-                error
-            )
-        }
-    }
-
-    private fun clearActiveState() {
-        activeSession = null
-        activeModelPath = null
-        activeModelLib = null
-    }
-
-    private fun resolveModelRecord(modelDir: File): MlcModelRecord {
-        catalogModels.firstOrNull { it.slug == modelDir.name }
-            ?.toMlcModelRecord()
-            ?.let { return it }
-
-        findBundledMlcModel(context, modelDir.name)?.let { return it }
-
-        error(
-            "لا توجد بيانات MLC مرتبطة بالنموذج ${modelDir.name}. " +
-                "النماذج المحلية المخصصة تحتاج model_id و model_lib معروفين."
-        )
-    }
-
-    private fun validateInstalledAssets(modelDir: File): MlcChatConfig {
-        val chatConfig = readInstalledMlcChatConfig(modelDir)
-        val tensorCache = readInstalledMlcTensorCache(modelDir)
-
-        val missingFiles = buildList {
-            chatConfig.tokenizerFiles.forEach { relativePath ->
-                if (!File(modelDir, relativePath).exists()) add(relativePath)
-            }
-            tensorCache.records.forEach { record ->
-                if (!File(modelDir, record.dataPath).exists()) add(record.dataPath)
-            }
-        }
-
-        require(missingFiles.isEmpty()) {
-            val preview = missingFiles.take(5).joinToString()
-            val suffix = if (missingFiles.size > 5) " ..." else ""
-            "ملفات النموذج ناقصة داخل ${modelDir.name}: $preview$suffix"
-        }
-
-        return chatConfig
-    }
-
-    private fun validateBundledRuntimeLibrary(modelRecord: MlcModelRecord) {
-        val runtimeLibrary = File(
-            context.applicationInfo.nativeLibraryDir,
-            "libtvm4j_runtime_packed.so"
-        )
-
-        require(runtimeLibrary.exists()) {
-            "مكتبة MLC الأصلية libtvm4j_runtime_packed.so غير مضمنة في هذا البناء."
-        }
-
-        Timber.d(
-            "MLC runtime library found at %s; model_lib=%s will be resolved by the packed runtime",
-            runtimeLibrary.absolutePath,
-            modelRecord.modelLib
-        )
-    }
-
-    private fun validateRequiredBackend(modelRecord: MlcModelRecord) {
-        val backend = modelRecord.modelBackend.trim().lowercase()
-        if (backend.isBlank() || backend == "auto") return
-
-        require(isTvmDeviceAvailable(backend)) {
-            buildString {
-                append("مكتبة النموذج ")
-                append(modelRecord.modelLib)
-                append(" مبنية لتسريع ")
-                append(backend)
-                append("، لكن هذا الـ backend غير متاح على الجهاز الحالي. ")
-                append("أعد بناء model_lib لـ cpu أو vulkan، أو استخدم جهازًا يدعم ")
-                append(backend)
-                append(" فعليًا.")
-            }
-        }
-    }
-
-    private fun isTvmDeviceAvailable(backend: String): Boolean {
-        return runCatching {
-            val deviceClass = Class.forName("org.apache.tvm.Device")
-            val factory = deviceClass.getMethod(backend)
-            val device = factory.invoke(null)
-            val existsMethod = deviceClass.getMethod("exist")
-            existsMethod.invoke(device) as? Boolean ?: false
-        }.onFailure { error ->
-            Timber.w(error, "TVM backend %s is not available", backend)
-        }.getOrDefault(false)
-    }
-
-    private fun isBundledTvmAvailable(): Boolean =
-        runCatching {
-            Class.forName("org.apache.tvm.Function")
-        }.isSuccess
 }
 
 private class MLCModelSession(
-    private val engine: MLCEngine,
-    private val config: ModelConfig,
-    private val modelId: String,
-    private val modelLabel: String,
-    private val installedConfig: MlcChatConfig
+    private val engineInstance: MLCEngine,
+    private val config: ModelConfig
 ) : ModelSession {
 
     @Volatile
-    private var contextTokenCount = 0
+    private var isGenerating = false
 
-    override fun generate(request: GenerationRequest): Flow<GenerationResponse> = flow {
-        try {
-            val promptTokensEstimate = request.messages.sumOf { approximateTokenCount(it.content) }
+    @Volatile
+    private var activeResponses: ReceiveChannel<ChatCompletionStreamResponse>? = null
 
-            val stream = engine.chat.completions.create(
-                messages = request.messages.map(ChatMessage::toMlcMessage),
-                model = modelId,
-                max_tokens = request.maxTokens,
-                temperature = request.temperature,
-                top_p = request.topP,
-                stop = request.stopSequences.ifEmpty { null },
-                stream = true,
-                stream_options = StreamOptions(include_usage = true)
-            )
+    override fun generate(request: GenerationRequest): Flow<GenerationResponse> = callbackFlow {
+        if (isGenerating) {
+            close(IllegalStateException("Already generating"))
+            return@callbackFlow
+        }
 
-            var emittedCompletionChunks = 0
-            var finishReason = FinishReason.STOP
-            var finishedEmitted = false
+        isGenerating = true
 
-            for (response in stream) {
-                response.choices.forEach { choice ->
-                    val tokenText = choice.delta.content?.asText().orEmpty()
-                    if (tokenText.isNotEmpty()) {
-                        emit(GenerationResponse.Token(tokenText))
-                        emittedCompletionChunks++
-                    }
+        val generationJob = launch(Dispatchers.IO) {
+            val responseAssembler = MlcResponseAssembler()
+            var collectorOpen = true
 
-                    finishReason = choice.finish_reason.toFinishReason(finishReason)
-                }
-
-                response.usage?.let { usage ->
-                    contextTokenCount = usage.total_tokens
-                        .coerceAtMost(installedConfig.contextWindowSize)
-                        .coerceAtMost(config.contextLength)
-
-                    emit(
-                        GenerationResponse.Finished(
-                            finishReason = finishReason,
-                            usage = usage.toTokenUsage(emittedCompletionChunks)
-                        )
-                    )
-                    finishedEmitted = true
-                    return@flow
-                }
-            }
-
-            if (!finishedEmitted) {
-                contextTokenCount = (promptTokensEstimate + emittedCompletionChunks)
-                    .coerceAtMost(installedConfig.contextWindowSize)
-                    .coerceAtMost(config.contextLength)
-
-                emit(
-                    GenerationResponse.Finished(
-                        finishReason = finishReason,
-                        usage = TokenUsage(
-                            promptTokens = promptTokensEstimate,
-                            completionTokens = emittedCompletionChunks
-                        )
-                    )
+            try {
+                val responses = engineInstance.chat.completions.create(
+                    messages = request.messages.map(ChatMessage::toMlcMessage),
+                    max_tokens = request.maxTokens,
+                    temperature = request.temperature,
+                    top_p = request.topP,
+                    stop = request.stopSequences.ifEmpty { null },
+                    stream = true,
+                    stream_options = StreamOptions(include_usage = true)
                 )
+                activeResponses = responses
+
+                for (response in responses) {
+                    if (!isGenerating || !isActive || !collectorOpen) break
+
+                    for (event in responseAssembler.onResponse(response)) {
+                        if (trySend(event).isFailure) {
+                            collectorOpen = false
+                            break
+                        }
+                    }
+                }
+
+                if (collectorOpen && isActive && isGenerating) {
+                    responseAssembler.finishIfNeeded()?.let { trySend(it) }
+                }
+
+                close()
+            } catch (_: CancellationException) {
+                responsesCancel("Generation cancelled")
+            } catch (e: Exception) {
+                Timber.e(e, "MLCModelSession: Generation error")
+                trySend(GenerationResponse.Error(e))
+                close(e)
+            } finally {
+                activeResponses = null
+                isGenerating = false
             }
-        } catch (error: Throwable) {
-            Timber.e(error, "MLC generation failed for %s", modelLabel)
-            emit(GenerationResponse.Error(error))
+        }
+
+        awaitClose {
+            responsesCancel("Flow collector closed")
+            generationJob.cancel()
+            isGenerating = false
+            Timber.w("MLCModelSession: Generation cancelled by downstream collector")
         }
     }
 
     override fun resetContext() {
-        runCatching {
-            engine.reset()
-            contextTokenCount = 0
-        }.onFailure { error ->
-            Timber.w(error, "MLC context reset failed for %s", modelLabel)
-        }
+        responsesCancel("Context reset")
+        runCatching { engineInstance.reset() }
+            .onFailure { Timber.e(it, "MLCModelSession: Failed to reset engine session") }
     }
 
-    override fun getContextLength(): Int =
-        contextTokenCount.coerceAtMost(config.contextLength)
+    override fun getContextLength(): Int = config.contextLength
 
     override suspend fun close() {
-        contextTokenCount = 0
-        Timber.d("MLCModelSession: closing session for %s", modelLabel)
+        responsesCancel("Session closed")
+        resetContext()
+    }
+
+    private fun responsesCancel(reason: String) {
+        runCatching {
+            activeResponses?.cancel(CancellationException(reason))
+        }.onFailure { cancelError ->
+            Timber.w(cancelError, "MLCModelSession: Failed to cancel active response stream")
+        }
     }
 }
 
-private fun ChatMessage.toMlcMessage(): ChatCompletionMessage =
-    ChatCompletionMessage(
-        role = when (role) {
-            com.example.localllm.domain.model.MessageRole.SYSTEM -> ChatCompletionRole.system
-            com.example.localllm.domain.model.MessageRole.USER -> ChatCompletionRole.user
-            com.example.localllm.domain.model.MessageRole.ASSISTANT -> ChatCompletionRole.assistant
-        },
-        content = content
-    )
+internal class MlcResponseAssembler {
 
-private fun CompletionUsage.toTokenUsage(fallbackCompletionTokens: Int): TokenUsage =
-    TokenUsage(
-        promptTokens = prompt_tokens,
-        completionTokens = completion_tokens.takeIf { it > 0 } ?: fallbackCompletionTokens
-    )
+    private var promptTokens = 0
+    private var completionTokens = 0
+    private var pendingFinishReason: FinishReason? = null
+    private var sentFinished = false
 
-private fun String?.toFinishReason(defaultReason: FinishReason): FinishReason =
-    when (this?.lowercase()) {
-        "stop" -> FinishReason.STOP
-        "length" -> FinishReason.MAX_TOKENS
-        "error" -> FinishReason.ERROR
-        null, "" -> defaultReason
-        else -> defaultReason
+    fun onResponse(response: ChatCompletionStreamResponse): List<GenerationResponse> {
+        if (sentFinished) return emptyList()
+
+        response.usage?.let { usage ->
+            promptTokens = usage.prompt_tokens
+            completionTokens = usage.completion_tokens
+        }
+
+        val events = buildList {
+            response.choices.forEach { choice ->
+                choice.delta.content?.asText()
+                    ?.takeIf { it.isNotEmpty() }
+                    ?.let { add(GenerationResponse.Token(it)) }
+
+                choice.finish_reason?.let { pendingFinishReason = it.toFinishReason() }
+            }
+
+            if (response.usage != null) {
+                add(buildFinished(pendingFinishReason ?: FinishReason.STOP))
+            }
+        }
+
+        return events
     }
 
-private fun approximateTokenCount(text: String): Int =
-    (text.length / 4).coerceAtLeast(1)
+    fun finishIfNeeded(defaultReason: FinishReason = FinishReason.STOP): GenerationResponse.Finished? {
+        if (sentFinished) return null
+        return buildFinished(pendingFinishReason ?: defaultReason)
+    }
+
+    private fun buildFinished(reason: FinishReason): GenerationResponse.Finished {
+        sentFinished = true
+        return GenerationResponse.Finished(
+            finishReason = reason,
+            usage = TokenUsage(
+                promptTokens = promptTokens,
+                completionTokens = completionTokens
+            )
+        )
+    }
+}
+
+private fun ChatMessage.toMlcMessage(): ChatCompletionMessage = ChatCompletionMessage(
+    role = when (role) {
+        MessageRole.SYSTEM -> ChatCompletionRole.system
+        MessageRole.USER -> ChatCompletionRole.user
+        MessageRole.ASSISTANT -> ChatCompletionRole.assistant
+        MessageRole.TOOL -> throw IllegalArgumentException(
+            "TOOL-role messages must not be forwarded to the LLM"
+        )
+    },
+    content = content
+)
+
+private fun String.toFinishReason(): FinishReason = when (lowercase()) {
+    "length" -> FinishReason.MAX_TOKENS
+    "error" -> FinishReason.ERROR
+    else -> FinishReason.STOP
+}

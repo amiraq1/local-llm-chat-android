@@ -1,6 +1,7 @@
 package ai.mlc.mlcllm
 
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.MapSerializer
@@ -13,6 +14,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import java.util.*
 
@@ -44,7 +46,7 @@ class OpenAIProtocol {
     data class ChatFunction(
         val name: String,
         var description: String? = null,
-        val parameters: Map<String, String>
+        val parameters: Map<String, JsonElement> = emptyMap()
     )
 
     @Serializable
@@ -56,9 +58,7 @@ class OpenAIProtocol {
     @Serializable
     data class ChatFunctionCall(
         val name: String,
-        // NOTE: arguments should be dict str to any codable
-        // for now only allow string output due to typing issues
-        var arguments: Map<String, String>? = null
+        var arguments: JsonElement? = null
     )
 
     @Serializable
@@ -79,10 +79,10 @@ class OpenAIProtocol {
     @Serializable(with = ChatCompletionMessageContentSerializer::class)
     data class ChatCompletionMessageContent(
         val text: String? = null,
-        val parts: List<Map<String, String>>? = null
+        val parts: List<JsonObject>? = null
     ) {
         constructor(text: String) : this(text, null)
-        constructor(parts: List<Map<String, String>>) : this(null, parts)
+        constructor(parts: List<JsonObject>) : this(null, parts)
 
         fun isText(): Boolean {
             return text != null
@@ -93,28 +93,33 @@ class OpenAIProtocol {
         }
 
         fun asText(): String {
-            return text ?: (parts?.filter { it["type"] == "text" }?.joinToString("") { it["text"] ?: "" } ?: "")
+            return text ?: (
+                parts
+                    ?.filter { it["type"]?.jsonPrimitive?.contentOrNull == "text" }
+                    ?.joinToString("") { it["text"]?.jsonPrimitive?.contentOrNull.orEmpty() }
+                    ?: ""
+                )
         }
     }
 
     object ChatCompletionMessageContentSerializer : KSerializer<ChatCompletionMessageContent> {
         override val descriptor: SerialDescriptor = buildClassSerialDescriptor("ChatCompletionMessageContent") {
             element("text", String.serializer().descriptor)
-            element("parts", ListSerializer(MapSerializer(String.serializer(), String.serializer())).descriptor)
+            element("parts", ListSerializer(JsonObject.serializer()).descriptor)
         }
 
         override fun serialize(encoder: Encoder, value: ChatCompletionMessageContent) {
             if (value.isText()) {
                 encoder.encodeString(value.text!!)
             } else {
-                encoder.encodeSerializableValue(ListSerializer(MapSerializer(String.serializer(), String.serializer())), value.parts ?: listOf())
+                encoder.encodeSerializableValue(ListSerializer(JsonObject.serializer()), value.parts ?: emptyList())
             }
         }
 
         override fun deserialize(decoder: Decoder): ChatCompletionMessageContent {
             return when (val element = decoder.decodeSerializableValue(JsonElement.serializer())) {
                 is JsonArray -> {
-                    val parts = element.map { (it as JsonObject).map { entry -> entry.key to entry.value.jsonPrimitive.content }.toMap() }
+                    val parts = element.map { it as JsonObject }
                     ChatCompletionMessageContent(parts)
                 }
                 is JsonPrimitive -> {
@@ -181,7 +186,8 @@ class OpenAIProtocol {
         var finish_reason: String? = null,
         val index: Int,
         val delta: ChatCompletionMessage,
-        var lobprobs: LogProbs? = null
+        @SerialName("logprobs")
+        var logprobs: LogProbs? = null
     )
 
     @Serializable
@@ -190,7 +196,7 @@ class OpenAIProtocol {
         var choices: List<ChatCompletionStreamResponseChoice> = listOf(),
         var created: Int? = null,
         var model: String? = null,
-        val system_fingerprint: String,
+        val system_fingerprint: String? = null,
         var `object`: String? = null,
         val usage: CompletionUsage? = null
     )

@@ -1,0 +1,105 @@
+You are a senior Android NDK / JNI / MLC-LLM / TVM integration engineer.
+
+I have an Android project called `local-llm-chat-android` with an `app` module and an `mlc4j` module.
+
+Current audit findings:
+- `libtvm4j_runtime_packed.so` is already present and packaged from `mlc4j/output/arm64-v8a/`
+- the app uses only `arm64-v8a`
+- `jniLibs.srcDirs("output")` is already configured in `mlc4j/build.gradle.kts`
+- `implementation(project(":mlc4j"))` is already present in the app
+- there was a compile issue around `MessageRole.TOOL`, which is being fixed separately
+- runtime model loading is expected to fail because the model-specific library is missing
+
+The critical missing artifact is:
+- `libqwen3_q0f16_e709b04052d95e24b38d40e4259e1f14.so`
+
+The config currently references:
+- `"model_lib": "qwen3_q0f16_e709b04052d95e24b38d40e4259e1f14"`
+
+The engine constructs:
+- `"model_lib": "system://qwen3_q0f16_e709b04052d95e24b38d40e4259e1f14"`
+
+This strongly suggests the Android runtime expects:
+- `System.loadLibrary("qwen3_q0f16_e709b04052d95e24b38d40e4259e1f14")`
+
+Your task is to help me repair this integration properly.
+
+## Goals
+I want you to determine:
+
+1. what exact artifact is missing
+2. where that artifact should come from in a normal MLC-LLM Android workflow
+3. where it should be placed in my project
+4. whether my current Gradle/jniLibs setup is already sufficient once the file exists
+5. how to verify the `.so` is actually packaged into the APK
+6. how to verify runtime loading will succeed
+7. what mistakes to avoid when generating or copying the model library
+
+## What I want from you
+Please answer in this exact order:
+
+### Step 1: Explain the missing artifact
+Explain what the model-specific `.so` is, how it differs from `libtvm4j_runtime_packed.so`, and why both are needed.
+
+### Step 2: Explain the normal MLC workflow
+Describe the normal pipeline that produces this model `.so` for Android:
+- model conversion / compilation
+- target ABI
+- output naming
+- relationship to `model_lib` in config
+
+Do not be vague. I want concrete explanation, not marketing language.
+
+### Step 3: Project placement
+Tell me exactly where the missing `.so` should go in my current project structure, given:
+- `mlc4j/build.gradle.kts` uses `jniLibs.srcDirs("output")`
+- app ABI is `arm64-v8a`
+
+Be explicit about the expected final path.
+
+### Step 4: Packaging verification
+Show me how to verify that after placing the file:
+- Gradle merges it into intermediates
+- it ends up inside the APK/AAB
+- packaging is correct for `arm64-v8a`
+
+Give me exact commands or Android Studio checks where possible.
+
+### Step 5: Runtime verification
+Show me how to verify that runtime loading works after packaging:
+- what logcat errors would disappear
+- what success signals to look for
+- where failure would still occur if something is wrong
+
+### Step 6: Common failure modes
+List the most likely mistakes, such as:
+- wrong ABI
+- wrong filename
+- wrong model_lib value
+- copying a host/desktop build instead of Android build
+- stripped/mismatched artifact
+- mismatched config and native library name
+
+### Step 7: Fix plan for my project
+Give me a strict, prioritized repair plan:
+- first do X
+- then verify Y
+- then do Z
+
+### Step 8: Exact patch suggestions
+If any code/config changes are needed in addition to adding the `.so`, show exact snippets.
+If no Gradle changes are needed, say that explicitly.
+
+## Important constraints
+- Focus only on the model-specific native library integration problem
+- Assume the app/module wiring is already mostly correct
+- Do not drift into general Android advice
+- Prefer concrete MLC/TVM/Android packaging reasoning
+- If the missing `.so` must be generated externally, say so clearly
+- Be decisive about what is already correct versus what still needs work
+
+## Output style
+- highly technical
+- concise but specific
+- structured by steps
+- practical and action-oriented

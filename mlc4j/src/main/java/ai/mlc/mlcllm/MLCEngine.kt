@@ -1,50 +1,79 @@
 package ai.mlc.mlcllm
 
 import ai.mlc.mlcllm.OpenAIProtocol.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.decodeFromString
+import org.apache.tvm.Device
 import kotlin.concurrent.thread
-import java.util.UUID
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.ReceiveChannel
 import java.util.logging.Logger
 
-class BackgroundWorker(private val task: () -> Unit) {
+class BackgroundWorker(
+    private val task: () -> Unit,
+    private val onError: (Throwable) -> Unit = {}
+) {
 
     fun start() {
         thread(start = true) {
-            task()
+            runCatching { task() }
+                .onFailure(onError)
         }
     }
 }
 
 class MLCEngine {
+    private val logger = Logger.getLogger(MLCEngine::class.java.name)
 
-    private val state: EngineState
     private val jsonFFIEngine: JSONFFIEngine
+    private val state: EngineState
     val chat: Chat
     private val threads = mutableListOf<BackgroundWorker>()
+    private val callbackScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val backend = detectBackend()
+
+    @Volatile
+    private var backgroundFailure: Throwable? = null
 
     init {
-        state = EngineState()
         jsonFFIEngine = JSONFFIEngine()
+        state = EngineState(
+            requestController = object : RequestController {
+                override fun chatCompletion(requestJson: String, requestId: String) {
+                    ensureHealthy()
+                    jsonFFIEngine.chatCompletion(requestJson, requestId)
+                }
+
+                override fun abort(requestId: String) {
+                    jsonFFIEngine.abort(requestId)
+                }
+            },
+            callbackScope = callbackScope
+        )
         chat = Chat(jsonFFIEngine, state)
 
-        jsonFFIEngine.initBackgroundEngine { result ->
+        jsonFFIEngine.initBackgroundEngine(backend.device.deviceType, backend.device.deviceId) { result ->
             state.streamCallback(result)
         }
 
-        val backgroundWorker = BackgroundWorker {
-            Thread.currentThread().priority = Thread.MAX_PRIORITY
-            jsonFFIEngine.runBackgroundLoop()
-        }
+        val backgroundWorker = BackgroundWorker(
+            task = {
+                Thread.currentThread().priority = Thread.MAX_PRIORITY
+                jsonFFIEngine.runBackgroundLoop()
+            },
+            onError = { error ->
+                handleBackgroundFailure("runBackgroundLoop", error)
+            }
+        )
 
-        val backgroundStreamBackWorker = BackgroundWorker {
-            jsonFFIEngine.runBackgroundStreamBackLoop()
-        }
+        val backgroundStreamBackWorker = BackgroundWorker(
+            task = {
+                jsonFFIEngine.runBackgroundStreamBackLoop()
+            },
+            onError = { error ->
+                handleBackgroundFailure("runBackgroundStreamBackLoop", error)
+            }
+        )
 
         threads.add(backgroundWorker)
         threads.add(backgroundStreamBackWorker)
@@ -54,8 +83,10 @@ class MLCEngine {
     }
 
     fun reload(modelPath: String, modelLib: String) {
+        ensureHealthy()
         val engineConfig = """
             {
+                "device": "${backend.configName}",
                 "model": "$modelPath",
                 "model_lib": "system://$modelLib",
                 "mode": "interactive"
@@ -65,86 +96,61 @@ class MLCEngine {
     }
 
     fun reset() {
+        ensureHealthy()
         jsonFFIEngine.reset()
     }
 
     fun unload() {
+        state.abortAll("Engine unloaded")
         jsonFFIEngine.unload()
     }
-}
 
-data class RequestState(
-    val request: ChatCompletionRequest,
-    val continuation: Channel<ChatCompletionStreamResponse>
-)
-
-class EngineState {
-
-    private val logger = Logger.getLogger(EngineState::class.java.name)
-    private val requestStateMap = mutableMapOf<String, RequestState>()
-
-    suspend fun chatCompletion(
-        jsonFFIEngine: JSONFFIEngine,
-        request: ChatCompletionRequest
-    ): ReceiveChannel<ChatCompletionStreamResponse> {
-        val json = Json { encodeDefaults = true }
-        val jsonRequest = json.encodeToString(request)
-        val requestID = UUID.randomUUID().toString()
-        val channel = Channel<ChatCompletionStreamResponse>(Channel.UNLIMITED)
-
-        requestStateMap[requestID] = RequestState(request, channel)
-
-        jsonFFIEngine.chatCompletion(jsonRequest, requestID)
-
-        return channel
+    private fun handleBackgroundFailure(workerName: String, error: Throwable) {
+        backgroundFailure = error
+        logger.severe("MLCEngine background worker $workerName failed: $error")
+        state.abortAll("MLC background worker failed: ${error.message}")
     }
 
-    fun streamCallback(result: String?) {
-        val json = Json { ignoreUnknownKeys = true }
-        try {
-            val responses: List<ChatCompletionStreamResponse> = json.decodeFromString(result ?: return)
+    private fun ensureHealthy() {
+        backgroundFailure?.let { error ->
+            throw IllegalStateException("MLC backend failed on ${backend.configName}", error)
+        }
+    }
 
-            responses.forEach { res ->
-                val requestState = requestStateMap[res.id] ?: return@forEach
-                GlobalScope.launch {
+    private data class EngineBackend(
+        val configName: String,
+        val device: Device
+    )
 
-                    res.usage?.let { finalUsage ->
-                        requestState.request.stream_options?.include_usage?.let { includeUsage ->
-                            if (includeUsage) {
-                                requestState.continuation.send(res)
-                            }
-                        }
-                        requestState.continuation.close()
-                        requestStateMap.remove(res.id)
-                    } ?: run {
-                        val sendResult = requestState.continuation.trySend(res)
-                        if (sendResult.isFailure) {
-                            // Handle the failure case if needed
-                            logger.severe("Failed to send the response: ${sendResult.exceptionOrNull()}")
-                        }
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            logger.severe("Kotlin JSON parsing error: $e, jsonsrc=$result")
+    private companion object {
+        fun detectBackend(): EngineBackend {
+            val candidates = listOf(
+                EngineBackend("vulkan", Device.vulkan()),
+                EngineBackend("opencl", Device.opencl()),
+                EngineBackend("cpu", Device.cpu())
+            )
+
+            return candidates.firstOrNull { backend ->
+                runCatching { backend.device.exist() }.getOrDefault(false)
+            } ?: candidates.last()
         }
     }
 }
 
-class Chat(
+class Chat internal constructor(
     private val jsonFFIEngine: JSONFFIEngine,
     private val state: EngineState
 ) {
     val completions = Completions(jsonFFIEngine, state)
 }
 
-class Completions(
+class Completions internal constructor(
     private val jsonFFIEngine: JSONFFIEngine,
     private val state: EngineState
 ) {
 
     suspend fun create(request: ChatCompletionRequest): ReceiveChannel<ChatCompletionStreamResponse> {
-        return state.chatCompletion(jsonFFIEngine, request)
+        return state.chatCompletion(request)
     }
 
     suspend fun create(
