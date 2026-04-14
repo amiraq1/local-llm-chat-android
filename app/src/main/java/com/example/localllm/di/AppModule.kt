@@ -125,6 +125,23 @@ object DatabaseModule {
 
 @Module
 @InstallIn(SingletonComponent::class)
+object NetworkModule {
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(): okhttp3.OkHttpClient {
+        return okhttp3.OkHttpClient.Builder()
+            .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+            .followRedirects(true)
+            .followSslRedirects(true)
+            .build()
+    }
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
 abstract class EngineBindingModule {
 
     /**

@@ -115,6 +115,7 @@ dependencies {
     implementation(libs.splashscreen)
     implementation(libs.documentfile)
     implementation(libs.mediapipe.tasks.genai)
+    implementation(libs.okhttp)
 
     // Test
     testImplementation("junit:junit:4.13.2")

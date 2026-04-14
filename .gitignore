@@ -30,6 +30,5 @@ mlc4j/build/
 local-llm-chat-android*.png
 local-llm-chat-android*.xml
 tmp/
-main
 scripts/__pycache__/
 

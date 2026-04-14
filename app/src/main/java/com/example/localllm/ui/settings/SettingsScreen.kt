@@ -310,7 +310,7 @@ private fun InferenceSection(
         SettingsDivider()
 
         SliderRow(
-            icon = Icons.Outlined.Article,
+            icon = Icons.AutoMirrored.Outlined.Article,
             label = "Max Tokens",
             description = "الحد الأقصى لطول الرد",
             value = settings.maxTokens.toFloat(),

@@ -14,6 +14,7 @@ timber = "5.0.1"
 workmanager = "2.9.1"
 documentfile = "1.0.1"
 mediapipe-genai = "0.10.27"
+okhttp = "4.12.0"
 
 [libraries]
 # Compose BOM
@@ -64,6 +65,7 @@ core-ktx = { group = "androidx.core", name = "core-ktx", version = "1.13.1" }
 splashscreen = { group = "androidx.core", name = "core-splashscreen", version = "1.0.1" }
 documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
 mediapipe-tasks-genai = { group = "com.google.mediapipe", name = "tasks-genai", version.ref = "mediapipe-genai" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
