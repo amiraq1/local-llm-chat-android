@@ -66,11 +66,11 @@ class MLCInferenceEngine @Inject constructor(
                 activeModelId = modelId
 
                 Result.success(session)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 Timber.e(e, "MLCInferenceEngine: Failed to load model")
                 activeSession = null
                 activeModelId = null
-                Result.failure(e)
+                Result.failure(if (e is Exception) e else RuntimeException("MLC load failed", e))
             }
         }
     }

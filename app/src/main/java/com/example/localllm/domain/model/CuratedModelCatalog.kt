@@ -80,9 +80,7 @@ data class CatalogModel(
             addAll(tags)
             if (isRecommended) add("موصى به")
         }.distinct(),
-        minAndroidApi = minAndroidApi,
-        provider = provider,
-        description = description
+        minAndroidApi = minAndroidApi
     )
 
     fun toMlcModelRecord(): MlcModelRecord? {

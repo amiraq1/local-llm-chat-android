@@ -108,7 +108,7 @@ object DatabaseModule {
         val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
 
         return ModelRepository(
-            okHttpClient = okHttpClient,
+            httpClient = okHttpClient,
             modelStore = object : ModelStore {
                 override fun getAllInstalledModels(): Flow<List<InstalledModelRecord>> =
                     modelDao.getAllInstalledModels().map { list -> list.map { it.toRecord() } }

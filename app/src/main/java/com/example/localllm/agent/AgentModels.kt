@@ -93,7 +93,7 @@ enum class AgentRunStatus {
     FAILED
 }
 
-interface GemmaInferenceEngine {
+interface AgentLlmEngine {
     suspend fun generate(prompt: String): String
 }
 

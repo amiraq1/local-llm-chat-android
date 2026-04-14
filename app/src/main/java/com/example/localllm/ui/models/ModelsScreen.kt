@@ -1,20 +1,13 @@
 package com.example.localllm.ui.models
 
-import android.content.Intent
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.localllm.domain.model.ModelDownloadState
@@ -25,19 +18,8 @@ fun ModelsScreen(
     viewModel: ModelsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
-    val context = LocalContext.current
 
-    var pendingImportModelId by rememberSaveable { mutableStateOf<String?>(null) }
     var pendingDeleteModelId by rememberSaveable { mutableStateOf<String?>(null) }
-
-    val modelPicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocumentTree()
-    ) { uri ->
-        val modelId = pendingImportModelId
-        pendingImportModelId = null
-        if (uri == null || modelId == null) return@rememberLauncherForActivityResult
-        viewModel.importModel(modelId, uri)
-    }
 
     Scaffold(
         topBar = {
@@ -47,11 +29,7 @@ fun ModelsScreen(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
-                actions = {
-                    IconButton(onClick = { viewModel.syncInstalledModels() }) {
-                        Icon(Icons.Default.Sync, contentDescription = "مزامنة")
-                    }
-                }
+
             )
         }
     ) { padding ->
@@ -60,7 +38,7 @@ fun ModelsScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            if (state.isInitialLoading) {
+            if (state.isLoading) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
