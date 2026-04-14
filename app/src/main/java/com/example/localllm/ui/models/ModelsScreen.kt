@@ -306,9 +306,10 @@ fun ModelCard(
                     ModelTagsRow(tags = model.tags.take(3))
                 }
 
-                val reason = modelState.incompatibilityReason
-                if (!modelState.isCompatible && reason != null) {
-                    IncompatibilityBanner(reason = reason)
+                modelState.incompatibilityReason?.let { reason ->
+                    if (!modelState.isCompatible) {
+                        IncompatibilityBanner(reason = reason)
+                    }
                 }
             }
 
