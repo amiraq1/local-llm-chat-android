@@ -731,7 +731,7 @@ fun ChatInputBar(
                         modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
-                            Icons.AutoMirrored.Filled.Send,
+                            imageVector = Icons.Filled.Send,
                             contentDescription = "إرسال الرسالة",
                             modifier = Modifier.size(20.dp)
                         )

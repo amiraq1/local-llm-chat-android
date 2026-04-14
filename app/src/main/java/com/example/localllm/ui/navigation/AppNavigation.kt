@@ -122,8 +122,8 @@ private val bottomNavItems = listOf(
     BottomNavItem(
         destination = AppDestination.ChatHome,
         label = "الدردشة",
-        selectedIcon = Icons.AutoMirrored.Filled.Chat,
-        unselectedIcon = Icons.AutoMirrored.Outlined.Chat
+        selectedIcon = Icons.Filled.Chat,
+        unselectedIcon = Icons.Outlined.Chat
     ),
     BottomNavItem(
         destination = AppDestination.Models,
