@@ -38,16 +38,16 @@ fun ModelsScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            if (state.isLoading) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                if (state.models.isEmpty()) {
+                    item {
+                        Text("جاري تحميل النماذج...")
+                    }
+                } else {
                     items(state.models, key = { it.model.id }) { modelState ->
                         ModelItem(
                             modelState = modelState,
@@ -58,10 +58,10 @@ fun ModelsScreen(
                             onDelete = { pendingDeleteModelId = modelState.model.id }
                         )
                     }
+                }
 
-                    item {
-                        Spacer(Modifier.height(80.dp))
-                    }
+                item {
+                    Spacer(Modifier.height(80.dp))
                 }
             }
         }
