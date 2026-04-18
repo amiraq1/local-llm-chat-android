@@ -59,7 +59,9 @@ class MLCInferenceEngine @Inject constructor(
                 runCatching { mlcEngine.unload() }
                     .onFailure { Timber.w(it, "MLCInferenceEngine: Engine unload before reload failed") }
 
-                mlcEngine.reload(modelDir.absolutePath, manifestRecord.modelLib)
+                                        mlcEngine.reload(modelDir.absolutePath, manifestRecord.modelLib)
+
+
 
                 val session = MLCModelSession(mlcEngine, config)
                 activeSession = session

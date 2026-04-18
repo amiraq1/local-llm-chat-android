@@ -348,6 +348,7 @@ class ModelRepository(
     }
 
     private fun openRequest(url: String, resumeBytes: Long, headOnly: Boolean): HttpResponse {
+        
         var currentUrl = url
         var redirectCount = 0
 
@@ -360,8 +361,10 @@ class ModelRepository(
                     if (!headOnly && resumeBytes > 0L) {
                         header("Range", "bytes=$resumeBytes-")
                     }
+                  
                 }
                 .build()
+
 
             val response = httpClient.newCall(request).execute()
             if (response.isRedirect) {
@@ -398,10 +401,10 @@ class ModelRepository(
     ) = withContext(Dispatchers.IO) {
         downloadFileWithResume(url, destination, onProgress)
     }
-
-    private companion object {
+private companion object {
         val gemmaModels = listOf(
             LLMModel(
+ codex/fix-audit-findings
                 id = "Phi-3-mini-4k-instruct-q4f16_1-MLC",
                 name = "Phi-3 Mini 4K",
                 family = "phi3",
@@ -421,18 +424,30 @@ class ModelRepository(
                 family = "qwen2",
                 sizeBytes = 1_120_000_000L,
                 downloadUrl = "https://huggingface.co/mlc-ai/Qwen2-1.5B-Instruct-q4f16_1-MLC",
+
+                id = "gemma-4-E2B-it-q4f16_1-MLC",
+                name = "Gemma 4 E2B",
+                family = "gemma",
+                sizeBytes = 2_600_000_000L,
+                downloadUrl = "https://huggingface.co/welcoma/gemma-4-E2B-it-q4f16_1-MLC/",
+ main
                 checksumSha256 = "",
                 minRamMb = 2048,
                 recommendedRamMb = 4096,
                 contextLength = 4096,
                 quantization = "Q4F16_1",
+ codex/fix-audit-findings
                 tags = listOf("qwen2", "on-device", "mlc", "fast"),
+
+                tags = listOf("gemma-4", "on-device", "mlc", "E2B"),
+ main
                 minAndroidApi = 28
             )
         )
     }
-}
-
+} // 
+  
+        
 interface ModelStore {
     fun getAllInstalledModels(): Flow<List<InstalledModelRecord>>
     suspend fun getModelById(id: String): InstalledModelRecord?
