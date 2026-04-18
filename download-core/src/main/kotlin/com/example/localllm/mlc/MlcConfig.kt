@@ -8,7 +8,7 @@ import java.io.File
 import java.net.URI
 
 const val MLC_MODEL_CONFIG_FILENAME = "mlc-chat-config.json"
-const val MLC_TENSOR_CACHE_FILENAME = "tensor-cache.json"
+const val MLC_TENSOR_CACHE_FILENAME = "ndarray-cache.json"
 
 private const val HUGGING_FACE_RESOLVE_PREFIX = "resolve/main/"
 

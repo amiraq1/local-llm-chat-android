@@ -11,7 +11,6 @@ import timber.log.Timber
 
 class AgentAccessibilityService : AccessibilityService(), ScreenStateProvider {
 
-    private val screenParser = AccessibilityScreenParser()
     @Volatile
     private var lastPackageName: String? = null
     @Volatile
@@ -60,7 +59,7 @@ class AgentAccessibilityService : AccessibilityService(), ScreenStateProvider {
             val root = rootInActiveWindow ?: return@withContext CurrentScreenState()
 
             try {
-                val parsedNodes = screenParser.parseTree(root)
+                val parsedNodes = parseTree(root)
                 val focusedNodeId = findFocusedParsedNodeId(root)
 
                 CurrentScreenState(
@@ -75,7 +74,7 @@ class AgentAccessibilityService : AccessibilityService(), ScreenStateProvider {
                             clickable = parsedNode.isClickable,
                             editable = parsedNode.isEditable,
                             scrollable = parsedNode.isScrollable,
-                            boundsInScreen = parsedNode.boundsInScreen.flattenToString()
+                            boundsInScreen = parsedNode.bounds.flattenToString()
                         )
                     }
                 )
@@ -110,8 +109,8 @@ class AgentAccessibilityService : AccessibilityService(), ScreenStateProvider {
         val root = rootInActiveWindow ?: return "No active window found."
 
         return try {
-            val parsedNodes = screenParser.parseTree(root)
-            screenParser.formatForLlm(parsedNodes)
+            val parsedNodes = parseTree(root)
+            formatForLlm(parsedNodes)
         } finally {
             root.recycle()
         }
@@ -119,6 +118,73 @@ class AgentAccessibilityService : AccessibilityService(), ScreenStateProvider {
 
     fun clickNode(nodeInfo: AccessibilityNodeInfo): Boolean {
         return nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+    }
+
+    // ── Lightweight inline parser ────────────────────────────────────────
+
+    private data class ParsedNode(
+        val id: Int,
+        val text: String,
+        val isClickable: Boolean,
+        val isEditable: Boolean,
+        val isScrollable: Boolean,
+        val bounds: Rect
+    )
+
+    private fun parseTree(root: AccessibilityNodeInfo): List<ParsedNode> {
+        val results = mutableListOf<ParsedNode>()
+        val rootCopy = AccessibilityNodeInfo.obtain(root)
+        traverseForParse(node = rootCopy, nextId = 1, output = results)
+        return results
+    }
+
+    private fun traverseForParse(
+        node: AccessibilityNodeInfo,
+        nextId: Int,
+        output: MutableList<ParsedNode>
+    ): Int {
+        var runningId = nextId
+        try {
+            if (!node.isVisibleToUser) return runningId
+
+            val text = extractNodeText(node)
+            val actionable = isActionableNode(node, text)
+
+            if (actionable) {
+                val bounds = Rect().also(node::getBoundsInScreen)
+                output += ParsedNode(
+                    id = runningId,
+                    text = text,
+                    isClickable = node.isClickable,
+                    isEditable = node.isEditable,
+                    isScrollable = node.isScrollable,
+                    bounds = bounds
+                )
+                runningId++
+            }
+
+            for (index in 0 until node.childCount) {
+                val child = node.getChild(index) ?: continue
+                runningId = traverseForParse(child, runningId, output)
+            }
+            return runningId
+        } finally {
+            node.recycle()
+        }
+    }
+
+    private fun formatForLlm(nodes: List<ParsedNode>): String {
+        if (nodes.isEmpty()) return "No actionable visible nodes."
+        return nodes.joinToString(separator = "\n") { node ->
+            val traits = buildList {
+                if (node.isClickable) add("clickable")
+                if (node.isEditable) add("editable")
+                if (node.isScrollable) add("scrollable")
+            }
+            val label = if (node.text.isNotBlank()) "'${node.text}' " else ""
+            val suffix = if (traits.isEmpty()) "" else "(${traits.joinToString(", ")})"
+            "[${node.id}] $label$suffix".trimEnd()
+        }
     }
 
     private fun extractScreenTitle(root: AccessibilityNodeInfo): String? {

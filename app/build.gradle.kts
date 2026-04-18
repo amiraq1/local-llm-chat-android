@@ -43,11 +43,18 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+        jniLibs {
+            // MLC .so files are large; use legacy uncompressed packaging
+            // so they can be mmap'd directly from the APK at runtime
+            useLegacyPackaging = true
+            keepDebugSymbols += setOf("**/*.so")
         }
     }
 
@@ -116,7 +123,13 @@ dependencies {
     // Core
     implementation(libs.core.ktx)
     implementation(libs.splashscreen)
+ codex/fix-audit-findings
+    implementation(libs.documentfile)
+    implementation(libs.mediapipe.tasks.genai)
+    implementation(libs.okhttp)
+
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+ main
 
     // Test
     testImplementation(libs.junit4)

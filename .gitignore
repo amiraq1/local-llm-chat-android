@@ -1,3 +1,39 @@
+<<<<<<< HEAD
+codex/fix-audit-findings
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+.kotlin
+app/build/
+gradle-build.log
+adb-devices.log
+NUL
+
+.gradle/
+.idea/
+local.properties
+*.iml
+build/
+app/build/
+mlc4j/build/
+local-llm-chat-android*.png
+local-llm-chat-android*.xml
+tmp/
+scripts/__pycache__/
+
+=======
 .gradle/
 **/build/
 local.properties
@@ -8,3 +44,4 @@ local.properties
 models/
 Qwen3-Model/
 d:\\Qwen3-Model/
+>>>>>>> origin/main

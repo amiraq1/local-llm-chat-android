@@ -14,7 +14,7 @@ import kotlinx.serialization.json.put
 import timber.log.Timber
 
 class AgentLoopManager(
-    private val gemmaInferenceEngine: GemmaInferenceEngine,
+    private val llmEngine: AgentLlmEngine,
     private val screenStateProvider: ScreenStateProvider,
     private val actionExecutor: ActionExecutor,
     private val systemPromptBuilder: SystemPromptBuilder,
@@ -61,7 +61,7 @@ class AgentLoopManager(
             Timber.d("AgentLoopManager: Step %d prompt built", stepNumber)
 
             onUpdate(LoopUpdate.Thinking(stepNumber))
-            val rawModelOutput = gemmaInferenceEngine.generate(prompt)
+            val rawModelOutput = llmEngine.generate(prompt)
             val decision = parseDecision(rawModelOutput)
             toolRegistry.validate(decision.action)
 

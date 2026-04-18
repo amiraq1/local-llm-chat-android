@@ -13,6 +13,8 @@ import com.example.localllm.mlc.resolveMlcModelAssetUrl
 import com.example.localllm.mlc.resolveMlcRedirectUrl
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -231,9 +233,13 @@ class ModelRepository(
             }
         }
 
-        val totalBytes = downloadPlan.sumOf { asset ->
-            resolveContentLength(asset.url).coerceAtLeast(existingBytes(asset.destination))
-        }.coerceAtLeast(model.sizeBytes)
+        val totalBytes = withContext(Dispatchers.IO) {
+            downloadPlan.map { asset ->
+                async {
+                    resolveContentLength(asset.url).coerceAtLeast(existingBytes(asset.destination))
+                }
+            }.awaitAll().sum().coerceAtLeast(model.sizeBytes)
+        }
 
         var completedBytes = downloadPlan.sumOf { asset ->
             existingBytes(asset.destination).coerceAtMost(
@@ -349,6 +355,7 @@ class ModelRepository(
         while (redirectCount < 10) {
             val request = Request.Builder()
                 .url(currentUrl)
+                .header("User-Agent", "mlc-llm")
                 .apply {
                     if (headOnly) head() else get()
                     if (!headOnly && resumeBytes > 0L) {
@@ -397,17 +404,43 @@ class ModelRepository(
 private companion object {
         val gemmaModels = listOf(
             LLMModel(
+ codex/fix-audit-findings
+                id = "Phi-3-mini-4k-instruct-q4f16_1-MLC",
+                name = "Phi-3 Mini 4K",
+                family = "phi3",
+                sizeBytes = 2_350_000_000L,
+                downloadUrl = "https://huggingface.co/mlc-ai/Phi-3-mini-4k-instruct-q4f16_1-MLC",
+                checksumSha256 = "",
+                minRamMb = 4096,
+                recommendedRamMb = 6144,
+                contextLength = 4096,
+                quantization = "Q4F16_1",
+                tags = listOf("phi-3", "on-device", "mlc"),
+                minAndroidApi = 28
+            ),
+            LLMModel(
+                id = "Qwen2-1.5B-Instruct-q4f16_1-MLC",
+                name = "Qwen2 1.5B",
+                family = "qwen2",
+                sizeBytes = 1_120_000_000L,
+                downloadUrl = "https://huggingface.co/mlc-ai/Qwen2-1.5B-Instruct-q4f16_1-MLC",
+
                 id = "gemma-4-E2B-it-q4f16_1-MLC",
                 name = "Gemma 4 E2B",
                 family = "gemma",
                 sizeBytes = 2_600_000_000L,
                 downloadUrl = "https://huggingface.co/welcoma/gemma-4-E2B-it-q4f16_1-MLC/",
+ main
                 checksumSha256 = "",
-                minRamMb = 4096,
-                recommendedRamMb = 6144,
-                contextLength = 8192,
+                minRamMb = 2048,
+                recommendedRamMb = 4096,
+                contextLength = 4096,
                 quantization = "Q4F16_1",
+ codex/fix-audit-findings
+                tags = listOf("qwen2", "on-device", "mlc", "fast"),
+
                 tags = listOf("gemma-4", "on-device", "mlc", "E2B"),
+ main
                 minAndroidApi = 28
             )
         )

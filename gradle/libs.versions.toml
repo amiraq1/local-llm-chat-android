@@ -20,6 +20,9 @@ timber = "5.0.1"
 truth = "1.4.4"
 turbine = "1.1.0"
 workmanager = "2.9.1"
+documentfile = "1.0.1"
+mediapipe-genai = "0.10.27"
+okhttp = "4.12.0"
 
 [libraries]
 # Compose BOM
@@ -71,6 +74,9 @@ core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx
 splashscreen = { group = "androidx.core", name = "core-splashscreen", version = "1.0.1" }
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+documentfile = { group = "androidx.documentfile", name = "documentfile", version.ref = "documentfile" }
+mediapipe-tasks-genai = { group = "com.google.mediapipe", name = "tasks-genai", version.ref = "mediapipe-genai" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 
 # Test
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }

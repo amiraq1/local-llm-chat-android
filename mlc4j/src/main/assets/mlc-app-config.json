@@ -3,8 +3,16 @@
     {
       "model_id": "Qwen3-0.6B-q0f16-MLC",
       "model_lib": "qwen3_q0f16_e709b04052d95e24b38d40e4259e1f14",
+      "model_backend": "opencl",
       "model_url": "https://huggingface.co/mlc-ai/Qwen3-0.6B-q0f16-MLC",
       "estimated_vram_bytes": 3000000000
+    },
+    {
+      "model_id": "gemma-2-2b-it-q4f16_1-MLC",
+      "model_lib": "gemma_2_2b_q4",
+      "model_backend": "opencl",
+      "model_url": "https://huggingface.co/mlc-ai/gemma-2-2b-it-q4f16_1-MLC",
+      "estimated_vram_bytes": 1800000000
     }
   ]
 }

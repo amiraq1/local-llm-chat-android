@@ -8,36 +8,82 @@ import com.example.localllm.data.db.dao.*
 import com.example.localllm.data.repository.ModelRepository
 import com.example.localllm.data.repository.InstalledModelRecord
 import com.example.localllm.data.repository.ModelStore
+import com.example.localllm.engine.FallbackInferenceEngine
 import com.example.localllm.engine.InferenceEngine
-import com.example.localllm.engine.MLCInferenceEngine
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import okhttp3.OkHttpClient
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
-/** Qualifier for a [CoroutineScope] bound to the application lifecycle. */
 @Qualifier
 @Retention(AnnotationRetention.RUNTIME)
 annotation class ApplicationScope
+
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+annotation class IoDispatcher
+
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+annotation class DefaultDispatcher
+
+@Module
+@InstallIn(SingletonComponent::class)
+object DispatcherModule {
+
+    @Provides
+    @Singleton
+    @IoDispatcher
+    fun provideIoDispatcher(): CoroutineDispatcher = Dispatchers.IO
+
+    @Provides
+    @Singleton
+    @DefaultDispatcher
+    fun provideDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Default
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object CoroutineScopeModule {
+
+    @Provides
+    @Singleton
+    @ApplicationScope
+    fun provideApplicationScope(
+        @DefaultDispatcher defaultDispatcher: CoroutineDispatcher
+    ): CoroutineScope {
+        return CoroutineScope(SupervisorJob() + defaultDispatcher)
+    }
+}
 
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
+    private const val DATABASE_NAME = "localllm.db"
+
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
-        Room.databaseBuilder(context, AppDatabase::class.java, "localllm.db")
-            .build()
+    fun provideDatabase(
+        @ApplicationContext context: Context
+    ): AppDatabase {
+        return Room.databaseBuilder(
+            context,
+            AppDatabase::class.java,
+            DATABASE_NAME
+        ).build()
+    }
 
     @Provides
     fun provideConversationDao(db: AppDatabase): ConversationDao = db.conversationDao()
@@ -55,12 +101,14 @@ object DatabaseModule {
     @Singleton
     fun provideModelRepository(
         modelDao: ModelDao,
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        okHttpClient: OkHttpClient
     ): ModelRepository {
         val installRootDir = context.getExternalFilesDir(null) ?: context.filesDir
         val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
 
         return ModelRepository(
+            httpClient = okHttpClient,
             modelStore = object : ModelStore {
                 override fun getAllInstalledModels(): Flow<List<InstalledModelRecord>> =
                     modelDao.getAllInstalledModels().map { list -> list.map { it.toRecord() } }
@@ -132,32 +180,28 @@ private fun InstalledModelRecord.toEntity() = com.example.localllm.data.db.entit
 
 @Module
 @InstallIn(SingletonComponent::class)
-object CoroutineModule {
+object NetworkModule {
 
-    /**
-     * Application-scoped [CoroutineScope] for work that must outlive ViewModels
-     * (e.g., native model unloading, pending DB writes).
-     *
-     * Uses [SupervisorJob] so child failures don't cancel the entire scope.
-     */
     @Provides
     @Singleton
-    @ApplicationScope
-    fun provideApplicationScope(): CoroutineScope =
-        CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    fun provideOkHttpClient(): OkHttpClient {
+        return OkHttpClient.Builder()
+            .connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+            .followRedirects(true)
+            .followSslRedirects(true)
+            .build()
+    }
 }
 
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class EngineModule {
 
-    /**
-     * Bind MLCInferenceEngine as the production InferenceEngine.
-     *
-     * Uses the real MLC4J native library for on-device LLM inference.
-     */
-
     @Binds
     @Singleton
-    abstract fun bindInferenceEngine(engine: MLCInferenceEngine): InferenceEngine
+    abstract fun bindInferenceEngine(
+        engine: FallbackInferenceEngine
+    ): InferenceEngine
 }

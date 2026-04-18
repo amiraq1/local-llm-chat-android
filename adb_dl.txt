@@ -1,0 +1,1002 @@
+--------- beginning of main
+04-15 21:56:05.713  1022  1095 I libPerfCtl: xgfGetFPS pid:5103 fps:-1
+04-15 21:56:05.718  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.729  2627  2666 D JavaheapMonitor: Java heap used=4M max=256M, proc: com.android.networkstack.process
+04-15 21:56:05.732  2627  2666 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:05.735  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.743  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.751  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.759  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.768  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.771  1124  1699 W libc    : Access denied finding property "ro.vendor.display.max_hdr_luminance"
+04-15 21:56:05.777  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.784  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.793  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.802  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.810  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.818  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.826  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.834  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.842  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.850  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.866  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.876  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.883  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.892  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.901  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.908  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.917  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.926  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.934  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.943  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.950  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.959  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.967  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.976  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.979  1124  1699 W libc    : Access denied finding property "ro.vendor.display.max_hdr_luminance"
+04-15 21:56:05.984  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:05.992  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.000  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.008  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.016  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.025  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.033  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.042  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.050  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.059  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.066  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.075  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.083  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.091  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.100  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.106 31101 25537 I MediaCodec: [mId: 39] [audio-debug-dec] Stats 5005ms:Client:com.facebook.katana,Component:c2.android.aac.decoder,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:06.108  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.116  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.124  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.133  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.141  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.149  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.157  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.166  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.168  1329  1619 D connsyslogger: SD_LOG_ROOT is /data/debuglogger/connsyslog/fw.
+04-15 21:56:06.169  1329  1619 D connsyslogger: systemReady:1
+04-15 21:56:06.174  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.183  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.186  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:06.186  1124  1699 W libc    : Access denied finding property "ro.vendor.display.max_hdr_luminance"
+04-15 21:56:06.191  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.199  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.200  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:06.201  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:06.202  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:06.206  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.216  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.225  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.232  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.238 19621 19675 D JavaheapMonitor: Java heap used=4M max=512M, proc: android.process.acore
+04-15 21:56:06.239 19621 19675 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:06.240  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.249  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.257  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.266  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.273  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.281  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:06.282  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.290  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.291  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:06.292  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:06.298  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.303  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:06.306  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.316  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.323  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.332  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.341  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.349  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.357  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.365  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.373  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.382  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.390  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.394  1124  1699 W libc    : Access denied finding property "ro.vendor.display.max_hdr_luminance"
+04-15 21:56:06.398  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.407  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.415  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.423  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.431  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:06.597  1124  1699 W libc    : Access denied finding property "ro.vendor.display.max_hdr_luminance"
+04-15 21:56:06.627  2675  4437 D JavaheapMonitor: Java heap used=3M max=256M, proc: com.mediatek.ims
+04-15 21:56:06.628  2675  4437 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:06.713  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:06.714  1022  1095 I libPerfCtl: xgfGetFPS pid:5103 fps:-1
+--------- beginning of system
+04-15 21:56:06.770  1803  3516 I ActivityManager: unbindService com.android.server.am.ActiveServices@32650f4 conn=android.os.BinderProxy@45a151 callingPid=5196
+04-15 21:56:06.775 19747 19747 D BoundBrokerSvc: onUnbind: Intent { act=com.google.firebase.dynamiclinks.service.START xflg=0x4 pkg=com.google.android.gms }
+04-15 21:56:06.847  7808 12647 D JavaheapMonitor: Java heap used=2M max=512M, proc: com.xiaomi.aicr:cognitionService
+04-15 21:56:06.847  7808 12647 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:06.879  1704  7023 E msys    : E[N mns]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:06.880  1704  7023 W LibevQuicAsyncUDPSocket.h: setTosOrTrafficClass not implemented in LibevQuicAsyncUDPSocket
+04-15 21:56:06.894  1704  7023 E MvfstCallbacks.cpp: onConnectionSetupError: error=TransportError: Internal Error, Error on socket write Operation not permitted, 
+04-15 21:56:06.894  1704  7023 E msys    : E[N mns]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:06.955 31102  9502 D JavaheapMonitor: Java heap used=6M max=256M, proc: com.miui.securitycenter
+04-15 21:56:06.955 31102  9502 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:07.059  1448  1903 D ULogGuard: Monitoring: 20 threads, 0 requests, 0 time-bombs; 8 guards. ResetFlags = 0x7
+04-15 21:56:07.360  9793 10515 D JavaheapMonitor: Java heap used=6M max=256M, proc: com.google.android.gms.unstable
+04-15 21:56:07.361  9793 10515 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:07.400  1803  3017 I ActivityManager: unbindService com.android.server.am.ActiveServices@32650f4 conn=android.os.BinderProxy@aa08cea callingPid=5196
+04-15 21:56:07.528  1124  1124 D DisplayModeController: setDesiredMode 4627039422300187648 {mode={fps=60.00 Hz, modePtr={id=0, vsyncRate=60.00 Hz, peakRefreshRate=60.00 Hz}}, emitEvent=false, force=false}
+04-15 21:56:07.529  1124  1124 D Scheduler: MtkOverrideDuration: update vsync 60
+04-15 21:56:07.529  1124  1124 D Scheduler: MtkOverrideDuration: reset override duration
+04-15 21:56:07.529  1124  1124 I PowerHalWrapper: updateFps(): 60
+04-15 21:56:07.530  1006  1647 I hwcomposer: [DRMDEV] (0:62) failed to waitNextVsync: -1  
+04-15 21:56:07.531  1006  1006 I hwcomposer: [HWCDisplay] (0) setActiveConfigWithConstraints config:0  
+04-15 21:56:07.531  1006  1006 I hwcomposer: [HWCDisplay] setActiveConfigWithConstraints(), now 176796793206537, diff 413000, estimated_applied_time 8333333 queued_size:0  
+04-15 21:56:07.532  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:07.534  1006  1647 I hwcomposer: [DRMDEV] (0:62) failed to waitNextVsync: -1  
+04-15 21:56:07.534  1124  1124 E HwcComposer: presentOrValidateDisplay 0 presentFence:-1
+04-15 21:56:07.535  1006  1006 I hwcomposer: [HWCDisplay] [Display_0 (type:1, mode:2)] fps:52.374889,dur:1966.59,max:1102.81,min:6.96  
+04-15 21:56:07.537  1124  1124 I PowerHalWrapper: updateFps(): 60
+04-15 21:56:07.537  1124  1124 D SurfaceFlinger: finalizeDisplayModeChange: display size = 1
+04-15 21:56:07.537  1124  1124 I PowerHalWrapper: mEnableMultiDisplayMode enable=0 fps=60
+04-15 21:56:07.537  1124  1124 I mtkpower_client: PowerHal_Wrap_EnableMultiDisplayMode, enable:0 fps:60 CurMultiDisplayMode:-1
+04-15 21:56:07.538  1124  1124 I PowerHalWrapper: updateFps(): 60
+04-15 21:56:07.539  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:07.543  1006  1647 I hwcomposer: [DRMDEV] (0:62) failed to waitNextVsync: -1  
+04-15 21:56:07.543  1124  1699 W libc    : Access denied finding property "ro.vendor.display.max_hdr_luminance"
+04-15 21:56:07.546  1803  2308 D PerfMTKStubImpl: perfLockReleaseHandler: 0
+04-15 21:56:07.546  1803  2308 D MTKSchedBoost: stopBoostInternal
+04-15 21:56:07.547  1803  2308 D SchedBoost: thread tid=2756, priority is set to -10
+04-15 21:56:07.547  1803  2308 D PerfMTKStubImpl: perfLockReleaseHandler: 0
+04-15 21:56:07.547  1803  2308 D MTKSchedBoost: stopBoostInternal
+04-15 21:56:07.547  1803  2308 D SchedBoost: thread tid=10587, priority is set to -10
+04-15 21:56:07.551  1006  1647 I hwcomposer: [DRMDEV] (0:62) failed to waitNextVsync: -1  
+04-15 21:56:07.559  1006  1647 I hwcomposer: [DRMDEV] (0:62) failed to waitNextVsync: -1  
+04-15 21:56:07.580  1006  1721 I hwcomposer: [HWCDisplay] updateAppliedConfigState: applied config complete[idx:16707, config:0]  
+04-15 21:56:07.605 28410 30292 D JavaheapMonitor: Java heap used=12M max=256M, proc: com.google.android.gms.ui
+04-15 21:56:07.606 28410 30292 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:07.714  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:07.715  1022  1095 I libPerfCtl: xgfGetFPS pid:5103 fps:-1
+04-15 21:56:07.927  2425  3081 D JavaheapMonitor: Java heap used=26M max=512M, proc: com.miui.home
+04-15 21:56:07.927  2425  3081 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:08.075 31101 15600 D AudioTrackImpl: [audioTrackData][fine] 10s(f:10021 m:0 s:0 k:0 z:0) : pid 31101 uid 10313 sessionId 34209 sr 44100 ch 2 fmt 1 maxAmplitude 7419
+04-15 21:56:08.111 31101 25873 I MediaCodec: [mId: 40] [video-debug-dec] Stats 5008ms:Client:com.facebook.katana,Component:c2.mtk.av1.decoder.lowlatency,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:08.113 31101 25530 D AudioTrackImpl: [audioTrackData][fine] 40s(f:40059 m:0 s:0 k:0 z:0) : pid 31101 uid 10313 sessionId 33897 sr 44100 ch 2 fmt 1 maxAmplitude 16894
+04-15 21:56:08.153  1329  1622 D connsyslogger: idx=0 Bootup Log: 2 log files! filecount=3 
+04-15 21:56:08.154  1329  1622 D connsyslogger: idx=1 Bootup Log: 2 log files! filecount=3 
+04-15 21:56:08.158  1329  1741 I connsyslogger: thrLogWriter: LogBuf=270.496094KB,idx=0
+04-15 21:56:08.169  1329  1619 D connsyslogger: SD_LOG_ROOT is /data/debuglogger/connsyslog/fw.
+04-15 21:56:08.169  1329  1619 D connsyslogger: systemReady:1
+04-15 21:56:08.424 11445 11664 D JavaheapMonitor: Java heap used=3M max=256M, proc: com.xiaomi.joyose
+04-15 21:56:08.425 11445 11664 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:08.439  1803  2320 E DeviceGuardManagerService: bindLockRemoteService result = null
+04-15 21:56:08.607  1803  1952 I ThermalObserver: Gallery hdr is disable by thermal.
+04-15 21:56:08.686 20473 20528 D JavaheapMonitor: Java heap used=40M max=256M, proc: com.google.android.gms.persistent
+04-15 21:56:08.687 20473 20528 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:08.715  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:08.716  1022  1095 I libPerfCtl: xgfGetFPS pid:5103 fps:-1
+04-15 21:56:08.925  1431  1497 E WifiStandalone: conditional wait timedout
+04-15 21:56:09.078 31101 15603 I MediaCodec: [mId: 45] [audio-debug-dec] Stats 5008ms:Client:com.facebook.katana,Component:c2.android.aac.decoder,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:09.136 11082 12946 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.lbe.security.miui
+04-15 21:56:09.136 11082 12946 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:09.262  1803  3070 D SLM-SRV-SLAService: checktemp temperature = 42768 temperature_average = 42846 isPerformanceMode = false thermal_enable_slm = true
+04-15 21:56:09.490 30754 32036 D JavaheapMonitor: Java heap used=4M max=256M, proc: com.google.android.permissioncontroller
+04-15 21:56:09.491 30754 32036 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:09.715  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:09.716  1022  1095 I libPerfCtl: xgfGetFPS pid:5103 fps:-1
+04-15 21:56:09.769  5196  5196 I VoiceInputManagerWrapper: VoiceInputManagerWrapper.shutdownVoiceInternal():148 shutdownVoiceInternal()
+04-15 21:56:09.770  5196  5196 W NotificationCenter: NotificationCenter.unregisterListener():480 Listener ixk@d6687d5 was not registered for notification class oyc
+04-15 21:56:10.063  1448  1903 D ULogGuard: Monitoring: 20 threads, 0 requests, 0 time-bombs; 8 guards. ResetFlags = 0x7
+04-15 21:56:10.099 28825 31643 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.miui.aod
+04-15 21:56:10.100 28825 31643 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:10.103  8793 11779 D JavaheapMonitor: Java heap used=4M max=256M, proc: com.xiaomi.mi_connect_service:idm
+04-15 21:56:10.103  8793 11779 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:10.170  1329  1619 D connsyslogger: SD_LOG_ROOT is /data/debuglogger/connsyslog/fw.
+04-15 21:56:10.170  1329  1619 D connsyslogger: systemReady:1
+04-15 21:56:10.356 14135 15031 D JavaheapMonitor: Java heap used=3M max=256M, proc: com.miui.bugreport
+04-15 21:56:10.357 14135 15031 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:10.508  1803  2244 D ActionExecute: setPkgData uid = 10447 time=8000
+04-15 21:56:10.614 26501 26501 D WM-DelayedWorkTracker: Scheduling work 8c72f1b9-326d-46c8-9d63-6c21ecba714a
+04-15 21:56:10.615 26501 26501 D WM-GreedyScheduler: Starting tracking for 8c72f1b9-326d-46c8-9d63-6c21ecba714a
+04-15 21:56:10.623 26501 28042 D WM-ConstraintTracker: l: initial state = NetworkState(isConnected=false, isValidated=false, isMetered=true, isNotRoaming=true)
+04-15 21:56:10.623 26501 28042 D WM-NetworkStateTracker: Registering network callback
+04-15 21:56:10.629  1803  3514 D ConnectivityService: requestNetwork for uid/pid:10368/26501 activeRequest: null callbackRequest: 30235 [NetworkRequest [ TRACK_DEFAULT id=30236, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED Uid: 10368 RequestorUid: 10368 RequestorPkg: com.twitter.android UnderlyingNetworks: Null] ], NetworkRequest [ REQUEST id=30237, [ Transports: SATELLITE Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10368 RequestorUid: 10368 RequestorPkg: com.twitter.android UnderlyingNetworks: Null] ]] callback flags: 0 order: 2147483647 isUidTracked: false declaredMethods: AVAIL|LOST|NC
+04-15 21:56:10.634 26501 28042 D WM-GreedyScheduler: Constraints not met: Cancelling work ID WorkGenerationalId(workSpecId=8c72f1b9-326d-46c8-9d63-6c21ecba714a, generation=0)
+04-15 21:56:10.640 26501 28037 D WM-NetworkStateTracker: Network capabilities changed: [ Transports: CELLULAR Capabilities: SUPL&INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN&VALIDATED&NOT_ROAMING&FOREGROUND&NOT_CONGESTED&NOT_SUSPENDED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED LinkUpBandwidth>=38375Kbps LinkDnBandwidth>=38375Kbps Specifier: <TelephonyNetworkSpecifier [mSubId = 1]> SubscriptionIds: {1} UnderlyingNetworks: Null]
+04-15 21:56:10.643  1803  2157 D ConnectivityService: NetReassign [30236 : null â†’ 157] [c Ù ] [a Ù¢] [i Ù¥]
+04-15 21:56:10.645 26501 28039 D WM-GreedyScheduler: Constraints met: Scheduling work ID WorkGenerationalId(workSpecId=8c72f1b9-326d-46c8-9d63-6c21ecba714a, generation=0)
+04-15 21:56:10.649 26501 28039 D WM-Processor: s: processing WorkGenerationalId(workSpecId=8c72f1b9-326d-46c8-9d63-6c21ecba714a, generation=0)
+04-15 21:56:10.659 26501 26501 D WM-WorkerWrapper: Starting work for com.twitter.analytics.service.core.workmanager.AnalyticsFlushWorker
+04-15 21:56:10.662 26501 28039 I WM-WorkerWrapper: Worker result SUCCESS for Work [ id=8c72f1b9-326d-46c8-9d63-6c21ecba714a, tags={ com.twitter.analytics.service.core.workmanager.AnalyticsFlushWorker } ]
+04-15 21:56:10.668 26501 26501 D WM-Processor: s 8c72f1b9-326d-46c8-9d63-6c21ecba714a executed; reschedule = false
+04-15 21:56:10.668 26501 26501 D WM-GreedyScheduler: Stopping tracking for WorkGenerationalId(workSpecId=8c72f1b9-326d-46c8-9d63-6c21ecba714a, generation=0)
+04-15 21:56:10.684 26501 28039 D WM-SystemJobScheduler: Scheduling work ID 757305ca-6a03-493e-83c4-b34fbdcd4bcbJob ID 8913
+04-15 21:56:10.692 26501 28039 D WM-GreedyScheduler: Starting tracking for 78eb5aba-2785-4635-9c6c-4951daaa547f
+04-15 21:56:10.709 26501 28039 D WM-GreedyScheduler: Cancelling work ID 8c72f1b9-326d-46c8-9d63-6c21ecba714a
+04-15 21:56:10.711 26501 28039 D WM-GreedyScheduler: Starting tracking for 78eb5aba-2785-4635-9c6c-4951daaa547f
+04-15 21:56:10.711 26501 28039 D WM-NetworkStateTracker: Unregistering network callback
+04-15 21:56:10.717  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:11.117 31101 25537 I MediaCodec: [mId: 39] [audio-debug-dec] Stats 5009ms:Client:com.facebook.katana,Component:c2.android.aac.decoder,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:11.526  1128  1144 D ccci_mdinit: (1):monitor_time_update_thread round:9481 ########
+04-15 21:56:11.716  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:11.751  2494  4352 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.miui.miwallpaper
+04-15 21:56:11.751  5467  6064 D JavaheapMonitor: Java heap used=13M max=256M, proc: com.google.android.providers.media.module
+04-15 21:56:11.751  2494  4352 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:11.751  5467  6064 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:11.787  2755  2981 D JavaheapMonitor: Java heap used=12M max=256M, proc: com.android.phone
+04-15 21:56:11.787  2755  2981 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:11.819  1803  2244 D PolicyMaker: uid =10320 pkg=com.whatsapp reason=importantapp
+04-15 21:56:11.965  8328  8567 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:11.975  1704  7023 E msys    : E[N mns]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:11.977  1704  7023 W LibevQuicAsyncUDPSocket.h: setTosOrTrafficClass not implemented in LibevQuicAsyncUDPSocket
+04-15 21:56:11.983  8328  8567 E msys    : E[N mns:DGWClient]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:11.983  8328  8567 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:11.985  8328  8567 E msys    : E[N mns:DGWClient]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:11.985  1704  7023 E MvfstCallbacks.cpp: onConnectionSetupError: error=TransportError: Internal Error, Error on socket write Operation not permitted, 
+04-15 21:56:11.986  1704  7023 E msys    : E[N mns]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:11.986  1704  7023 E msys    : E[N mns]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:11.987  1704  7023 E msys    : E[N mns]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:12.064  8328  8567 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:12.066  6137 10130 D JavaheapMonitor: Java heap used=11M max=256M, proc: com.miui.securitycenter.remote
+04-15 21:56:12.067  6137 10130 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:12.069  1803  2244 D ActionExecute: setPkgData uid = 10320 time=8000
+04-15 21:56:12.074  8328  8567 E msys    : E[N mns:DGWClient]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:12.171  1329  1619 D connsyslogger: SD_LOG_ROOT is /data/debuglogger/connsyslog/fw.
+04-15 21:56:12.172  1329  1619 D connsyslogger: systemReady:1
+04-15 21:56:12.375  5196  5196 I VoiceInputManagerWrapper: VoiceInputManagerWrapper.shutdownVoiceInternal():148 shutdownVoiceInternal()
+04-15 21:56:12.418  3779  4429 D JavaheapMonitor: Java heap used=1M max=256M, proc: com.android.phone
+04-15 21:56:12.419  3779  4429 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:12.484 32346  2971 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.microsoft.deviceintegrationservice
+04-15 21:56:12.485 32346  2971 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:12.624 32211  1927 D JavaheapMonitor: Java heap used=15M max=256M, proc: com.microsoft.appmanager
+04-15 21:56:12.625 32211  1927 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:12.653  7976  8964 D JavaheapMonitor: Java heap used=5M max=256M, proc: com.google.android.gms.unstable
+04-15 21:56:12.653  7976  8964 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:12.717  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:12.749  8328  8519 E msys    : E[N mns:TigonMNS]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:12.763  8328  8519 E msys    : E[N mns:TigonMNS]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:12.764  8328  8519 E msys    : E[N mns:TigonMNS]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:12.766  8328  8519 E msys    : E[N mns:TigonMNS]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:12.780  1803  1952 D JavaheapMonitor: Java heap used=143M max=512M, proc: system_server
+04-15 21:56:12.781  1803  1952 V JavaheapMonitor: Check java heap usage finished! Next check delay: 180000
+04-15 21:56:13.007  9348  9459 D JavaheapMonitor: Java heap used=2M max=512M, proc: com.android.bluetooth
+04-15 21:56:13.009  9348  9459 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:13.065  1448  1903 D ULogGuard: Monitoring: 20 threads, 0 requests, 0 time-bombs; 8 guards. ResetFlags = 0x7
+04-15 21:56:13.084  3929  9325 D JavaheapMonitor: Java heap used=17M max=256M, proc: com.google.android.apps.messaging
+04-15 21:56:13.084 31101 15600 D AudioTrackImpl: [audioTrackData][fine] 15s(f:15030 m:0 s:0 k:0 z:0) : pid 31101 uid 10313 sessionId 34209 sr 44100 ch 2 fmt 1 maxAmplitude 7419
+04-15 21:56:13.085  3929  9325 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:13.119 31101 25873 I MediaCodec: [mId: 40] [video-debug-dec] Stats 5007ms:Client:com.facebook.katana,Component:c2.mtk.av1.decoder.lowlatency,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:13.121 31101 25530 D AudioTrackImpl: [audioTrackData][fine] 45s(f:45068 m:0 s:0 k:0 z:0) : pid 31101 uid 10313 sessionId 33897 sr 44100 ch 2 fmt 1 maxAmplitude 16894
+04-15 21:56:13.184  1803  1960 D BroadcastQueue: Logging broadcast for android, stopped=false, firstLaunch=false
+04-15 21:56:13.210  1329  1622 D connsyslogger: idx=0 Bootup Log: 2 log files! filecount=3 
+04-15 21:56:13.210  1329  1622 D connsyslogger: idx=1 Bootup Log: 2 log files! filecount=3 
+04-15 21:56:13.214  1329  1741 I connsyslogger: thrLogWriter: LogBuf=235.218750KB,idx=0
+04-15 21:56:13.256  1704  7023 E msys    : E[N mns]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:13.257  1704  7023 W LibevQuicAsyncUDPSocket.h: setTosOrTrafficClass not implemented in LibevQuicAsyncUDPSocket
+04-15 21:56:13.264  1704  7023 E MvfstCallbacks.cpp: onConnectionSetupError: error=TransportError: Internal Error, Error on socket write Operation not permitted, 
+04-15 21:56:13.265  1704  7023 E msys    : E[N mns]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:13.335 19556 19712 D JavaheapMonitor: Java heap used=16M max=256M, proc: com.google.android.gms.persistent
+04-15 21:56:13.336 19556 19712 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:13.416  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:13.437  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:13.437  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:13.439  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:13.441  1803  2320 E DeviceGuardManagerService: bindLockRemoteService result = null
+04-15 21:56:13.455  5844  7054 D JavaheapMonitor: Java heap used=11M max=256M, proc: com.mi.globalminusscreen
+04-15 21:56:13.455  5844  7054 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:13.523 10371 10627 D JavaheapMonitor: Java heap used=8M max=256M, proc: com.miui.powerkeeper
+04-15 21:56:13.524 10371 10627 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:13.649  2692  4435 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.mediatek.smartratswitch
+04-15 21:56:13.650  2692  4435 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:13.677  4590  4700 D JavaheapMonitor: Java heap used=5M max=256M, proc: com.xiaomi.bluetooth
+04-15 21:56:13.678  4590  4700 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:13.718  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:14.088 31101 15603 I MediaCodec: [mId: 45] [audio-debug-dec] Stats 5009ms:Client:com.facebook.katana,Component:c2.android.aac.decoder,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:14.172  1329  1619 D connsyslogger: SD_LOG_ROOT is /data/debuglogger/connsyslog/fw.
+04-15 21:56:14.172  1329  1619 D connsyslogger: systemReady:1
+04-15 21:56:14.272  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:14.284  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:14.510  3750  4425 D JavaheapMonitor: Java heap used=3M max=256M, proc: com.google.android.ext.services
+04-15 21:56:14.511  3750  4425 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:14.560  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:14.575  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:14.719  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:14.841 26079 26234 D JavaheapMonitor: Java heap used=9M max=512M, proc: com.google.android.youtube
+04-15 21:56:14.842 26079 26234 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:15.300  5103  5144 D JavaheapMonitor: Java heap used=69M max=256M, proc: com.android.systemui
+04-15 21:56:15.301  5103  5144 V JavaheapMonitor: Check java heap usage finished! Next check delay: 180000
+04-15 21:56:15.439 19747 19844 D JavaheapMonitor: Java heap used=33M max=256M, proc: com.google.android.gms
+04-15 21:56:15.440 19747 19844 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:15.605  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:15.610  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:15.720  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:15.840  2627  2670 I Tethering: [BpfCoordinator] onAlertReached
+04-15 21:56:15.970 18678 21793 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.miui.analytics
+04-15 21:56:15.971 18678 21793 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:16.067  1448  1903 D ULogGuard: Monitoring: 20 threads, 0 requests, 0 time-bombs; 8 guards. ResetFlags = 0x7
+04-15 21:56:16.125 31101 25537 I MediaCodec: [mId: 39] [audio-debug-dec] Stats 5007ms:Client:com.facebook.katana,Component:c2.android.aac.decoder,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:16.173  1329  1619 D connsyslogger: SD_LOG_ROOT is /data/debuglogger/connsyslog/fw.
+04-15 21:56:16.173  1329  1619 D connsyslogger: systemReady:1
+04-15 21:56:16.442  1027  1042 D power@timer: [mtkPowerTimer] visRead:0
+04-15 21:56:17.015  2755  2755 D TelephonyManager: requestModemActivityInfo: Sending result to app: ModemActivityInfo{ mTimestamp=260212652 mSleepTimeMs=124155495 mIdleTimeMs=134606206 mActivityStatsTechSpecificInfo=[{mRat=UNKNOWN,mFrequencyRange=UNKNOWN,mTxTimeMs[]=[1311740, 25898, 17969, 49292, 99575],mRxTimeMs=1692530}]}
+04-15 21:56:17.048 20154 21752 D JavaheapMonitor: Java heap used=4M max=256M, proc: com.facebook.services
+04-15 21:56:17.048 20154 21752 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:17.289  3769  4410 D JavaheapMonitor: Java heap used=2M max=512M, proc: com.miui.securitycore.remote
+04-15 21:56:17.289  3769  4410 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:17.703  8970  9266 E msys    : E[N mns:TigonMNS]_CacheRefreshTimerCallback(869)=>Start active cache refresh DNS resolution
+04-15 21:56:17.704  8970  9266 E msys    : E[N mns:TigonMNS]_CacheRefreshTimerCallback(869)=>Start active cache refresh DNS resolution
+04-15 21:56:17.705  8970  9266 E msys    : E[N mns:TigonMNS]_CacheRefreshTimerCallback(869)=>Start active cache refresh DNS resolution
+04-15 21:56:17.705  8970  9266 E msys    : E[N mns:TigonMNS]_CacheRefreshTimerCallback(869)=>Start active cache refresh DNS resolution
+04-15 21:56:17.706  8970  9266 E msys    : E[N mns:TigonMNS]_CacheRefreshTimerCallback(869)=>Start active cache refresh DNS resolution
+04-15 21:56:17.706  8970  9266 E msys    : E[N mns:TigonMNS]_CacheRefreshTimerCallback(869)=>Start active cache refresh DNS resolution
+04-15 21:56:17.711  8970  9266 E msys    : E[N mns:TigonMNS]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:17.711  8970  9266 E msys    : E[N mns:TigonMNS]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:17.711  8970  9266 E msys    : E[N mns:TigonMNS]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:17.711  8970  9266 E msys    : E[N mns:TigonMNS]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:17.712  8970  9266 E msys    : E[N mns:TigonMNS]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:17.713  8970  9266 E msys    : E[N mns:TigonMNS]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:18.092 31101 15600 D AudioTrackImpl: [audioTrackData][fine] 20s(f:20038 m:0 s:0 k:0 z:0) : pid 31101 uid 10313 sessionId 34209 sr 44100 ch 2 fmt 1 maxAmplitude 7419
+04-15 21:56:18.125 31101 25873 I MediaCodec: [mId: 40] [video-debug-dec] Stats 5006ms:Client:com.facebook.katana,Component:c2.mtk.av1.decoder.lowlatency,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:18.128 31101 25530 D AudioTrackImpl: [audioTrackData][fine] 50s(f:50074 m:0 s:0 k:0 z:0) : pid 31101 uid 10313 sessionId 33897 sr 44100 ch 2 fmt 1 maxAmplitude 16894
+04-15 21:56:18.174  1329  1619 D connsyslogger: SD_LOG_ROOT is /data/debuglogger/connsyslog/fw.
+04-15 21:56:18.174  1329  1619 D connsyslogger: systemReady:1
+04-15 21:56:18.265  1329  1622 D connsyslogger: idx=0 Bootup Log: 2 log files! filecount=3 
+04-15 21:56:18.265  1329  1622 D connsyslogger: idx=1 Bootup Log: 2 log files! filecount=3 
+04-15 21:56:18.269  1329  1741 I connsyslogger: thrLogWriter: LogBuf=230.011719KB,idx=0
+04-15 21:56:18.443  1803  2320 E DeviceGuardManagerService: bindLockRemoteService result = null
+04-15 21:56:18.606  1803  1952 I ThermalObserver: Gallery hdr is disable by thermal.
+04-15 21:56:18.735  1803  2103 I MIUIInput: [MotionEvent] notifyMotion - eventTime=176807995592000, deviceId=5, source=0x1002, policyFlags=0x0, action=0x0, flags=0x0, downTime=176807995592000
+04-15 21:56:18.739  1027  1086 I libPowerHal: [perfLockAcq] idx:0 hdl:310079 hint:25 pid:1027 tid:1027 duration:10000 lock_user:mtkpower@1.0-se => ret_hdl:310079
+04-15 21:56:18.739  1027  1086 I libPowerHal: [PE] MTKPOWER_HINT_APP_TOUCH update cmd:3408b00 param:1
+04-15 21:56:18.739  1803  2102 I MIUIInput: [MotionEvent] publisher action=0x0, deviceId=5, 176807995, channel '480b423 com.example.localllm/com.example.localllm.MainActivity'
+04-15 21:56:18.740  1803  2102 I MIUIInput: [MotionEvent] publisher action=0x0, deviceId=5, 176807995, channel '[Gesture Monitor] WMShell'
+04-15 21:56:18.741  1027  1086 I libPowerHal: [perfLockAcq] idx:1 hdl:310080 hint:-1 pid:1027 tid:1068 duration:50 lock_user:mtkpower@1.0-se => ret_hdl:310080
+04-15 21:56:18.741  1027  1086 I libPowerHal: [setClusterFreq] mtkpower@1.0-se set cpufreq[0] min:800000 max:-1 cpufreq[1] min:1100000 max:-1 cpufreq[2] min:-1 max:-1 
+04-15 21:56:18.741  1803  2102 I MIUIInput: [MotionEvent] publisher action=0x0, deviceId=5, 176807995, channel '[Gesture Monitor] miui-gesture'
+04-15 21:56:18.741  1027  1086 I libPowerHal: [setClusterFreq]  set cpu_ctrl cpufreq: 800000 -1 1100000 -1 -1 -1 
+04-15 21:56:18.741  1027  1086 I libPowerHal: [PE] mtkpower@1.0-se update cmd:1404100, param:1
+04-15 21:56:18.741  1027  1086 I libPowerHal: [PE] mtkpower@1.0-se update cmd:1404300, param:1
+04-15 21:56:18.742  1803  2308 I ProcessManager: getRenderThreadTidByPid, caller=1803
+04-15 21:56:18.741  5103  5126 D MiuiFreeformModeGestureHandler: start handle MotionEvents:(625.34863,2546.5059)
+04-15 21:56:18.742  5103  5126 D MiuiFreeformModeGestureHandler: handleMotionEvents mActiveMiuiFreeformTask null x: 625.34863 y: 2546.5059 current miuiFreeformModeTaskInfo: 
+04-15 21:56:18.742  5103  5126 D MultiTaskingTaskRepository: getTopFullscreenTaskInfo: taskId=3080 windowingMode=1 isVisible=true isTopActivityTransparent=false
+04-15 21:56:18.743  5103  5126 D MiuiDecorationRootViewHost: isTouchedInTopCaption: taskId = 3080, tempViewHost = null
+04-15 21:56:18.743  5103  5126 D MiuiDecorationDot: isTouchedInTopCaption: taskId = 3080, mMulWinSwitchVIewHost is not ready for layout
+04-15 21:56:18.743  5103  5126 D MulWinSwitchEventHandler: dispatchToFullOrSplitDecorationDot: touchedTaskId=-1
+04-15 21:56:18.743  5103  5126 D MulWinSwitchEventHandler: handleReceivedMotionEvent: mTouchedBottomTaskId=-1
+04-15 21:56:18.743  1803  1934 I MiuiSplitInputMethodImpl: Skip onPointerDownOutsideFocusLocked
+04-15 21:56:18.743  1803  1934 I MiuiSplitInputMethodImpl: Skip onPointerDownOutsideFocusLocked
+04-15 21:56:18.743  1124  1124 D DisplayModeController: setDesiredMode 4627039422300187648 {mode={fps=120.00 Hz, modePtr={id=2, vsyncRate=120.00 Hz, peakRefreshRate=120.00 Hz}}, emitEvent=true, force=false}
+04-15 21:56:18.743  1803  1934 I MiuiSplitInputMethodImpl: Skip onPointerDownOutsideFocusLocked
+04-15 21:56:18.743  1124  1124 D Scheduler: MtkOverrideDuration: update vsync 120
+04-15 21:56:18.743  1124  1124 D Scheduler: MtkOverrideDuration: reset override duration
+04-15 21:56:18.743  1124  1124 I PowerHalWrapper: updateFps(): 120
+04-15 21:56:18.743  2756  2756 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.example.localllm/com.example.localllm.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=176807995, downTime=176807995, phoneEventTime=Ù¢Ù¡:Ù¥Ù¦:Ù¡Ù¨.Ù§Ù£Ù£ } moveCount:0
+04-15 21:56:18.743  1006  1647 I hwcomposer: [DRMDEV] (0:62) failed to waitNextVsync: -1  
+04-15 21:56:18.744  2756  2756 D VRI[MainActivity]: getMiuiFreeformStackInfo mTmpFrames.miuiFreeFormStackInfo: null
+04-15 21:56:18.746  1027  1086 I libPowerHal: [PE] mtkpower@1.0-se update cmd:1408100, param:30
+04-15 21:56:18.746  1027  1086 I libPowerHal: [PE] mtkpower@1.0-se update cmd:1408300, param:30
+04-15 21:56:18.748  1006  1006 I hwcomposer: [HWCDisplay] (0) setActiveConfigWithConstraints config:2  
+04-15 21:56:18.748  1006  1006 I hwcomposer: [HWCDisplay] setActiveConfigWithConstraints(), now 176808010445230, diff 198770, estimated_applied_time 16666667 queued_size:0  
+04-15 21:56:18.749  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.750  1124  1124 E HwcComposer: presentOrValidateDisplay 0 presentFence:-1
+04-15 21:56:18.750  1006  1647 I hwcomposer: [DRMDEV] (0:62) failed to waitNextVsync: -1  
+04-15 21:56:18.750  1006  1006 I hwcomposer: [HWCDisplay] [Display_0 (type:1, mode:2)] fps:0.178325,dur:11215.46,max:11210.54,min:4.92  
+04-15 21:56:18.751  1124  1699 W libc    : Access denied finding property "ro.vendor.display.max_hdr_luminance"
+04-15 21:56:18.752  1803  2103 I MIUIInput: [MotionEvent] notifyMotion - eventTime=176808013909000, deviceId=5, source=0x1002, policyFlags=0x0, action=0x1, flags=0x0, downTime=176807995592000
+04-15 21:56:18.752  1027  1086 I libPowerHal: [perfLockRel] hdl:310079, idx:0
+04-15 21:56:18.753  1027  1086 I libPowerHal: [PD] MTKPOWER_HINT_APP_TOUCH update cmd:3408b00 param:0
+04-15 21:56:18.753  1803  2102 I MIUIInput: [MotionEvent] publisher action=0x1, deviceId=5, 176808013, channel '480b423 com.example.localllm/com.example.localllm.MainActivity'
+04-15 21:56:18.753  1803  2102 I MIUIInput: [MotionEvent] publisher action=0x1, deviceId=5, 176808013, channel '[Gesture Monitor] WMShell'
+04-15 21:56:18.753  1803  2102 I MIUIInput: [MotionEvent] publisher action=0x1, deviceId=5, 176808013, channel '[Gesture Monitor] miui-gesture'
+04-15 21:56:18.753  2756  2756 I MIUIInput: [MotionEvent] ViewRootImpl windowName 'com.example.localllm/com.example.localllm.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=176808013, downTime=176807995, phoneEventTime=Ù¢Ù¡:Ù¥Ù¦:Ù¡Ù¨.Ù§Ù¥Ù¡ } moveCount:0
+04-15 21:56:18.764  1124  1124 D SurfaceFlinger: backpressure when mode change
+04-15 21:56:18.767  1006  1647 I hwcomposer: [DRMDEV] (0:62) failed to waitNextVsync: -1  
+04-15 21:56:18.778  1124  1124 D SurfaceFlinger: backpressure when mode change
+04-15 21:56:18.785  1027  1069 E libPowerHal: Could not open '/proc/touch_boost/force_stop_boost'
+04-15 21:56:18.785  1027  1069 E libPowerHal: error : 2, No such file or directory
+04-15 21:56:18.786  1006  1721 I hwcomposer: [HWCDisplay] updateAppliedConfigState: applied config complete[idx:16708, config:2]  
+04-15 21:56:18.786  1027  1086 I libPowerHal: [perfLockRel] hdl:310080, idx:1
+04-15 21:56:18.786  1027  1086 I libPowerHal: [setClusterFreq]  set cpu_ctrl cpufreq: -1 -1 -1 -1 -1 -1 
+04-15 21:56:18.786  1027  1086 I libPowerHal: [PD] mtkpower@1.0-se update cmd:1404100 param:0
+04-15 21:56:18.786  1027  1086 I libPowerHal: [PD] mtkpower@1.0-se update cmd:1404300 param:0
+04-15 21:56:18.786  1027  1086 I libPowerHal: [PD] mtkpower@1.0-se update cmd:1408100 param:0
+04-15 21:56:18.789  1027  1086 I libPowerHal: [PD] mtkpower@1.0-se update cmd:1408300 param:0
+04-15 21:56:18.795  1124  1124 I PowerHalWrapper: updateFps(): 120
+04-15 21:56:18.795  1124  1124 D SurfaceFlinger: finalizeDisplayModeChange: display size = 1
+04-15 21:56:18.795  1124  1124 I PowerHalWrapper: mEnableMultiDisplayMode enable=0 fps=120
+04-15 21:56:18.795  1124  1124 I mtkpower_client: PowerHal_Wrap_EnableMultiDisplayMode, enable:0 fps:120 CurMultiDisplayMode:-1
+04-15 21:56:18.797  1124  1124 I BufferQueueProducer: [com.example.localllm/com.example.localllm.MainActivity#160641](this:0xb400007c5ef6b1a0,id:-1,api:0,p:-1,c:1124) queueBuffer: fps=7.50 dur=13196.07 max=12366.80 min=7.40
+04-15 21:56:18.797  1124  1124 I PowerHalWrapper: updateFps(): 120
+04-15 21:56:18.798  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.816  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.824  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.832  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.840  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.848  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.856  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.865  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.872  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.880  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.890  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.898  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.907  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.911  5553  6530 D JavaheapMonitor: Java heap used=12M max=256M, proc: com.miui.daemon
+04-15 21:56:18.912  5553  6530 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:18.914  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.923  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.932  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.940  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.948  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.956  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.960  1124  1699 W libc    : Access denied finding property "ro.vendor.display.max_hdr_luminance"
+04-15 21:56:18.964  1803  2244 D ActionExecute: setPkgData uid = 10447 time=7998
+04-15 21:56:18.965  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.973  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.982  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.990  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:18.999  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.006  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.014  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.026  5590  9492 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.android.nfc
+04-15 21:56:19.027  5590  9492 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:19.031  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.040  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.047  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.056  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.064  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.068  1448  1903 D ULogGuard: Monitoring: 20 threads, 0 requests, 0 time-bombs; 8 guards. ResetFlags = 0x7
+04-15 21:56:19.072  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.080  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.088  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.093 31101 15603 I MediaCodec: [mId: 45] [audio-debug-dec] Stats 5004ms:Client:com.facebook.katana,Component:c2.android.aac.decoder,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:19.096  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.106  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.114  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.122  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.131  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.139  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.147  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.156  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.159  1124  1699 W libc    : Access denied finding property "ro.vendor.display.max_hdr_luminance"
+04-15 21:56:19.164  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.172  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.181  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.188  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.197  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.204  8328  8567 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:19.205  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.210  1704  7023 E msys    : E[N mns]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:19.211  1704  7023 W LibevQuicAsyncUDPSocket.h: setTosOrTrafficClass not implemented in LibevQuicAsyncUDPSocket
+04-15 21:56:19.213  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.217  8328  8567 E msys    : E[N mns:DGWClient]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:19.217  8328  8567 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:19.219  8328  8567 E msys    : E[N mns:DGWClient]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:19.220  1704  7023 E MvfstCallbacks.cpp: onConnectionSetupError: error=TransportError: Internal Error, Error on socket write Operation not permitted, 
+04-15 21:56:19.220  1704  7023 E msys    : E[N mns]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:19.220  1704  7023 E msys    : E[N mns]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:19.220  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.222  1704  7023 E msys    : E[N mns]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:19.231  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.238  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.247  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.255  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.263  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.272  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.274  1803  3070 D SLM-SRV-SLAService: checktemp temperature = 42627 temperature_average = 42796 isPerformanceMode = false thermal_enable_slm = true
+04-15 21:56:19.280  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.288  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.296  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.305  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.313  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.321  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.329  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.338  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.346  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.355  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.362  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.366  1124  1699 W libc    : Access denied finding property "ro.vendor.display.max_hdr_luminance"
+04-15 21:56:19.371  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.379  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.388  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.396  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.404  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.412  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.420  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.429  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.437  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.446  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.454  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.462  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.470  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.479  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.487  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.493 19549 19793 D JavaheapMonitor: Java heap used=22M max=256M, proc: com.google.android.gms
+04-15 21:56:19.494 19549 19793 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:19.496  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.503  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.512  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.520  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.529  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.536  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.544  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.553  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.562  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.570  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.574  1124  1699 W libc    : Access denied finding property "ro.vendor.display.max_hdr_luminance"
+04-15 21:56:19.578  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.586  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.595  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.603  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.611  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.619  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.628  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.637  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:19.711 24861 24921 D JavaheapMonitor: Java heap used=4M max=256M, proc: com.google.android.gms.learning
+04-15 21:56:19.712 24861 24921 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:19.729  2702  4436 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.xiaomi.hypercomm
+04-15 21:56:19.729  2702  4436 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:19.774  8748 11686 D JavaheapMonitor: Java heap used=5M max=256M, proc: com.xiaomi.xmsf
+04-15 21:56:19.774  8748 11686 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:19.775  1124  1699 W libc    : Access denied finding property "ro.vendor.display.max_hdr_luminance"
+04-15 21:56:19.786  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:19.828  8328  8567 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:19.837  8328  8567 E msys    : E[N mns:DGWClient]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:19.882  2627  2666 D JavaheapMonitor: Java heap used=5M max=256M, proc: com.android.networkstack.process
+04-15 21:56:19.882  2627  2666 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:19.888  8328  8567 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:19.902  8328  8567 E msys    : E[N mns:DGWClient]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:19.983  1803  2181 I MQSserver: getData len: 1024 content: {"name":"video_render","audio_event":{"app_name":"audio_app_other","id":"54","render_smooth":"0"},"dgt":"null","audio_ext":"null" }À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€À€
+04-15 21:56:19.989  1803  2181 D MQSserver: add count to List : {"name":"video_render","audio_event":{"app_name":"audio_app_other","id":"54","render_smooth":"0"},"dgt":"null","audio_ext":"null","onetrack_count":"1"}
+04-15 21:56:20.127 13351 13494 D JavaheapMonitor: Java heap used=10M max=512M, proc: com.google.android.googlequicksearchbox:interactor
+04-15 21:56:20.127 13351 13494 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:20.158 20473 20528 D JavaheapMonitor: Java heap used=40M max=256M, proc: com.google.android.gms.persistent
+04-15 21:56:20.158 20473 20528 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:20.175  1329  1619 D connsyslogger: SD_LOG_ROOT is /data/debuglogger/connsyslog/fw.
+04-15 21:56:20.175  1329  1619 D connsyslogger: systemReady:1
+04-15 21:56:20.176  5196  5352 D JavaheapMonitor: Java heap used=24M max=256M, proc: com.google.android.inputmethod.latin
+04-15 21:56:20.176  5196  5352 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:20.559 20135 20693 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.xiaomi.simactivate.service
+04-15 21:56:20.560 20135 20693 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:20.656  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:20.679  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:20.679  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:20.681  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:20.732  1124  1124 D DisplayModeController: setDesiredMode 4627039422300187648 {mode={fps=60.00 Hz, modePtr={id=0, vsyncRate=60.00 Hz, peakRefreshRate=60.00 Hz}}, emitEvent=false, force=false}
+04-15 21:56:20.733  1124  1124 D Scheduler: MtkOverrideDuration: update vsync 60
+04-15 21:56:20.733  1124  1124 D Scheduler: MtkOverrideDuration: reset override duration
+04-15 21:56:20.733  1124  1124 I PowerHalWrapper: updateFps(): 60
+04-15 21:56:20.733  1006  1647 I hwcomposer: [DRMDEV] (0:62) failed to waitNextVsync: -1  
+04-15 21:56:20.736  1006  1006 I hwcomposer: [HWCDisplay] (0) setActiveConfigWithConstraints config:0  
+04-15 21:56:20.736  1006  1006 I hwcomposer: [HWCDisplay] setActiveConfigWithConstraints(), now 176809998802230, diff 422769, estimated_applied_time 8333333 queued_size:0  
+04-15 21:56:20.738  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:20.740  1124  1124 E HwcComposer: presentOrValidateDisplay 0 presentFence:-1
+04-15 21:56:20.740  1006  1006 I hwcomposer: [HWCDisplay] [Display_0 (type:1, mode:2)] fps:50.751568,dur:1990.09,max:1102.35,min:6.80  
+04-15 21:56:20.742  1124  1124 I PowerHalWrapper: updateFps(): 60
+04-15 21:56:20.742  1124  1124 D SurfaceFlinger: finalizeDisplayModeChange: display size = 1
+04-15 21:56:20.742  1124  1124 I PowerHalWrapper: mEnableMultiDisplayMode enable=0 fps=60
+04-15 21:56:20.742  1124  1124 I mtkpower_client: PowerHal_Wrap_EnableMultiDisplayMode, enable:0 fps:60 CurMultiDisplayMode:-1
+04-15 21:56:20.742  1006  1647 I hwcomposer: [DRMDEV] (0:62) failed to waitNextVsync: -1  
+04-15 21:56:20.743  1803  2308 D PerfMTKStubImpl: perfLockReleaseHandler: 0
+04-15 21:56:20.743  1803  2308 D MTKSchedBoost: stopBoostInternal
+04-15 21:56:20.743  1803  2308 D SchedBoost: thread tid=2756, priority is set to -10
+04-15 21:56:20.744  1124  1124 I PowerHalWrapper: updateFps(): 60
+04-15 21:56:20.744  1803  2308 D PerfMTKStubImpl: perfLockReleaseHandler: 0
+04-15 21:56:20.744  1803  2308 D MTKSchedBoost: stopBoostInternal
+04-15 21:56:20.744  1803  2308 D SchedBoost: thread tid=10587, priority is set to -10
+04-15 21:56:20.744  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:20.748  1124  1699 W libc    : Access denied finding property "ro.vendor.display.max_hdr_luminance"
+04-15 21:56:20.760  1704  7023 E msys    : E[N mns]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:20.761  1704  7023 W LibevQuicAsyncUDPSocket.h: setTosOrTrafficClass not implemented in LibevQuicAsyncUDPSocket
+04-15 21:56:20.770  1704  7023 E MvfstCallbacks.cpp: onConnectionSetupError: error=TransportError: Internal Error, Error on socket write Operation not permitted, 
+04-15 21:56:20.770  1704  7023 E msys    : E[N mns]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:20.776  1006  1721 I hwcomposer: [HWCDisplay] updateAppliedConfigState: applied config complete[idx:16709, config:0]  
+04-15 21:56:20.788  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:20.810 30992  2026 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.miui.analytics
+04-15 21:56:20.813 30992  2026 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:20.894 15939 19903 D JavaheapMonitor: Java heap used=14M max=256M, proc: com.android.chrome
+04-15 21:56:20.895 15939 19903 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:21.132 31101 25537 I MediaCodec: [mId: 39] [audio-debug-dec] Stats 5007ms:Client:com.facebook.katana,Component:c2.android.aac.decoder,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:21.473  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:21.484  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:21.787  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:22.070  1448  1903 D ULogGuard: Monitoring: 20 threads, 0 requests, 0 time-bombs; 8 guards. ResetFlags = 0x7
+04-15 21:56:22.073  1803  2244 D PolicyMaker: uid =10320 pkg=com.whatsapp reason=importantapp
+04-15 21:56:22.131  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:22.145  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:22.176  1329  1619 D connsyslogger: SD_LOG_ROOT is /data/debuglogger/connsyslog/fw.
+04-15 21:56:22.176  1329  1619 D connsyslogger: systemReady:1
+04-15 21:56:22.296  1803  2244 D ActionExecute: setPkgData uid = 10320 time=8000
+04-15 21:56:22.414  2755  2981 D JavaheapMonitor: Java heap used=12M max=256M, proc: com.android.phone
+04-15 21:56:22.415  2755  2981 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:22.565  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:22.575  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:22.788  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:22.795 19467 22065 D JavaheapMonitor: Java heap used=3M max=256M, proc: com.miui.msa.global
+04-15 21:56:22.796 19467 22065 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:22.803 22732 22945 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.miui.face
+04-15 21:56:22.803 22732 22945 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:22.874  2425  3081 D JavaheapMonitor: Java heap used=26M max=512M, proc: com.miui.home
+04-15 21:56:22.875  2425  3081 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:23.099 31101 15600 D AudioTrackImpl: [audioTrackData][fine] 25s(f:25045 m:0 s:0 k:0 z:0) : pid 31101 uid 10313 sessionId 34209 sr 44100 ch 2 fmt 1 maxAmplitude 7419
+04-15 21:56:23.133 31101 25873 I MediaCodec: [mId: 40] [video-debug-dec] Stats 5007ms:Client:com.facebook.katana,Component:c2.mtk.av1.decoder.lowlatency,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:23.135 31101 25530 D AudioTrackImpl: [audioTrackData][fine] 55s(f:55082 m:0 s:0 k:0 z:0) : pid 31101 uid 10313 sessionId 33897 sr 44100 ch 2 fmt 1 maxAmplitude 16894
+04-15 21:56:23.203  3207  4400 D JavaheapMonitor: Java heap used=5M max=256M, proc: com.xiaomi.mirror
+04-15 21:56:23.203  3207  4400 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:23.294 29549 30609 D JavaheapMonitor: Java heap used=39M max=512M, proc: com.google.android.googlequicksearchbox:search
+04-15 21:56:23.295 29549 30609 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:23.450  1803  2320 E DeviceGuardManagerService: bindLockRemoteService result = null
+04-15 21:56:23.602  6137 10130 D JavaheapMonitor: Java heap used=11M max=256M, proc: com.miui.securitycenter.remote
+04-15 21:56:23.602  6137 10130 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:23.616 11082 12946 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.lbe.security.miui
+04-15 21:56:23.617 11082 12946 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:23.722  1803  1823 I system_server: Background young concurrent mark compact GC freed 17MB AllocSpace bytes, 45(916KB) LOS objects, 11% free, 145MB/164MB, paused 1.677ms,8.180ms total 177.907ms
+04-15 21:56:23.726  1803  1952 D JavaheapMonitor: Java heap used=145M max=512M, proc: system_server
+04-15 21:56:23.727  1803  1952 V JavaheapMonitor: Check java heap usage finished! Next check delay: 180000
+04-15 21:56:23.789  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:24.066  2755  2755 D TelephonyManager: requestModemActivityInfo: Sending result to app: ModemActivityInfo{ mTimestamp=260219704 mSleepTimeMs=124156184 mIdleTimeMs=134612557 mActivityStatsTechSpecificInfo=[{mRat=UNKNOWN,mFrequencyRange=UNKNOWN,mTxTimeMs[]=[1311740, 25898, 17969, 49292, 99575],mRxTimeMs=1692540}]}
+04-15 21:56:24.102 31101 15603 I MediaCodec: [mId: 45] [audio-debug-dec] Stats 5009ms:Client:com.facebook.katana,Component:c2.android.aac.decoder,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:24.176  1329  1619 D connsyslogger: SD_LOG_ROOT is /data/debuglogger/connsyslog/fw.
+04-15 21:56:24.177  1329  1619 D connsyslogger: systemReady:1
+04-15 21:56:24.340  1329  1622 D connsyslogger: idx=0 Bootup Log: 2 log files! filecount=3 
+04-15 21:56:24.340  1329  1622 D connsyslogger: idx=1 Bootup Log: 2 log files! filecount=3 
+04-15 21:56:24.344  1329  1741 I connsyslogger: thrLogWriter: LogBuf=265.527344KB,idx=0
+04-15 21:56:24.377 17238 19227 D JavaheapMonitor: Java heap used=19M max=256M, proc: com.android.vending
+04-15 21:56:24.378 17238 19227 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:24.489 32510  2354 D JavaheapMonitor: Java heap used=5M max=256M, proc: com.microsoft.appmanager:auth
+04-15 21:56:24.490 32510  2354 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:24.790  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:25.072  1448  1903 D ULogGuard: Monitoring: 20 threads, 0 requests, 0 time-bombs; 8 guards. ResetFlags = 0x7
+04-15 21:56:25.157 19556 19712 D JavaheapMonitor: Java heap used=16M max=256M, proc: com.google.android.gms.persistent
+04-15 21:56:25.158 19556 19712 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:25.367 17505 17870 D JavaheapMonitor: Java heap used=47M max=512M, proc: com.google.android.googlequicksearchbox:googleapp
+04-15 21:56:25.367 17505 17870 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:25.521 28410 30292 D JavaheapMonitor: Java heap used=12M max=256M, proc: com.google.android.gms.ui
+04-15 21:56:25.522 28410 30292 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:25.573  5103  5144 D JavaheapMonitor: Java heap used=69M max=256M, proc: com.android.systemui
+04-15 21:56:25.574  5103  5144 V JavaheapMonitor: Check java heap usage finished! Next check delay: 180000
+04-15 21:56:25.791  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:25.795  7403 10427 D JavaheapMonitor: Java heap used=3M max=256M, proc: com.xiaomi.mi_connect_service
+04-15 21:56:25.795  7403 10427 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:25.834  2627  2670 E NetlinkUtils: receiveNetlinkAck, errmsg=NetlinkErrorMessage{ nlmsghdr{StructNlMsgHdr{ nlmsg_len{100}, nlmsg_type{2()}, nlmsg_flags{0()}, nlmsg_seq{1}, nlmsg_pid{-876131659} }}, nlmsgerr{StructNlMsgErr{ error{-2}, msg{StructNlMsgHdr{ nlmsg_len{80}, nlmsg_type{256()}, nlmsg_flags{261(NLM_F_REQUEST|NLM_F_ACK|NLM_F_ROOT)}, nlmsg_seq{1}, nlmsg_pid{0} }} }} }
+04-15 21:56:25.834  2627  2670 W Tethering: [BpfCoordinator] WARN Failed to update conntrack entry (proto: 6, src4: /10.191.61.20, srcPort: 44850, dst4: /157.240.234.15, dstPort: 443), msg: 50000000000105010100000000000000020000003400018014000180080001000ABF3D14080002009DF0EA0F1C000280050001000600000006000200AF3200000600030001BB00000800070000069780, e: android.system.ErrnoException: NetlinkErrorMessage{ nlmsghdr{StructNlMsgHdr{ nlmsg_len{100}, nlmsg_type{2()}, nlmsg_flags{0()}, nlmsg_seq{1}, nlmsg_pid{-876131659} }}, nlmsgerr{StructNlMsgErr{ error{-2}, msg{StructNlMsgHdr{ nlmsg_len{80}, nlmsg_type{256()}, nlmsg_flags{261(NLM_F_REQUEST|NLM_F_ACK|NLM_F_ROOT)}, nlmsg_seq{1}, nlmsg_pid{0} }} }} } failed: ENOENT (No such file or directory)
+04-15 21:56:25.843  2627  2670 E NetlinkUtils: receiveNetlinkAck, errmsg=NetlinkErrorMessage{ nlmsghdr{StructNlMsgHdr{ nlmsg_len{100}, nlmsg_type{2()}, nlmsg_flags{0()}, nlmsg_seq{1}, nlmsg_pid{-889663001} }}, nlmsgerr{StructNlMsgErr{ error{-2}, msg{StructNlMsgHdr{ nlmsg_len{80}, nlmsg_type{256()}, nlmsg_flags{261(NLM_F_REQUEST|NLM_F_ACK|NLM_F_ROOT)}, nlmsg_seq{1}, nlmsg_pid{0} }} }} }
+04-15 21:56:25.843  2627  2670 W Tethering: [BpfCoordinator] WARN Failed to update conntrack entry (proto: 6, src4: /10.191.61.53, srcPort: 57214, dst4: /52.168.117.174, dstPort: 443), msg: 50000000000105010100000000000000020000003400018014000180080001000ABF3D350800020034A875AE1C000280050001000600000006000200DF7E00000600030001BB00000800070000069780, e: android.system.ErrnoException: NetlinkErrorMessage{ nlmsghdr{StructNlMsgHdr{ nlmsg_len{100}, nlmsg_type{2()}, nlmsg_flags{0()}, nlmsg_seq{1}, nlmsg_pid{-889663001} }}, nlmsgerr{StructNlMsgErr{ error{-2}, msg{StructNlMsgHdr{ nlmsg_len{80}, nlmsg_type{256()}, nlmsg_flags{261(NLM_F_REQUEST|NLM_F_ACK|NLM_F_ROOT)}, nlmsg_seq{1}, nlmsg_pid{0} }} }} } failed: ENOENT (No such file or directory)
+04-15 21:56:25.850  2627  2670 E NetlinkUtils: receiveNetlinkAck, errmsg=NetlinkErrorMessage{ nlmsghdr{StructNlMsgHdr{ nlmsg_len{100}, nlmsg_type{2()}, nlmsg_flags{0()}, nlmsg_seq{1}, nlmsg_pid{-598364143} }}, nlmsgerr{StructNlMsgErr{ error{-2}, msg{StructNlMsgHdr{ nlmsg_len{80}, nlmsg_type{256()}, nlmsg_flags{261(NLM_F_REQUEST|NLM_F_ACK|NLM_F_ROOT)}, nlmsg_seq{1}, nlmsg_pid{0} }} }} }
+04-15 21:56:25.850  2627  2670 W Tethering: [BpfCoordinator] WARN Failed to update conntrack entry (proto: 6, src4: /10.191.61.20, srcPort: 51778, dst4: /216.239.36.223, dstPort: 443), msg: 50000000000105010100000000000000020000003400018014000180080001000ABF3D1408000200D8EF24DF1C000280050001000600000006000200CA4200000600030001BB00000800070000069780, e: android.system.ErrnoException: NetlinkErrorMessage{ nlmsghdr{StructNlMsgHdr{ nlmsg_len{100}, nlmsg_type{2()}, nlmsg_flags{0()}, nlmsg_seq{1}, nlmsg_pid{-598364143} }}, nlmsgerr{StructNlMsgErr{ error{-2}, msg{StructNlMsgHdr{ nlmsg_len{80}, nlmsg_type{256()}, nlmsg_flags{261(NLM_F_REQUEST|NLM_F_ACK|NLM_F_ROOT)}, nlmsg_seq{1}, nlmsg_pid{0} }} }} } failed: ENOENT (No such file or directory)
+04-15 21:56:25.872  2627  2670 E NetlinkUtils: receiveNetlinkAck, errmsg=NetlinkErrorMessage{ nlmsghdr{StructNlMsgHdr{ nlmsg_len{100}, nlmsg_type{2()}, nlmsg_flags{0()}, nlmsg_seq{1}, nlmsg_pid{-1799183634} }}, nlmsgerr{StructNlMsgErr{ error{-2}, msg{StructNlMsgHdr{ nlmsg_len{80}, nlmsg_type{256()}, nlmsg_flags{261(NLM_F_REQUEST|NLM_F_ACK|NLM_F_ROOT)}, nlmsg_seq{1}, nlmsg_pid{0} }} }} }
+04-15 21:56:25.872  2627  2670 W Tethering: [BpfCoordinator] WARN Failed to update conntrack entry (proto: 6, src4: /10.191.61.20, srcPort: 44850, dst4: /157.240.234.15, dstPort: 443), msg: 50000000000105010100000000000000020000003400018014000180080001000ABF3D14080002009DF0EA0F1C000280050001000600000006000200AF3200000600030001BB00000800070000069780, e: android.system.ErrnoException: NetlinkErrorMessage{ nlmsghdr{StructNlMsgHdr{ nlmsg_len{100}, nlmsg_type{2()}, nlmsg_flags{0()}, nlmsg_seq{1}, nlmsg_pid{-1799183634} }}, nlmsgerr{StructNlMsgErr{ error{-2}, msg{StructNlMsgHdr{ nlmsg_len{80}, nlmsg_type{256()}, nlmsg_flags{261(NLM_F_REQUEST|NLM_F_ACK|NLM_F_ROOT)}, nlmsg_seq{1}, nlmsg_pid{0} }} }} } failed: ENOENT (No such file or directory)
+04-15 21:56:25.888  2627  2670 E NetlinkUtils: receiveNetlinkAck, errmsg=NetlinkErrorMessage{ nlmsghdr{StructNlMsgHdr{ nlmsg_len{100}, nlmsg_type{2()}, nlmsg_flags{0()}, nlmsg_seq{1}, nlmsg_pid{-1008615209} }}, nlmsgerr{StructNlMsgErr{ error{-2}, msg{StructNlMsgHdr{ nlmsg_len{80}, nlmsg_type{256()}, nlmsg_flags{261(NLM_F_REQUEST|NLM_F_ACK|NLM_F_ROOT)}, nlmsg_seq{1}, nlmsg_pid{0} }} }} }
+04-15 21:56:25.888  2627  2670 W Tethering: [BpfCoordinator] WARN Failed to update conntrack entry (proto: 6, src4: /10.191.61.20, srcPort: 51778, dst4: /216.239.36.223, dstPort: 443), msg: 50000000000105010100000000000000020000003400018014000180080001000ABF3D1408000200D8EF24DF1C000280050001000600000006000200CA4200000600030001BB00000800070000069780, e: android.system.ErrnoException: NetlinkErrorMessage{ nlmsghdr{StructNlMsgHdr{ nlmsg_len{100}, nlmsg_type{2()}, nlmsg_flags{0()}, nlmsg_seq{1}, nlmsg_pid{-1008615209} }}, nlmsgerr{StructNlMsgErr{ error{-2}, msg{StructNlMsgHdr{ nlmsg_len{80}, nlmsg_type{256()}, nlmsg_flags{261(NLM_F_REQUEST|NLM_F_ACK|NLM_F_ROOT)}, nlmsg_seq{1}, nlmsg_pid{0} }} }} } failed: ENOENT (No such file or directory)
+04-15 21:56:25.905  2627  2670 E NetlinkUtils: receiveNetlinkAck, errmsg=NetlinkErrorMessage{ nlmsghdr{StructNlMsgHdr{ nlmsg_len{100}, nlmsg_type{2()}, nlmsg_flags{0()}, nlmsg_seq{1}, nlmsg_pid{-898471154} }}, nlmsgerr{StructNlMsgErr{ error{-2}, msg{StructNlMsgHdr{ nlmsg_len{80}, nlmsg_type{256()}, nlmsg_flags{261(NLM_F_REQUEST|NLM_F_ACK|NLM_F_ROOT)}, nlmsg_seq{1}, nlmsg_pid{0} }} }} }
+04-15 21:56:25.905  2627  2670 W Tethering: [BpfCoordinator] WARN Failed to update conntrack entry (proto: 6, src4: /10.191.61.53, srcPort: 57214, dst4: /52.168.117.174, dstPort: 443), msg: 50000000000105010100000000000000020000003400018014000180080001000ABF3D350800020034A875AE1C000280050001000600000006000200DF7E00000600030001BB00000800070000069780, e: android.system.ErrnoException: NetlinkErrorMessage{ nlmsghdr{StructNlMsgHdr{ nlmsg_len{100}, nlmsg_type{2()}, nlmsg_flags{0()}, nlmsg_seq{1}, nlmsg_pid{-898471154} }}, nlmsgerr{StructNlMsgErr{ error{-2}, msg{StructNlMsgHdr{ nlmsg_len{80}, nlmsg_type{256()}, nlmsg_flags{261(NLM_F_REQUEST|NLM_F_ACK|NLM_F_ROOT)}, nlmsg_seq{1}, nlmsg_pid{0} }} }} } failed: ENOENT (No such file or directory)
+04-15 21:56:26.093  5844  7054 D JavaheapMonitor: Java heap used=11M max=256M, proc: com.mi.globalminusscreen
+04-15 21:56:26.093  5844  7054 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:26.141 31101 25537 I MediaCodec: [mId: 39] [audio-debug-dec] Stats 5008ms:Client:com.facebook.katana,Component:c2.android.aac.decoder,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:26.178  1329  1619 D connsyslogger: SD_LOG_ROOT is /data/debuglogger/connsyslog/fw.
+04-15 21:56:26.178  1329  1619 D connsyslogger: systemReady:1
+04-15 21:56:26.323  9348  9459 D JavaheapMonitor: Java heap used=2M max=512M, proc: com.android.bluetooth
+04-15 21:56:26.323  7976  8964 D JavaheapMonitor: Java heap used=5M max=256M, proc: com.google.android.gms.unstable
+04-15 21:56:26.323  7976  8964 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:26.323  9348  9459 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:26.356 18791 18978 D JavaheapMonitor: Java heap used=6M max=256M, proc: com.google.android.as
+04-15 21:56:26.356 18791 18978 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:26.426  3750  4425 D JavaheapMonitor: Java heap used=3M max=256M, proc: com.google.android.ext.services
+04-15 21:56:26.427  3750  4425 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:26.438  8328  8567 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:26.439  1704  7023 E msys    : E[N mns]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:26.441  1704  7023 W LibevQuicAsyncUDPSocket.h: setTosOrTrafficClass not implemented in LibevQuicAsyncUDPSocket
+04-15 21:56:26.450  2494  4352 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.miui.miwallpaper
+04-15 21:56:26.450  2494  4352 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:26.455  8328  8567 E msys    : E[N mns:DGWClient]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:26.455  8328  8567 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:26.455  1704  7023 E MvfstCallbacks.cpp: onConnectionSetupError: error=TransportError: Internal Error, Error on socket write Operation not permitted, 
+04-15 21:56:26.456  1704  7023 E msys    : E[N mns]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:26.456  1704  7023 E msys    : E[N mns]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:26.457  1704  7023 E msys    : E[N mns]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:26.458  8328  8567 E msys    : E[N mns:DGWClient]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:26.524  8793 11779 D JavaheapMonitor: Java heap used=4M max=256M, proc: com.xiaomi.mi_connect_service:idm
+04-15 21:56:26.524 31207  1819 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.android.chrome:privileged_process6
+04-15 21:56:26.524 31207  1819 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:26.525  8793 11779 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:26.564  5852  7199 D JavaheapMonitor: Java heap used=7M max=256M, proc: com.mi.appfinder
+04-15 21:56:26.564  5852  7199 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:26.629 18678 21793 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.miui.analytics
+04-15 21:56:26.629 18678 21793 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:26.791  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:27.181  1803  2274 D HyperStabilitySdkService: checkDmabufStatus done, exceedLimitsList:[], totalDmabufSize:0
+04-15 21:56:27.263  8328  8567 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:27.271  8328  8567 E msys    : E[N mns:DGWClient]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:27.363  8328  8567 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:27.378  8328  8567 E msys    : E[N mns:DGWClient]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:27.461  1803  2244 D ActionExecute: setPkgData uid = 10447 time=8000
+04-15 21:56:27.609 15308 15572 D JavaheapMonitor: Java heap used=7M max=256M, proc: com.miui.securitycenter:ui
+04-15 21:56:27.610 15308 15572 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:27.748  1704  7023 E msys    : E[N mns]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:27.749  1704  7023 W LibevQuicAsyncUDPSocket.h: setTosOrTrafficClass not implemented in LibevQuicAsyncUDPSocket
+04-15 21:56:27.757  1704  7023 E MvfstCallbacks.cpp: onConnectionSetupError: error=TransportError: Internal Error, Error on socket write Operation not permitted, 
+04-15 21:56:27.757  1704  7023 E msys    : E[N mns]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:27.793  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:27.877  5103  5103 D ControlCenterHeaderExpandController: onExpansionChanged: progress =  0.0
+04-15 21:56:27.878  5103  5103 D ControlCenterHeaderExpandController: onExpansionChanged: progress =  0.0
+04-15 21:56:27.878  5103  5103 D DynamicIslandWindowViewController: handleDynamicIsland: action_avoid_screen_burn_in_tran
+04-15 21:56:27.880  5103  5103 D AvoidScreenBurnInHelper:  flow screenBurnInStrategy  0 
+04-15 21:56:27.899  1124  1124 D MI-SF   : isTpIdleScene mSetTpIdleFlag 0, mSetLtpoTpIdleFlag 0
+04-15 21:56:27.899  1124  1124 D DisplayModeController: setDesiredMode 4627039422300187648 {mode={fps=120.00 Hz, modePtr={id=2, vsyncRate=120.00 Hz, peakRefreshRate=120.00 Hz}}, emitEvent=true, force=false}
+04-15 21:56:27.899  1124  1124 D Scheduler: MtkOverrideDuration: update vsync 120
+04-15 21:56:27.899  1124  1124 D Scheduler: MtkOverrideDuration: reset override duration
+04-15 21:56:27.899  1124  1124 I PowerHalWrapper: updateFps(): 120
+04-15 21:56:27.901  1006  1647 I hwcomposer: [DRMDEV] (0:62) failed to waitNextVsync: -1  
+04-15 21:56:27.903  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:27.904  1124  1124 W binder:1124_1: type=1400 audit(0.0:5905183): avc:  denied  { search } for  name="mcd" dev="dm-59" ino=462 scontext=u:r:surfaceflinger:s0 tcontext=u:object_r:mcd_data_file:s0 tclass=dir permissive=0
+04-15 21:56:27.913  1124  1124 I BufferQueueProducer: [StatusBar#69343](this:0xb400007c5ed06db0,id:-1,api:0,p:-1,c:1124) queueBuffer: fps=0.07 dur=27826.74 max=27818.88 min=7.85
+04-15 21:56:27.915  1006  1006 I hwcomposer: [HWCDisplay] (0) setActiveConfigWithConstraints config:2  
+04-15 21:56:27.915  1006  1006 I hwcomposer: [HWCDisplay] setActiveConfigWithConstraints(), now 176817177285615, diff 334769, estimated_applied_time 16666667 queued_size:0  
+04-15 21:56:27.916  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:27.917  1124  1124 E HwcComposer: presentOrValidateDisplay 0 presentFence:-1
+04-15 21:56:27.917  1006  1006 I hwcomposer: [HWCDisplay] [Display_0 (type:1, mode:2)] fps:0.278665,dur:7177.07,max:7172.47,min:4.61  
+04-15 21:56:27.918  1006  1647 I hwcomposer: [DRMDEV] (0:62) failed to waitNextVsync: -1  
+04-15 21:56:27.920  1124  1699 W libc    : Access denied finding property "ro.vendor.display.max_hdr_luminance"
+04-15 21:56:27.912  1124  1124 W binder:1124_1: type=1400 audit(0.0:5905184): avc:  denied  { search } for  name="mcd" dev="dm-59" ino=462 scontext=u:r:surfaceflinger:s0 tcontext=u:object_r:mcd_data_file:s0 tclass=dir permissive=0
+04-15 21:56:27.916  1124  1124 W binder:1124_1: type=1400 audit(0.0:5905185): avc:  denied  { search } for  name="mcd" dev="dm-59" ino=462 scontext=u:r:surfaceflinger:s0 tcontext=u:object_r:mcd_data_file:s0 tclass=dir permissive=0
+04-15 21:56:27.924  1124  1124 W binder:1124_1: type=1400 audit(0.0:5905186): avc:  denied  { search } for  name="mcd" dev="dm-59" ino=462 scontext=u:r:surfaceflinger:s0 tcontext=u:object_r:mcd_data_file:s0 tclass=dir permissive=0
+04-15 21:56:27.928  1124  1124 D SurfaceFlinger: backpressure when mode change
+04-15 21:56:27.932  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:27.932  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:27.933  1006  1647 I hwcomposer: [DRMDEV] (0:62) failed to waitNextVsync: -1  
+04-15 21:56:27.935  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:27.943  1006  1721 I hwcomposer: [HWCDisplay] updateAppliedConfigState: applied config complete[idx:16710, config:2]  
+04-15 21:56:27.945  1124  1124 I PowerHalWrapper: updateFps(): 120
+04-15 21:56:27.945  1124  1124 D SurfaceFlinger: finalizeDisplayModeChange: display size = 1
+04-15 21:56:27.945  1124  1124 I PowerHalWrapper: mEnableMultiDisplayMode enable=0 fps=120
+04-15 21:56:27.945  1124  1124 I mtkpower_client: PowerHal_Wrap_EnableMultiDisplayMode, enable:0 fps:120 CurMultiDisplayMode:-1
+04-15 21:56:27.947  1124  1124 I BufferQueueProducer: [DynamicIslandWindow#160455](this:0xb400007c5eec03e0,id:-1,api:0,p:-1,c:1124) queueBuffer: fps=0.02 dur=60030.40 max=60030.40 min=60030.40
+04-15 21:56:27.947  1124  1124 I BufferQueueProducer: [NavigationBar0#69342](this:0xb400007c5ed01290,id:-1,api:0,p:-1,c:1124) queueBuffer: fps=0.02 dur=60038.32 max=60038.32 min=60038.32
+04-15 21:56:27.947  1124  1124 I BufferQueueProducer: [StatusBar1#69348](this:0xb400007c5ecfe500,id:-1,api:0,p:-1,c:1124) queueBuffer: fps=0.07 dur=27860.48 max=27852.53 min=7.95
+04-15 21:56:27.948  1124  1124 I PowerHalWrapper: updateFps(): 120
+04-15 21:56:27.950  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:28.074  1448  1903 D ULogGuard: Monitoring: 20 threads, 0 requests, 0 time-bombs; 8 guards. ResetFlags = 0x7
+04-15 21:56:28.106 31101 15600 D AudioTrackImpl: [audioTrackData][fine] 30s(f:30052 m:0 s:0 k:0 z:0) : pid 31101 uid 10313 sessionId 34209 sr 44100 ch 2 fmt 1 maxAmplitude 7419
+04-15 21:56:28.123  1124  1699 W libc    : Access denied finding property "ro.vendor.display.max_hdr_luminance"
+04-15 21:56:28.144 31101 25873 I MediaCodec: [mId: 40] [video-debug-dec] Stats 5010ms:Client:com.facebook.katana,Component:c2.mtk.av1.decoder.lowlatency,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:28.179  1329  1619 D connsyslogger: SD_LOG_ROOT is /data/debuglogger/connsyslog/fw.
+04-15 21:56:28.179  1329  1619 D connsyslogger: systemReady:1
+04-15 21:56:28.223 10371 10627 D JavaheapMonitor: Java heap used=8M max=256M, proc: com.miui.powerkeeper
+04-15 21:56:28.224 10371 10627 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:28.298  1803  3525 W ActivityManager: Unbind failed: could not find connection for android.os.BinderProxy@17223b6
+04-15 21:56:28.300  2755  2755 D SatelliteModemInterface: Binding to com.mediatek.satellite.service
+04-15 21:56:28.307  1803  3525 W ActivityManager: Unable to start service Intent { act=android.telephony.satellite.SatelliteService xflg=0x4 pkg=com.mediatek.satellite.service } U=0: not found
+04-15 21:56:28.309  2755  2755 E SatelliteModemInterface: Error binding to the satellite service. Retrying in 43478 ms.
+04-15 21:56:28.457  1803  2320 E DeviceGuardManagerService: bindLockRemoteService result = null
+04-15 21:56:28.494  4590  4700 D JavaheapMonitor: Java heap used=5M max=256M, proc: com.xiaomi.bluetooth
+04-15 21:56:28.494  4590  4700 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:28.610  1803  1952 I ThermalObserver: Gallery hdr is disable by thermal.
+04-15 21:56:28.793 20154 21752 D JavaheapMonitor: Java heap used=4M max=256M, proc: com.facebook.services
+04-15 21:56:28.794 20154 21752 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:28.794  1022  1095 I libPerfCtl: xgfGetFPS pid:2756 fps:-1
+04-15 21:56:28.794  1022  1095 I libPerfCtl: xgfGetFPS pid:5103 fps:-1
+04-15 21:56:28.913  9943 10456 D JavaheapMonitor: Java heap used=3M max=256M, proc: android.process.media
+04-15 21:56:28.914  9943 10456 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:28.949  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:28.959  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:29.029  1124  1124 D DisplayModeController: setDesiredMode 4627039422300187648 {mode={fps=60.00 Hz, modePtr={id=0, vsyncRate=60.00 Hz, peakRefreshRate=60.00 Hz}}, emitEvent=false, force=false}
+04-15 21:56:29.029  1124  1124 D Scheduler: MtkOverrideDuration: update vsync 60
+04-15 21:56:29.029  1124  1124 D Scheduler: MtkOverrideDuration: reset override duration
+04-15 21:56:29.030  1124  1124 I PowerHalWrapper: updateFps(): 60
+04-15 21:56:29.030  1006  1647 I hwcomposer: [DRMDEV] (0:62) failed to waitNextVsync: -1  
+04-15 21:56:29.034  1006  1647 I hwcomposer: [DRMDEV] (0:62) failed to waitNextVsync: -1  
+04-15 21:56:29.037  1006  1006 I hwcomposer: [HWCDisplay] (0) setActiveConfigWithConstraints config:0  
+04-15 21:56:29.037  1006  1006 I hwcomposer: [HWCDisplay] setActiveConfigWithConstraints(), now 176818299059769, diff 461231, estimated_applied_time 8333333 queued_size:0  
+04-15 21:56:29.038  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:29.040  1124  1124 E HwcComposer: presentOrValidateDisplay 0 presentFence:-1
+04-15 21:56:29.041  1006  1006 I hwcomposer: [HWCDisplay] [Display_0 (type:1, mode:2)] fps:1.780098,dur:1123.53,max:1090.03,min:33.51  
+04-15 21:56:29.045  1124  1124 I PowerHalWrapper: updateFps(): 60
+04-15 21:56:29.045  1124  1124 D SurfaceFlinger: finalizeDisplayModeChange: display size = 1
+04-15 21:56:29.045  1124  1124 I PowerHalWrapper: mEnableMultiDisplayMode enable=0 fps=60
+04-15 21:56:29.045  1124  1124 I mtkpower_client: PowerHal_Wrap_EnableMultiDisplayMode, enable:0 fps:60 CurMultiDisplayMode:-1
+04-15 21:56:29.045  9793 10515 D JavaheapMonitor: Java heap used=6M max=256M, proc: com.google.android.gms.unstable
+04-15 21:56:29.046  1124  1124 I PowerHalWrapper: updateFps(): 60
+04-15 21:56:29.046  9793 10515 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:29.047  1124  1124 D CompositionEngine: AodOverrideCEHelper 1 setEnabled
+04-15 21:56:29.047  1006  1647 I hwcomposer: [DRMDEV] (0:62) failed to waitNextVsync: -1  
+04-15 21:56:29.050  1006  1647 I hwcomposer: [DRMDEV] (0:62) failed to waitNextVsync: -1  
+04-15 21:56:29.051  1124  1699 W libc    : Access denied finding property "ro.vendor.display.max_hdr_luminance"
+04-15 21:56:29.059  1006  1647 I hwcomposer: [DRMDEV] (0:62) failed to waitNextVsync: -1  
+04-15 21:56:29.067  1006  1647 I hwcomposer: [DRMDEV] (0:62) failed to waitNextVsync: -1  
+04-15 21:56:29.090  1006  1721 I hwcomposer: [HWCDisplay] updateAppliedConfigState: applied config complete[idx:16711, config:0]  
+04-15 21:56:29.109 31101 15603 I MediaCodec: [mId: 45] [audio-debug-dec] Stats 5007ms:Client:com.facebook.katana,Component:c2.android.aac.decoder,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:29.165  1431  1497 E WifiStandalone: conditional wait timedout
+04-15 21:56:29.287  1803  3070 D SLM-SRV-SLAService: checktemp temperature = 42541 temperature_average = 42725 isPerformanceMode = false thermal_enable_slm = true
+04-15 21:56:29.449  1803  1945 D AES     : AEEIOCTL_GET/SET_SF_STATE IOCTL,cmd= 1074294797, lParam=0. 
+04-15 21:56:29.450  1803  1945 D AES     : AEEIOCTL_RT_MON_Kick IOCTL,cmd= 2147774474, lParam=300. 
+04-15 21:56:29.504 19747 19844 D JavaheapMonitor: Java heap used=33M max=256M, proc: com.google.android.gms
+04-15 21:56:29.505 19747 19844 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:29.720 24861 24921 D JavaheapMonitor: Java heap used=4M max=256M, proc: com.google.android.gms.learning
+04-15 21:56:29.721 24861 24921 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:29.792  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:29.793  1022  1095 I libPerfCtl: xgfGetFPS pid:5103 fps:-1
+04-15 21:56:29.806  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:29.945  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:29.954  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:30.118  5196  5716 I PhenotypeProcessReaper: Memory state is: 125
+04-15 21:56:30.180  1329  1619 D connsyslogger: SD_LOG_ROOT is /data/debuglogger/connsyslog/fw.
+04-15 21:56:30.181  1329  1619 D connsyslogger: systemReady:1
+04-15 21:56:30.315  1803  3057 I NetworkBoostStatusManager: handle: 107
+04-15 21:56:30.339  1803  3057 D SLM-SRV-SLAService: isModemSingnalStrengthStatus = 0
+04-15 21:56:30.412  1329  1622 D connsyslogger: idx=0 Bootup Log: 2 log files! filecount=3 
+04-15 21:56:30.412  1329  1622 D connsyslogger: idx=1 Bootup Log: 2 log files! filecount=3 
+04-15 21:56:30.416  1329  1741 I connsyslogger: thrLogWriter: LogBuf=265.343750KB,idx=0
+04-15 21:56:30.817   759  2329 D JavaheapMonitor: Java heap used=12M max=256M, proc: com.xiaomi.mipicks
+04-15 21:56:30.818   759  2329 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:30.884  3929  9325 D JavaheapMonitor: Java heap used=17M max=256M, proc: com.google.android.apps.messaging
+04-15 21:56:30.885  3929  9325 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:30.966  2702  4436 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.xiaomi.hypercomm
+04-15 21:56:30.967  2702  4436 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:31.076  1448  1903 D ULogGuard: Monitoring: 20 threads, 0 requests, 0 time-bombs; 8 guards. ResetFlags = 0x7
+04-15 21:56:31.150 31101 25537 I MediaCodec: [mId: 39] [audio-debug-dec] Stats 5009ms:Client:com.facebook.katana,Component:c2.android.aac.decoder,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:31.300  5590  9492 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.android.nfc
+04-15 21:56:31.300  5590  9492 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:31.383 12943 21233 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.miui.weather2
+04-15 21:56:31.383 24576 24631 D JavaheapMonitor: Java heap used=4M max=256M, proc: com.google.android.gms:snet
+04-15 21:56:31.383 24576 24631 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:31.383 12943 21233 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:31.747 24977 25159 D JavaheapMonitor: Java heap used=5M max=256M, proc: com.google.android.gms:snet
+04-15 21:56:31.748 24977 25159 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:32.146  2627  2666 D JavaheapMonitor: Java heap used=5M max=256M, proc: com.android.networkstack.process
+04-15 21:56:32.146  2627  2666 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:32.171 20473 20528 D JavaheapMonitor: Java heap used=40M max=256M, proc: com.google.android.gms.persistent
+04-15 21:56:32.171 20473 20528 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:32.181  1329  1619 D connsyslogger: SD_LOG_ROOT is /data/debuglogger/connsyslog/fw.
+04-15 21:56:32.182  1329  1619 D connsyslogger: systemReady:1
+04-15 21:56:32.262  5467  6064 D JavaheapMonitor: Java heap used=13M max=256M, proc: com.google.android.providers.media.module
+04-15 21:56:32.263  5467  6064 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:32.300  1803  2244 D PolicyMaker: uid =10320 pkg=com.whatsapp reason=importantapp
+04-15 21:56:32.542  1803  2244 D ActionExecute: setPkgData uid = 10320 time=8000
+04-15 21:56:32.638  1027  1086 I libPowerHal: perfUserScnCheckAll
+04-15 21:56:32.639  1027  1086 I libPowerHal: perfScnDumpAll cmd:0
+04-15 21:56:32.639  1027  1086 I libPowerHal: ========================
+04-15 21:56:32.639  1027  1086 I libPowerHal: ========================
+04-15 21:56:33.060  3769  4410 D JavaheapMonitor: Java heap used=2M max=512M, proc: com.miui.securitycore.remote
+04-15 21:56:33.061  3769  4410 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:33.115 31101 15600 D AudioTrackImpl: [audioTrackData][fine] 35s(f:35060 m:0 s:0 k:0 z:0) : pid 31101 uid 10313 sessionId 34209 sr 44100 ch 2 fmt 1 maxAmplitude 7419
+04-15 21:56:33.135 19549 19793 D JavaheapMonitor: Java heap used=22M max=256M, proc: com.google.android.gms
+04-15 21:56:33.136 19549 19793 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:33.150 31101 25873 I MediaCodec: [mId: 40] [video-debug-dec] Stats 5006ms:Client:com.facebook.katana,Component:c2.mtk.av1.decoder.lowlatency,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:33.152 31101 25530 D AudioTrackImpl: [audioTrackData][fine] 5s(f:5007 m:0 s:0 k:0 z:0) : pid 31101 uid 10313 sessionId 33897 sr 44100 ch 2 fmt 1 maxAmplitude 16894
+04-15 21:56:33.182  1803  2080 W ActivityManagerServiceImpl: Sending non-protected broadcast miui.intent.action.CYCLE_CHECK from system uid 1000 pkg android. Callers=com.android.server.am.BroadcastController.checkBroadcastFromSystem:2218 com.android.server.am.BroadcastController.broadcastIntentLockedTraced:1703 com.android.server.am.BroadcastController.broadcastIntentLocked:857 com.android.server.am.BroadcastController.broadcastIntentInPackage:824 com.android.server.am.ActivityManagerService$LocalService.broadcastIntentInPackage:18700 
+04-15 21:56:33.183  1803  2080 D AlarmManager: mBroadcastRefCount -> 1
+04-15 21:56:33.193  1803  1803 E AlarmManager: not align this alarm: Alarm{80df38e type 2 origWhen 260258832 whenElapsed 260258832 android}, reason=0
+04-15 21:56:33.194  1803  1803 D BroadcastQueue: Logging broadcast for android, stopped=false, firstLaunch=false
+04-15 21:56:33.194  1803  1803 D BroadcastQueue: Logging broadcast for android, stopped=false, firstLaunch=false
+04-15 21:56:33.195  1803  1803 D AlarmManager: mBroadcastRefCount -> 0
+04-15 21:56:33.195  1803  1803 D AlarmManager: mPendingIntent -> PendingIntent{61e45c7: PendingIntentRecord{31087f4 android broadcastIntent}}
+04-15 21:56:33.198  1803  1832 I android_os_HwBinder: HwBinder: Starting thread pool for getting: vendor.xiaomi.hardware.micharge@1.0::IMiCharge/default
+04-15 21:56:33.199  1048  1080 I vendor.xiaomi.hardware.micharge@1.0-service: ReadFilePathValue path = /sys/class/power_supply/battery/temp value = 426
+04-15 21:56:33.202  1803  1832 I android_os_HwBinder: HwBinder: Starting thread pool for getting: vendor.xiaomi.hardware.micharge@1.0::IMiCharge/default
+04-15 21:56:33.203  1048  1080 I vendor.xiaomi.hardware.micharge@1.0-service: ReadFilePathValue path = /sys/class/power_supply/battery/charge_control_limit value = 10
+04-15 21:56:33.301  2425  3081 D JavaheapMonitor: Java heap used=26M max=512M, proc: com.miui.home
+04-15 21:56:33.301  2425  3081 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:33.463  1803  2320 E DeviceGuardManagerService: bindLockRemoteService result = null
+04-15 21:56:33.649  5196  5352 D JavaheapMonitor: Java heap used=24M max=256M, proc: com.google.android.inputmethod.latin
+04-15 21:56:33.649  5196  5352 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:33.670  8328  8567 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:33.674  1704  7023 E msys    : E[N mns]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:33.675  1704  7023 W LibevQuicAsyncUDPSocket.h: setTosOrTrafficClass not implemented in LibevQuicAsyncUDPSocket
+04-15 21:56:33.685  8328  8567 E msys    : E[N mns:DGWClient]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:33.685  8328  8567 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:33.687  1704  7023 E MvfstCallbacks.cpp: onConnectionSetupError: error=TransportError: Internal Error, Error on socket write Operation not permitted, 
+04-15 21:56:33.688 15939 19903 D JavaheapMonitor: Java heap used=15M max=256M, proc: com.android.chrome
+04-15 21:56:33.688  1704  7023 E msys    : E[N mns]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:33.688 15939 19903 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:33.688  1704  7023 E msys    : E[N mns]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:33.689  8328  8567 E msys    : E[N mns:DGWClient]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:33.690  1704  7023 E msys    : E[N mns]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:33.787  1803  1823 I system_server: Background concurrent mark compact GC freed 14MB AllocSpace bytes, 25(528KB) LOS objects, 14% free, 141MB/165MB, paused 1.934ms,9.301ms total 538.333ms
+04-15 21:56:33.798  1803  1952 D JavaheapMonitor: Java heap used=141M max=512M, proc: system_server
+04-15 21:56:33.799  1803  1952 V JavaheapMonitor: Check java heap usage finished! Next check delay: 180000
+04-15 21:56:34.077  1448  1903 D ULogGuard: Monitoring: 20 threads, 0 requests, 0 time-bombs; 8 guards. ResetFlags = 0x7
+04-15 21:56:34.117 31101 15603 I MediaCodec: [mId: 45] [audio-debug-dec] Stats 5008ms:Client:com.facebook.katana,Component:c2.android.aac.decoder,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:34.182  1329  1619 D connsyslogger: SD_LOG_ROOT is /data/debuglogger/connsyslog/fw.
+04-15 21:56:34.182  1329  1619 D connsyslogger: systemReady:1
+04-15 21:56:34.305 19467 22065 D JavaheapMonitor: Java heap used=3M max=256M, proc: com.miui.msa.global
+04-15 21:56:34.306 19467 22065 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:34.880  2692  4435 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.mediatek.smartratswitch
+04-15 21:56:34.880  2692  4435 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:34.970  8328  8567 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:34.981  8328  8567 E msys    : E[N mns:DGWClient]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:35.084 18829 21673 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.xiaomi.trustservice
+04-15 21:56:35.085 18829 21673 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:35.151  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:35.173  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:35.173  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:35.175  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:35.475  1329  1622 D connsyslogger: idx=0 Bootup Log: 2 log files! filecount=3 
+04-15 21:56:35.475  1329  1622 D connsyslogger: idx=1 Bootup Log: 2 log files! filecount=3 
+04-15 21:56:35.479  1329  1741 I connsyslogger: thrLogWriter: LogBuf=239.511719KB,idx=0
+04-15 21:56:35.603 13351 13494 D JavaheapMonitor: Java heap used=10M max=512M, proc: com.google.android.googlequicksearchbox:interactor
+04-15 21:56:35.604 13351 13494 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:35.639  8328  8567 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:35.651  8328  8567 E msys    : E[N mns:DGWClient]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:35.651  1803  2244 D ActionExecute: setPkgData uid = 10447 time=8000
+04-15 21:56:35.838 18897 21677 D JavaheapMonitor: Java heap used=4M max=256M, proc: com.milink.service:audio
+04-15 21:56:35.839 18897 21677 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:35.842  1704  7023 E msys    : E[N mns]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:35.842  1704  7023 W LibevQuicAsyncUDPSocket.h: setTosOrTrafficClass not implemented in LibevQuicAsyncUDPSocket
+04-15 21:56:35.849  1704  7023 E MvfstCallbacks.cpp: onConnectionSetupError: error=TransportError: Internal Error, Error on socket write Operation not permitted, 
+04-15 21:56:35.849  1704  7023 E msys    : E[N mns]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:35.873 19556 19712 D JavaheapMonitor: Java heap used=16M max=256M, proc: com.google.android.gms.persistent
+04-15 21:56:35.874 19556 19712 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:35.936  2627  2670 I Tethering: [BpfCoordinator] onAlertReached
+04-15 21:56:36.156 31101 25537 I MediaCodec: [mId: 39] [audio-debug-dec] Stats 5005ms:Client:com.facebook.katana,Component:c2.android.aac.decoder,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:36.183  1329  1619 D connsyslogger: SD_LOG_ROOT is /data/debuglogger/connsyslog/fw.
+04-15 21:56:36.183  1329  1619 D connsyslogger: systemReady:1
+04-15 21:56:36.218  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:36.227  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:36.416  5844  7054 D JavaheapMonitor: Java heap used=11M max=256M, proc: com.mi.globalminusscreen
+04-15 21:56:36.417  5844  7054 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:36.781  6137 10130 D JavaheapMonitor: Java heap used=11M max=256M, proc: com.miui.securitycenter.remote
+04-15 21:56:36.781  6137 10130 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:36.856  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:36.867  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:36.979  8793 11779 D JavaheapMonitor: Java heap used=4M max=256M, proc: com.xiaomi.mi_connect_service:idm
+04-15 21:56:36.980  8793 11779 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:37.078  1448  1903 D ULogGuard: Monitoring: 20 threads, 0 requests, 0 time-bombs; 8 guards. ResetFlags = 0x7
+04-15 21:56:37.143  2755  2755 D TelephonyManager: requestModemActivityInfo: Sending result to app: ModemActivityInfo{ mTimestamp=260232780 mSleepTimeMs=124156989 mIdleTimeMs=134624811 mActivityStatsTechSpecificInfo=[{mRat=UNKNOWN,mFrequencyRange=UNKNOWN,mTxTimeMs[]=[1311740, 25898, 17969, 49292, 99575],mRxTimeMs=1692561}]}
+04-15 21:56:37.205  2755  2981 D JavaheapMonitor: Java heap used=13M max=256M, proc: com.android.phone
+04-15 21:56:37.205  2755  2981 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:37.354  8970  9327 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1102)=>Start post callback cache refresh DNS resolution
+04-15 21:56:37.369  8970  9327 E msys    : E[N mns:DGWClient]_LogError(285)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:38.122 31101 15600 D AudioTrackImpl: [audioTrackData][fine] 40s(f:40068 m:0 s:0 k:0 z:0) : pid 31101 uid 10313 sessionId 34209 sr 44100 ch 2 fmt 1 maxAmplitude 7419
+04-15 21:56:38.157 31101 25873 I MediaCodec: [mId: 40] [video-debug-dec] Stats 5006ms:Client:com.facebook.katana,Component:c2.mtk.av1.decoder.lowlatency,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:38.158 31101 25530 D AudioTrackImpl: [audioTrackData][fine] 10s(f:10013 m:0 s:0 k:0 z:0) : pid 31101 uid 10313 sessionId 33897 sr 44100 ch 2 fmt 1 maxAmplitude 16894
+04-15 21:56:38.184  1329  1619 D connsyslogger: SD_LOG_ROOT is /data/debuglogger/connsyslog/fw.
+04-15 21:56:38.184  1329  1619 D connsyslogger: systemReady:1
+04-15 21:56:38.302  8970  9631 E msys    : E[N MQTT]onConnectError(562)=>Connect Error: folly::AsyncSocketException: AsyncSocketException: connect failed, type = Socket not open, errno = 110 (Connection timed out)
+04-15 21:56:38.305  8970  9314 W RealtimeClientManager: Channel state: MqttChannelState{mConnectionState=DISCONNECTED, mDisconnectionReason=null, mLastConnectionMs=259915526, mLastDisconnectMs=260233945}
+04-15 21:56:38.470  1803  2320 E DeviceGuardManagerService: bindLockRemoteService result = null
+04-15 21:56:38.611  1803  1952 I ThermalObserver: Gallery hdr is disable by thermal.
+04-15 21:56:38.653 18791 18978 D JavaheapMonitor: Java heap used=6M max=256M, proc: com.google.android.as
+04-15 21:56:38.654 18791 18978 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:39.125 31101 15603 I MediaCodec: [mId: 45] [audio-debug-dec] Stats 5008ms:Client:com.facebook.katana,Component:c2.android.aac.decoder,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:39.158 18678 21793 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.miui.analytics
+04-15 21:56:39.159 18678 21793 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:39.185 32211  1927 D JavaheapMonitor: Java heap used=15M max=256M, proc: com.microsoft.appmanager
+04-15 21:56:39.185 32211  1927 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:39.296  1803  3070 D SLM-SRV-SLAService: checktemp temperature = 42511 temperature_average = 42661 isPerformanceMode = false thermal_enable_slm = true
+04-15 21:56:39.307  8970  9314 W RealtimeClientManager: Channel state: MqttChannelState{mConnectionState=CONNECTING, mDisconnectionReason=null, mLastConnectionMs=259915526, mLastDisconnectMs=260233945}
+04-15 21:56:39.577  5103  5144 D JavaheapMonitor: Java heap used=69M max=256M, proc: com.android.systemui
+04-15 21:56:39.578  5103  5144 V JavaheapMonitor: Check java heap usage finished! Next check delay: 180000
+04-15 21:56:39.675  3750  4425 D JavaheapMonitor: Java heap used=3M max=256M, proc: com.google.android.ext.services
+04-15 21:56:39.676  3750  4425 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:40.063 29549 30609 D JavaheapMonitor: Java heap used=39M max=512M, proc: com.google.android.googlequicksearchbox:search
+04-15 21:56:40.064 29549 30609 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:40.080  1448  1903 D ULogGuard: Monitoring: 20 threads, 0 requests, 0 time-bombs; 8 guards. ResetFlags = 0x7
+04-15 21:56:40.185  1329  1619 D connsyslogger: SD_LOG_ROOT is /data/debuglogger/connsyslog/fw.
+04-15 21:56:40.185  1329  1619 D connsyslogger: systemReady:1
+04-15 21:56:40.323  2494  4352 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.miui.miwallpaper
+04-15 21:56:40.323  2494  4352 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:40.336 10371 10627 D JavaheapMonitor: Java heap used=8M max=256M, proc: com.miui.powerkeeper
+04-15 21:56:40.336 10371 10627 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:40.536  1329  1622 D connsyslogger: idx=0 Bootup Log: 2 log files! filecount=3 
+04-15 21:56:40.536  1329  1622 D connsyslogger: idx=1 Bootup Log: 2 log files! filecount=3 
+04-15 21:56:40.540  1329  1741 I connsyslogger: thrLogWriter: LogBuf=242.343750KB,idx=0
+04-15 21:56:40.831 20109 22060 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.google.android.rkpdapp
+04-15 21:56:40.832 20109 22060 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:40.903  8328  8567 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:40.906  1704  7023 E msys    : E[N mns]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:40.908  1704  7023 W LibevQuicAsyncUDPSocket.h: setTosOrTrafficClass not implemented in LibevQuicAsyncUDPSocket
+04-15 21:56:40.920  8328  8567 E msys    : E[N mns:DGWClient]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:40.920  8328  8567 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:40.921  1704  7023 E MvfstCallbacks.cpp: onConnectionSetupError: error=TransportError: Internal Error, Error on socket write Operation not permitted, 
+04-15 21:56:40.921  1704  7023 E msys    : E[N mns]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:40.922  1704  7023 E msys    : E[N mns]_OnDiskCacheGetData(632)=>Start post callback cache refresh DNS resolution
+04-15 21:56:40.922  8328  8567 E msys    : E[N mns:DGWClient]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:40.923  1704  7023 E msys    : E[N mns]_LogError(228)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-15 21:56:40.940  2627  2670 I Tethering: [BpfCoordinator] onAlertReached
+04-15 21:56:41.012 17505 17870 D JavaheapMonitor: Java heap used=47M max=512M, proc: com.google.android.googlequicksearchbox:googleapp
+04-15 21:56:41.013 17505 17870 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:41.085 32346  2971 D JavaheapMonitor: Java heap used=2M max=256M, proc: com.microsoft.deviceintegrationservice
+04-15 21:56:41.085 32346  2971 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000
+04-15 21:56:41.163 31101 25537 I MediaCodec: [mId: 39] [audio-debug-dec] Stats 5007ms:Client:com.facebook.katana,Component:c2.android.aac.decoder,Qin:0,DQin:0/5,Render:0,Drop:0,DQout:0/0
+04-15 21:56:41.556  1128  1144 D ccci_mdinit: (1):monitor_time_update_thread round:9482 ########
+04-15 21:56:41.657  2675  4437 D JavaheapMonitor: Java heap used=3M max=256M, proc: com.mediatek.ims
+04-15 21:56:41.658  2675  4437 V JavaheapMonitor: Check java heap usage finished! Next check delay: 300000

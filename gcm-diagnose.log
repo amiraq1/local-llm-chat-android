@@ -1,0 +1,220 @@
+﻿Diagnose log at 2026-04-12T19:00:16Z
+
+AppPath: C:\Program Files\Git\mingw64\bin\git-credential-manager.exe
+InstallDir: C:\Program Files\Git\mingw64\bin\
+Version: 2.6.1+786ab03440ddc82e807a97c0e540f5247e44cec6
+
+------------
+Diagnostic: Environment
+Skipped: False
+Success: True
+Exception: None
+Log:
+OSType: Windows
+OSVersion: 10.0 (build 26200)
+Reading environment variables... OK
+ Variables:
+PROCESSOR_ARCHITEW6432=AMD64
+DriverData=C:\Windows\System32\Drivers\DriverData
+COMPUTERNAME=DESKTOP-F2ITPS7
+GIT_TRACE2_PARENT_SID=aedb625c-fefa-45f0-8b5d-eb3ba455cffe
+CommonProgramFiles(x86)=C:\Program Files (x86)\Common Files
+BuildLab=26100.ge_release.240331-1435
+ProgramW6432=C:\Program Files
+OneDrive=C:\Users\Aledari\OneDrive
+ChocolateyLastPathUpdate=134152735460264506
+HOMEPATH=\Users\Aledari
+SESSIONNAME=Console
+TMP=C:\Users\Aledari\AppData\Local\Temp
+LC_CTYPE=C.UTF-8
+PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.JS;.WS;.MSC
+USERNAME=Aledari
+GIT_EXEC_PATH=C:/Program Files/Git/mingw64/libexec/git-core
+TEMP=C:\Users\Aledari\AppData\Local\Temp
+EFC_6008_1262719628=1
+MSYSTEM=MINGW64
+TERM=xterm-256color
+PROCESSOR_IDENTIFIER=Intel64 Family 6 Model 154 Stepping 4, GenuineIntel
+GOPATH=C:\Users\Aledari\go
+ProgramData=C:\ProgramData
+windir=C:\Windows
+USERDOMAIN=DESKTOP-F2ITPS7
+ProgramFiles(x86)=C:\Program Files (x86)
+PROCESSOR_REVISION=9a04
+Path=C:/Program Files/Git/mingw64/libexec/git-core;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\Aledari\bin;C:\Program Files\Eclipse Adoptium\jdk-21.0.10.7-hotspot\bin;C:\Program Files\Eclipse Adoptium\jdk-17.0.18.8-hotspot\bin;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files\Git\cmd;C:\Program Files (x86)\cloudflared\;C:\Program Files\Go\bin;C:\ProgramData\chocolatey\bin;C:\Program Files\GitHub CLI\;C:\Program Files\Docker\Docker\resources\bin;C:\Program Files\nodejs\;C:\Users\Aledari\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\Aledari\AppData\Local\Programs\Python\Python311\;C:\Users\Aledari\AppData\Local\Programs\Python\Python314\Scripts\;C:\Users\Aledari\AppData\Local\Programs\Python\Python314\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\dotnet\;C:\Program Files\Git\cmd;C:\Program Files (x86)\cloudflared\;C:\Program Files\Go\bin;C:\ProgramData\chocolatey\bin;C:\Program Files\GitHub CLI\;C:\Program Files\Docker\Docker\resources\bin;C:\Program Files\nodejs\;C:\Users\Aledari\scoop\shims;C:\Users\Aledari\.cargo\bin;C:\Users\Aledari\AppData\Local\Programs\Python\Python312\Scripts\;C:\Users\Aledari\AppData\Local\Programs\Python\Python312\;C:\Users\Aledari\AppData\Local\Microsoft\WindowsApps;C:\Users\Aledari\AppData\Local\GitHubDesktop\bin;C:\Users\Aledari\AppData\Local\Programs\Antigravity\bin;C:\Users\Aledari\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\Aledari\AppData\Local\Programs\cursor\resources\app\bin;C:\Users\Aledari\go\bin;C:\Users\Aledari\.bun\bin;C:\Users\Aledari\.bun\bin;C:\Users\Aledari\AppData\Local\Programs\Zed\bin;C:\Users\Aledari\AppData\Roaming\npm;C:\Users\Aledari\AppData\Local\Programs\Ollama;C:\Users\Aledari\AppData\Local\Programs\Python\Python314\Scripts
+PROCESSOR_LEVEL=6
+NUMBER_OF_PROCESSORS=12
+TMPDIR=C:\Users\Aledari\AppData\Local\Temp
+EFC_6008_1592913036=1
+PROMPT=$P$G
+GCM_GUI_PROMPT=False
+PSModulePath=C:\Program Files\WindowsPowerShell\Modules;C:\Windows\system32\WindowsPowerShell\v1.0\Modules
+PUBLIC=C:\Users\Public
+VSCODE_NLS_CONFIG={"userLocale":"en-us","osLocale":"ar-iq","resolvedLanguage":"en","defaultMessagesFile":"C:\\Users\\Aledari\\AppData\\Local\\Programs\\Antigravity\\resources\\app\\out\\nls.messages.json","locale":"en-us","availableLanguages":{}}
+FPS_BROWSER_USER_PROFILE_STRING=Default
+CommonProgramFiles=C:\Program Files (x86)\Common Files
+VSCODE_ESM_ENTRYPOINT=vs/workbench/api/node/extensionHostProcess
+WSLENV=PATHEXT/l:COMSPEC/p:SYSTEMROOT/p:SYSTEMDRIVE:USERNAME:USERDOMAIN:USERPROFILE/p:PROGRAMFILES/p:PROGRAMFILES(X86)/p:PROGRAMW6432/p:PROGRAMDATA/p:LOCALAPPDATA/p:APPDATA/p:TEMP/p:TMP/p:POWERSHELL:PWSH:HTTP_PROXY:HTTPS_PROXY:NO_PROXY:NODE_TLS_REJECT_UNAUTHORIZED
+EFC_6008_2283032206=1
+PLINK_PROTOCOL=ssh
+COLORTERM=truecolor
+ProgramFiles=C:\Program Files (x86)
+ChocolateyInstall=C:\ProgramData\chocolatey
+DEBUG=release
+BuildLabEx=26100.1.amd64fre.ge_release.240331-1435
+VSCODE_IPC_HOOK=\\.\pipe\654ab72e-1.107.0-main-sock
+VSCODE_CODE_CACHE_PATH=C:\Users\Aledari\AppData\Roaming\Antigravity\CachedData\62335c71d47037adf0a8de54e250bb8ea6016b15
+EFC_6008_2775293581=1
+HOME=C:\Users\Aledari
+LOCALAPPDATA=C:\Users\Aledari\AppData\Local
+CommonProgramW6432=C:\Program Files\Common Files
+EFC_6008_3789132940=1
+LOGONSERVER=\\DESKTOP-F2ITPS7
+VSCODE_CWD=D:\Antigravity Tools
+USERPROFILE=C:\Users\Aledari
+SystemRoot=C:\Windows
+USERDOMAIN_ROAMINGPROFILE=DESKTOP-F2ITPS7
+APPDATA=C:\Users\Aledari\AppData\Roaming
+HOMEDRIVE=C:
+VSCODE_PID=22352
+ELECTRON_RUN_AS_NODE=1
+CHROME_CRASHPAD_PIPE_NAME=\\.\pipe\crashpad_22352_HFCWKADELTSFLUDX
+VSCODE_HANDLES_UNCAUGHT_ERRORS=true
+FPS_BROWSER_APP_PROFILE_STRING=Internet Explorer
+PROCESSOR_ARCHITECTURE=x86
+OS=Windows_NT
+ComSpec=C:\Windows\system32\cmd.exe
+SystemDrive=C:
+VSCODE_CRASH_REPORTER_PROCESS_TYPE=extensionHost
+ALLUSERSPROFILE=C:\ProgramData
+
+
+------------
+Diagnostic: File system
+Skipped: False
+Success: True
+Exception: None
+Log:
+Temporary directory is 'C:\Users\Aledari\AppData\Local\Temp\'...
+Checking basic file I/O...
+Writing to temporary file 'C:\Users\Aledari\AppData\Local\Temp\8aa840b19e784dc61230ddcc'... OK
+Reading from temporary file 'C:\Users\Aledari\AppData\Local\Temp\8aa840b19e784dc61230ddcc'... OK
+Deleting temporary file 'C:\Users\Aledari\AppData\Local\Temp\8aa840b19e784dc61230ddcc'... OK
+Testing IFileSystem instance...
+UserHomePath: C:\Users\Aledari
+UserDataDirectoryPath: C:\Users\Aledari\.gcm
+GetCurrentDirectory(): D:\local-llm-chat-android
+
+------------
+Diagnostic: Networking
+Skipped: False
+Success: True
+Exception: None
+Log:
+Checking networking and HTTP stack...
+Creating HTTP client... OK
+IsNetworkAvailable: True
+Sending HEAD request to http://example.com...Sending HEAD request to https://example.com... OK
+ OK
+Acquiring free TCP port... OK
+Testing local HTTP loopback connections...
+Creating new HTTP listener for http://localhost:59031/... OK
+Waiting for loopback connection... OK
+Writing response... OK
+Waiting for response data... OK
+Loopback connection data OK
+
+------------
+Diagnostic: Git
+Skipped: False
+Success: True
+Exception: None
+Log:
+Getting Git version... OK
+Git version is '2.52.0.windows.1'
+Locating current repository...Git repository at 'D:/local-llm-chat-android/.git'
+ OK
+Listing all Git configuration... OK
+Git configuration:
+file:C:/Program Files/Git/etc/gitconfig	diff.astextplain.textconv=astextplain
+file:C:/Program Files/Git/etc/gitconfig	filter.lfs.clean=git-lfs clean -- %f
+file:C:/Program Files/Git/etc/gitconfig	filter.lfs.smudge=git-lfs smudge -- %f
+file:C:/Program Files/Git/etc/gitconfig	filter.lfs.process=git-lfs filter-process
+file:C:/Program Files/Git/etc/gitconfig	filter.lfs.required=true
+file:C:/Program Files/Git/etc/gitconfig	http.sslbackend=schannel
+file:C:/Program Files/Git/etc/gitconfig	core.autocrlf=true
+file:C:/Program Files/Git/etc/gitconfig	core.fscache=true
+file:C:/Program Files/Git/etc/gitconfig	core.symlinks=false
+file:C:/Program Files/Git/etc/gitconfig	pull.rebase=false
+file:C:/Program Files/Git/etc/gitconfig	credential.helper=manager
+file:C:/Program Files/Git/etc/gitconfig	credential.https://dev.azure.com.usehttppath=true
+file:C:/Program Files/Git/etc/gitconfig	init.defaultbranch=master
+file:C:/Users/Aledari/.gitconfig	filter.lfs.clean=git-lfs clean -- %f
+file:C:/Users/Aledari/.gitconfig	filter.lfs.smudge=git-lfs smudge -- %f
+file:C:/Users/Aledari/.gitconfig	filter.lfs.process=git-lfs filter-process
+file:C:/Users/Aledari/.gitconfig	filter.lfs.required=true
+file:C:/Users/Aledari/.gitconfig	user.name=amiraq1
+file:C:/Users/Aledari/.gitconfig	user.email=amaralmdarking27@gmail.com
+file:C:/Users/Aledari/.gitconfig	credential.helper=manager-core
+file:C:/Users/Aledari/.gitconfig	credential.https://github.com.helper=
+file:C:/Users/Aledari/.gitconfig	credential.https://github.com.helper=!'C:\Program Files\GitHub CLI\gh.exe' auth git-credential
+file:C:/Users/Aledari/.gitconfig	credential.https://gist.github.com.helper=
+file:C:/Users/Aledari/.gitconfig	credential.https://gist.github.com.helper=!'C:\Program Files\GitHub CLI\gh.exe' auth git-credential
+file:.git/config	core.repositoryformatversion=0
+file:.git/config	core.filemode=false
+file:.git/config	core.bare=false
+file:.git/config	core.logallrefupdates=true
+file:.git/config	core.symlinks=false
+file:.git/config	core.ignorecase=true
+file:.git/config	remote.origin.url=https://github.com/amiraq1/local-llm-chat-android.git
+file:.git/config	remote.origin.fetch=+refs/heads/*:refs/remotes/origin/*
+file:.git/config	branch.main.remote=origin
+file:.git/config	branch.main.merge=refs/heads/main
+file:.git/config	branch.main.vscode-merge-base=origin/main
+file:.git/config	branch.codex/fix-audit-findings.vscode-merge-base=origin/main
+file:.git/config	branch.codex/fix-audit-findings.remote=origin
+file:.git/config	branch.codex/fix-audit-findings.merge=refs/heads/codex/fix-audit-findings
+file:.git/config	user.name=amiraq1
+file:.git/config	user.email=amaralmdarking27@gmail.com
+file:.git/config	lfs.repositoryformatversion=0
+file:.git/config	lfs.https://github.com/amiraq1/local-llm-chat-android.git/info/lfs.access=basic
+file:.git/config	branch.codex/fix-main-ci-mlc-engine.remote=origin
+file:.git/config	branch.codex/fix-main-ci-mlc-engine.merge=refs/heads/codex/fix-main-ci-mlc-engine
+file:.git/config	branch.codex/fix-main-ci-mlc-engine.vscode-merge-base=origin/main
+
+
+------------
+Diagnostic: Credential storage
+Skipped: False
+Success: True
+Exception: None
+Log:
+ICredentialStore instance is of type: CredentialStore
+Writing test credential... OK
+Reading test credential... OK
+Deleting test credential... OK
+
+------------
+Diagnostic: Microsoft authentication (AAD/MSA)
+Skipped: False
+Success: True
+Exception: None
+Log:
+Broker is not enabled.
+Flow type is: Auto
+Gathering MSAL token cache data... OK
+CacheDirectory: C:\Users\Aledari\AppData\Local\.IdentityService
+CacheFileName: msal.cache
+CacheFilePath: C:\Users\Aledari\AppData\Local\.IdentityService\msal.cache
+Creating cache helper... OK
+Verifying MSAL token cache persistence... OK
+
+------------
+Diagnostic: GitHub API
+Skipped: False
+Success: True
+Exception: None
+Log:
+Using 'https://github.com/' as API target.
+Querying '/meta' endpoint... OK
+

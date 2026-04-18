@@ -21,7 +21,8 @@ data class MlcModelRecord(
     @SerialName("model_url") val modelUrl: String,
     @SerialName("model_id") val modelId: String,
     @SerialName("estimated_vram_bytes") val estimatedVramBytes: Long? = null,
-    @SerialName("model_lib") val modelLib: String
+    @SerialName("model_lib") val modelLib: String,
+    @SerialName("model_backend") val modelBackend: String = "opencl"
 )
 
 fun loadBundledMlcAppConfig(context: Context): MlcAppConfig =

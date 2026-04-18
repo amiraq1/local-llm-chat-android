@@ -165,7 +165,9 @@ class ChatViewModel @Inject constructor(
                         if (currentSession == null || !inferenceEngine.isModelLoaded()) {
                             _uiState.update { it.copy(isModelLoading = true) }
                             val config = ModelConfig(contextLength = activeModel.contextLength)
-                            currentSession = inferenceEngine.loadModel(activeModel.filePath, config).getOrThrow()
+                            currentSession = kotlinx.coroutines.withContext(Dispatchers.IO) {
+                                inferenceEngine.loadModel(activeModel.filePath, config).getOrThrow()
+                            }
                             _uiState.update { it.copy(isModelLoading = false) }
                         }
 
