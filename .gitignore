@@ -50,3 +50,12 @@ scripts/__pycache__/
 *.bin
 # Do NOT ignore mlc4j native libs or tvm4j jar — they ship with the app
 !mlc4j/output/**
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
