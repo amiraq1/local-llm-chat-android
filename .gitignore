@@ -1,52 +1,24 @@
-<<<<<<< HEAD
-codex/fix-audit-findings
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
+# ─── Gradle / Build ──────────────────────────────────────────────
+.gradle/
+**/build/
+app/build/
+mlc4j/build/
 /captures
 .externalNativeBuild
 .cxx
-local.properties
-.kotlin
-app/build/
 gradle-build.log
-adb-devices.log
-NUL
 
-.gradle/
-.idea/
-local.properties
+# ─── IDE ─────────────────────────────────────────────────────────
 *.iml
-build/
-app/build/
-mlc4j/build/
-local-llm-chat-android*.png
-local-llm-chat-android*.xml
-tmp/
-scripts/__pycache__/
+.idea/
+.DS_Store
+.kotlin/
 
-=======
-.gradle/
-**/build/
+# ─── Local config ────────────────────────────────────────────────
 local.properties
-.idea/
-*.iml
-*.bin
-*.so
-models/
-Qwen3-Model/
-d:\\Qwen3-Model/
->>>>>>> origin/main
--e 
-# Environment and credential files
+/local.properties
+
+# ─── Environment & credentials ───────────────────────────────────
 .env
 .env.*
 *.env
@@ -54,3 +26,27 @@ credentials.json
 *.pem
 *.key
 .credentials
+
+# ─── Debug / log artefacts (root) ────────────────────────────────
+*.log
+adb_*.txt
+logcat_*.txt
+mlc_logs.txt
+window_dump*.xml
+screen*.png
+local-llm-chat-android*.png
+local-llm-chat-android*.xml
+gcm-diagnose.log
+adb-devices.log
+NUL
+
+# ─── Model weights / caches ──────────────────────────────────────
+models/
+Qwen3-Model/
+tmp/
+scripts/__pycache__/
+
+# ─── Binary blobs (except packaged MLC runtime) ──────────────────
+*.bin
+# Do NOT ignore mlc4j native libs or tvm4j jar — they ship with the app
+!mlc4j/output/**

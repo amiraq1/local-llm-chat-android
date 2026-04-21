@@ -20,7 +20,7 @@
 - واجهات Compose والتنقل
 - ViewModels وإدارة الحالة
 - Room وDataStore وrepositories
-- واجهة `InferenceEngine` وتكامل التطبيق مع `MLCInferenceEngine`
+- واجهة `InferenceEngine` وتكامل التطبيق عبر `FallbackInferenceEngine` (يغلّف MLC + Fake)
 
 ### `:mlc4j`
 
@@ -44,12 +44,14 @@
 - العقدة العامة داخل التطبيق هي:
   - [app/src/main/java/com/example/localllm/engine/InferenceEngine.kt](/data/data/com.termux/files/home/local-llm-chat-android/app/src/main/java/com/example/localllm/engine/InferenceEngine.kt)
 - الـbackend المربوط فعليًا عبر Hilt هو:
-  - [app/src/main/java/com/example/localllm/engine/MLCInferenceEngine.kt](/data/data/com.termux/files/home/local-llm-chat-android/app/src/main/java/com/example/localllm/engine/MLCInferenceEngine.kt)
+  - [app/src/main/java/com/example/localllm/engine/FallbackInferenceEngine.kt](app/src/main/java/com/example/localllm/engine/FallbackInferenceEngine.kt)
+  - يجرّب [MLCInferenceEngine.kt](app/src/main/java/com/example/localllm/engine/MLCInferenceEngine.kt) أولًا ثم يتراجع إلى [FakeInferenceEngine.kt](app/src/main/java/com/example/localllm/engine/FakeInferenceEngine.kt) عند فشل تحميل المكتبات الأصلية أو فشل التوليد.
 - الـbinding الفعلي موجود في:
-  - [app/src/main/java/com/example/localllm/di/AppModule.kt](/data/data/com.termux/files/home/local-llm-chat-android/app/src/main/java/com/example/localllm/di/AppModule.kt)
+  - [app/src/main/java/com/example/localllm/di/AppModule.kt](app/src/main/java/com/example/localllm/di/AppModule.kt)
 
 السلوك الحالي:
 
+- `FallbackInferenceEngine` يستدعي `MLCInferenceEngine.loadModel` أولًا؛ إذا نجح يستخدمه كـbackend فعلي، وإلا يحمّل `FakeInferenceEngine` بالتكوين نفسه.
 - `MLCInferenceEngine` يحمّل النموذج من المسار المحلي.
 - يبني request بصيغة `chat.completions`.
 - يحول stream الاستجابات إلى `Flow<GenerationResponse>`.
@@ -76,7 +78,7 @@
 - التحقق الكامل لبناء Android غير مثبت هنا بسبب غياب Android SDK المحلي.
 - التحقق runtime الفعلي على جهاز Android مع نموذج MLC صالح ما زال مطلوبًا.
 - بعض أجزاء `OpenAI-compatible protocol` ما زالت قابلة للتوسيع إذا كان الهدف دعم مزودات متعددة بشكل أوسع.
-- `FakeInferenceEngine` ما زال موجودًا كخيار تطويري/اختباري، لكنه ليس backend التشغيل الفعلي.
+- `FakeInferenceEngine` يعمل كـbackend احتياطي تلقائي ضمن `FallbackInferenceEngine` وكذلك كخيار تطويري/اختباري معزول.
 
 ## Local Run Requirements
 

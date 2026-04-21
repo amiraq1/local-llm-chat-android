@@ -10,8 +10,8 @@
 
 ## حالة المشروع الحالية
 
-- الـ `InferenceEngine` المربوط عبر Hilt هو `MLCInferenceEngine` وليس `FakeInferenceEngine`.
-- `FakeInferenceEngine` ما زال موجودًا للاختبارات والتطوير المعزول.
+- الـ `InferenceEngine` المربوط عبر Hilt هو `FallbackInferenceEngine`، الذي يجرّب `MLCInferenceEngine` أولًا ثم يتراجع إلى `FakeInferenceEngine` عند فشل المكتبات الأصلية أو الـGPU.
+- `FakeInferenceEngine` يعمل كـbackend احتياطي وللاختبارات والتطوير المعزول.
 - مشروع `mlc4j` مضمن داخل المستودع ومربوط مباشرة مع التطبيق.
 - يوجد Gradle Wrapper داخل المستودع، والإصدار الحالي هو Gradle 8.7.
 - التحقق الكامل (`assembleDebug` / `test` / `lint`) يحتاج Android SDK محليًا مضبوطًا عبر `ANDROID_HOME` أو `ANDROID_SDK_ROOT` أو `local.properties`.

@@ -98,7 +98,7 @@ The Tasks screen is accessible from the bottom navigation bar ("المهام").
 
 ## Notes
 
-- The `InferenceEngine` bound via Hilt is `MLCInferenceEngine` (not `FakeInferenceEngine`)
-- `FakeInferenceEngine` remains available for isolated testing/development
+- The `InferenceEngine` bound via Hilt is `FallbackInferenceEngine`, which tries `MLCInferenceEngine` first and automatically falls back to `FakeInferenceEngine` when native libs are missing or generation fails at runtime.
+- `FakeInferenceEngine` is still used for isolated testing/development and as the automatic fallback backend.
 - Native libraries are in `mlc4j/output/` and are required for actual inference
 - Full compilation (`assembleDebug`) requires a locally configured Android SDK
