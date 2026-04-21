@@ -11,11 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.localllm.domain.model.ModelDownloadState
- codex/fix-audit-findings
-
-import com.example.localllm.domain.model.ModelUiState
-import com.example.localllm.ui.models.ModelItem
- main
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,41 +92,10 @@ fun ModelsScreen(
                     }) {
                         Text("حذف", color = MaterialTheme.colorScheme.error)
                     }
- codex/fix-audit-findings
                 },
                 dismissButton = {
                     TextButton(onClick = { pendingDeleteModelId = null }) {
                         Text("إلغاء")
-
-                }
-            }
-
-            // ── Incompatibility warning ──
-            val incompatibilityReason = modelState.incompatibilityReason
-            if (!modelState.isCompatible && incompatibilityReason != null) {
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = MaterialTheme.colorScheme.errorContainer
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 10.dp, vertical = 7.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(
-                            Icons.Outlined.Warning,
-                            null,
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Text(
-                            incompatibilityReason,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onErrorContainer
-                        )
- main
                     }
                 }
             )

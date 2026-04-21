@@ -123,13 +123,9 @@ dependencies {
     // Core
     implementation(libs.core.ktx)
     implementation(libs.splashscreen)
- codex/fix-audit-findings
     implementation(libs.documentfile)
     implementation(libs.mediapipe.tasks.genai)
     implementation(libs.okhttp)
-
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
- main
 
     // Test
     testImplementation(libs.junit4)
