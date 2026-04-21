@@ -200,15 +200,15 @@
 04-15 21:56:10.623 26501 28042 D WM-ConstraintTracker: l: initial state = NetworkState(isConnected=false, isValidated=false, isMetered=true, isNotRoaming=true)
 04-15 21:56:10.623 26501 28042 D WM-NetworkStateTracker: Registering network callback
 04-15 21:56:10.629  1803  3514 D ConnectivityService: requestNetwork for uid/pid:10368/26501 activeRequest: null callbackRequest: 30235 [NetworkRequest [ TRACK_DEFAULT id=30236, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED Uid: 10368 RequestorUid: 10368 RequestorPkg: com.twitter.android UnderlyingNetworks: Null] ], NetworkRequest [ REQUEST id=30237, [ Transports: SATELLITE Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VCN_MANAGED Uid: 10368 RequestorUid: 10368 RequestorPkg: com.twitter.android UnderlyingNetworks: Null] ]] callback flags: 0 order: 2147483647 isUidTracked: false declaredMethods: AVAIL|LOST|NC
-04-15 21:56:10.634 26501 28042 D WM-GreedyScheduler: Constraints not met: Cancelling work ID WorkGenerationalId(workSpecId=8c72f1b9-326d-46c8-9d63-6c21ecba714a, generation=0)
+04-15 21:56:10.634 26501 28042 D WM-GreedyScheduler: Constraints not met: Cancelling work ID WorkGenerationalId(workSpecId=verify-system-6, generation=0)
 04-15 21:56:10.640 26501 28037 D WM-NetworkStateTracker: Network capabilities changed: [ Transports: CELLULAR Capabilities: SUPL&INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN&VALIDATED&NOT_ROAMING&FOREGROUND&NOT_CONGESTED&NOT_SUSPENDED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED LinkUpBandwidth>=38375Kbps LinkDnBandwidth>=38375Kbps Specifier: <TelephonyNetworkSpecifier [mSubId = 1]> SubscriptionIds: {1} UnderlyingNetworks: Null]
 04-15 21:56:10.643  1803  2157 D ConnectivityService: NetReassign [30236 : null → 157] [c ٠] [a ٢] [i ٥]
-04-15 21:56:10.645 26501 28039 D WM-GreedyScheduler: Constraints met: Scheduling work ID WorkGenerationalId(workSpecId=8c72f1b9-326d-46c8-9d63-6c21ecba714a, generation=0)
-04-15 21:56:10.649 26501 28039 D WM-Processor: s: processing WorkGenerationalId(workSpecId=8c72f1b9-326d-46c8-9d63-6c21ecba714a, generation=0)
+04-15 21:56:10.645 26501 28039 D WM-GreedyScheduler: Constraints met: Scheduling work ID WorkGenerationalId(workSpecId=verify-system-6, generation=0)
+04-15 21:56:10.649 26501 28039 D WM-Processor: s: processing WorkGenerationalId(workSpecId=verify-system-6, generation=0)
 04-15 21:56:10.659 26501 26501 D WM-WorkerWrapper: Starting work for com.twitter.analytics.service.core.workmanager.AnalyticsFlushWorker
-04-15 21:56:10.662 26501 28039 I WM-WorkerWrapper: Worker result SUCCESS for Work [ id=8c72f1b9-326d-46c8-9d63-6c21ecba714a, tags={ com.twitter.analytics.service.core.workmanager.AnalyticsFlushWorker } ]
+04-15 21:56:10.662 26501 28039 I WM-WorkerWrapper: Worker result SUCCESS for Work [ id=verify-system-6, tags={ com.twitter.analytics.service.core.workmanager.AnalyticsFlushWorker } ]
 04-15 21:56:10.668 26501 26501 D WM-Processor: s 8c72f1b9-326d-46c8-9d63-6c21ecba714a executed; reschedule = false
-04-15 21:56:10.668 26501 26501 D WM-GreedyScheduler: Stopping tracking for WorkGenerationalId(workSpecId=8c72f1b9-326d-46c8-9d63-6c21ecba714a, generation=0)
+04-15 21:56:10.668 26501 26501 D WM-GreedyScheduler: Stopping tracking for WorkGenerationalId(workSpecId=verify-system-6, generation=0)
 04-15 21:56:10.684 26501 28039 D WM-SystemJobScheduler: Scheduling work ID 757305ca-6a03-493e-83c4-b34fbdcd4bcbJob ID 8913
 04-15 21:56:10.692 26501 28039 D WM-GreedyScheduler: Starting tracking for 78eb5aba-2785-4635-9c6c-4951daaa547f
 04-15 21:56:10.709 26501 28039 D WM-GreedyScheduler: Cancelling work ID 8c72f1b9-326d-46c8-9d63-6c21ecba714a

@@ -45,3 +45,12 @@ models/
 Qwen3-Model/
 d:\\Qwen3-Model/
 >>>>>>> origin/main
+-e 
+# Environment and credential files
+.env
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
