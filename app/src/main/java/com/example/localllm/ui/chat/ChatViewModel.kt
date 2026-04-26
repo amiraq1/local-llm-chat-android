@@ -11,7 +11,7 @@ import com.example.localllm.domain.tools.ActionOrchestrator
 import com.example.localllm.domain.tools.ClassificationResult
 import com.example.localllm.domain.tools.ToolCallClassifier
 import com.example.localllm.engine.*
-import com.example.localllm.data.repository.ModelRepository
+import com.example.localllm.data.repository.MlcModelRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -45,7 +45,7 @@ sealed class ChatEvent {
 class ChatViewModel @Inject constructor(
     private val inferenceEngine: InferenceEngine,
     private val conversationRepo: ConversationRepository,
-    private val modelRepository: ModelRepository,
+    private val modelRepository: MlcModelRepository,
     private val settingsDataStore: SettingsDataStore,
     private val classifier: ToolCallClassifier,
     private val orchestrator: ActionOrchestrator,

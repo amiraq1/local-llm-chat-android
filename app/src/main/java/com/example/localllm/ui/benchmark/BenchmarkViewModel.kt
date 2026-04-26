@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.localllm.data.datastore.SettingsDataStore
 import com.example.localllm.data.db.dao.BenchmarkDao
 import com.example.localllm.data.db.entity.BenchmarkResultEntity
-import com.example.localllm.data.repository.ModelRepository
+import com.example.localllm.data.repository.MlcModelRepository
 import com.example.localllm.domain.model.BenchmarkResult
 import com.example.localllm.domain.model.MessageRole
 import com.example.localllm.engine.ChatMessage
@@ -74,7 +74,7 @@ data class BenchmarkConfig(
 @HiltViewModel
 class BenchmarkViewModel @Inject constructor(
     private val inferenceEngine: InferenceEngine,
-    private val modelRepository: ModelRepository,
+    private val modelRepository: MlcModelRepository,
     private val benchmarkDao: BenchmarkDao,
     private val settingsDataStore: SettingsDataStore,
     @ApplicationContext private val context: Context

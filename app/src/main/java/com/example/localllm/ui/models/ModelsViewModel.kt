@@ -3,7 +3,7 @@ package com.example.localllm.ui.models
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.localllm.data.datastore.SettingsDataStore
-import com.example.localllm.data.repository.ModelRepository
+import com.example.localllm.data.repository.MlcModelRepository
 import com.example.localllm.domain.model.ModelDownloadState
 import com.example.localllm.domain.model.ModelUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,7 +41,7 @@ sealed class DownloadStatus {
 
 @HiltViewModel
 class ModelsViewModel @Inject constructor(
-    private val modelRepository: ModelRepository,
+    private val modelRepository: MlcModelRepository,
     private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
 

@@ -32,9 +32,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class ModelRepository @Inject constructor(
+class MlcModelRepository @Inject constructor(
     private val modelDao: ModelDao,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val httpClient: okhttp3.OkHttpClient
 ) {
     private val modelDownloadMutexes = java.util.concurrent.ConcurrentHashMap<String, Mutex>()
 
@@ -104,7 +105,10 @@ class ModelRepository @Inject constructor(
         )
     }
 
-    suspend fun downloadModel(modelId: String): InstalledModel {
+    suspend fun downloadModel(
+        modelId: String,
+        onProgress: (downloadedBytes: Long, totalBytes: Long) -> Unit = { _, _ -> }
+    ): InstalledModel {
         val mutex = modelDownloadMutexes.getOrPut(modelId) { Mutex() }
         return mutex.withLock {
             withContext(Dispatchers.IO) {
@@ -112,7 +116,7 @@ class ModelRepository @Inject constructor(
                     ?: error("النموذج غير موجود في mlc-app-config.json")
 
                 val modelDir = File(getInstallPath(modelId))
-                val installedConfig = installBundledModel(bundledModel.manifest, modelDir)
+                val installedConfig = installBundledModel(bundledModel.manifest, modelDir, onProgress)
                 val existing = modelDao.getModelById(modelId)
                 val resolvedModel = bundledModel.uiModel.copy(
                     contextLength = installedConfig.contextWindowSize,
@@ -236,43 +240,71 @@ class ModelRepository @Inject constructor(
         )
     }
 
-    private suspend fun installBundledModel(record: MlcModelRecord, modelDir: File) =
+    private suspend fun installBundledModel(
+        record: MlcModelRecord,
+        modelDir: File,
+        onProgress: (Long, Long) -> Unit
+    ) =
         run {
             modelDir.mkdirs()
 
             val chatConfigFile = File(modelDir, MLC_MODEL_CONFIG_FILENAME)
             val tensorCacheFile = File(modelDir, MLC_TENSOR_CACHE_FILENAME)
 
+            val estimatedTotal = record.estimatedVramBytes ?: 0L
+            var currentDownloaded = 0L
+
             downloadFileIfMissing(
                 url = resolveMlcModelAssetUrl(record.modelUrl, MLC_MODEL_CONFIG_FILENAME),
                 destination = chatConfigFile
-            )
+            ) { downloaded, _ ->
+                // Small file, just update progress
+                onProgress(currentDownloaded + downloaded, estimatedTotal.coerceAtLeast(currentDownloaded + downloaded))
+            }
+            currentDownloaded += chatConfigFile.length()
+
             downloadFileIfMissing(
                 url = resolveMlcModelAssetUrl(record.modelUrl, MLC_TENSOR_CACHE_FILENAME),
                 destination = tensorCacheFile
-            )
+            ) { downloaded, _ ->
+                onProgress(currentDownloaded + downloaded, estimatedTotal.coerceAtLeast(currentDownloaded + downloaded))
+            }
+            currentDownloaded += tensorCacheFile.length()
 
             val chatConfig = readInstalledMlcChatConfig(modelDir)
             val tensorCache = readInstalledMlcTensorCache(modelDir)
 
             chatConfig.tokenizerFiles.forEach { relativePath ->
+                val dest = File(modelDir, relativePath)
                 downloadFileIfMissing(
                     url = resolveMlcModelAssetUrl(record.modelUrl, relativePath),
-                    destination = File(modelDir, relativePath)
-                )
+                    destination = dest
+                ) { downloaded, _ ->
+                    onProgress(currentDownloaded + downloaded, estimatedTotal.coerceAtLeast(currentDownloaded + downloaded))
+                }
+                currentDownloaded += dest.length()
             }
 
             tensorCache.records.forEach { tensorRecord ->
+                val dest = File(modelDir, tensorRecord.dataPath)
                 downloadFileIfMissing(
                     url = resolveMlcModelAssetUrl(record.modelUrl, tensorRecord.dataPath),
-                    destination = File(modelDir, tensorRecord.dataPath)
-                )
+                    destination = dest
+                ) { downloaded, _ ->
+                    onProgress(currentDownloaded + downloaded, estimatedTotal.coerceAtLeast(currentDownloaded + downloaded))
+                }
+                currentDownloaded += dest.length()
             }
 
+            onProgress(currentDownloaded, currentDownloaded)
             chatConfig
         }
 
-    private suspend fun downloadFileIfMissing(url: String, destination: File) {
+    private suspend fun downloadFileIfMissing(
+        url: String,
+        destination: File,
+        onProgress: (Long, Long) -> Unit = { _, _ -> }
+    ) {
         if (destination.exists()) {
             return
         }
@@ -329,7 +361,13 @@ class ModelRepository @Inject constructor(
             var bytesCopiedCount: Long = 0
             inputStream.use { input ->
                 java.io.FileOutputStream(tempFile).use { output ->
-                    bytesCopiedCount = input.copyTo(output)
+                    val buffer = ByteArray(8192)
+                    var bytesRead: Int
+                    while (input.read(buffer).also { bytesRead = it } != -1) {
+                        output.write(buffer, 0, bytesRead)
+                        bytesCopiedCount += bytesRead
+                        onProgress(bytesCopiedCount, -1L) // Total unknown here
+                    }
                     output.flush()
                     output.fd.sync()
                     Timber.d("Downloaded $bytesCopiedCount bytes to $tempFile. Stream closed.")
