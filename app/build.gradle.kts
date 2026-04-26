@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.hilt)
@@ -41,6 +42,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
 
+    // تصحيح: نقل kotlinOptions إلى هنا (داخل بلوك android مباشرة)
+    kotlinOptions {
+        jvmTarget = "21"
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -51,8 +57,6 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
         jniLibs {
-            // MLC .so files are large; use legacy uncompressed packaging
-            // so they can be mmap'd directly from the APK at runtime
             useLegacyPackaging = true
             keepDebugSymbols += setOf("**/*.so")
         }
@@ -62,12 +66,6 @@ android {
         getByName("androidTest") {
             assets.srcDir("$projectDir/schemas")
         }
-    }
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_21)
     }
 }
 

@@ -24,11 +24,9 @@ android {
             jniLibs.srcDirs("output")
         }
     }
-}
 
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_21)
+    kotlinOptions {
+        jvmTarget = "21"
     }
 }
 
