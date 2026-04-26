@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "ai.mlc.mlcllm"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         minSdk = 22
