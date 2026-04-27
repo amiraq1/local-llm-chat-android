@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -26,6 +28,7 @@ class MLCInferenceEngine @Inject constructor(
     @ApplicationContext private val context: Context
 ) : InferenceEngine {
 
+    private val mutex = Mutex()
     private var engine: MLCEngine? = null
     private var activeSession: MLCModelSession? = null
     private var activeModelId: String? = null
@@ -35,8 +38,9 @@ class MLCInferenceEngine @Inject constructor(
         config: ModelConfig
     ): Result<ModelSession> {
         return withContext(Dispatchers.IO) {
-            try {
-                val modelDir = File(modelPath)
+            mutex.withLock {
+                try {
+                    val modelDir = File(modelPath)
                 require(modelDir.exists()) { "Model path not found: $modelPath" }
                 require(modelDir.isDirectory) {
                     "MLC requires a model directory, not a single file: $modelPath"
@@ -70,9 +74,12 @@ class MLCInferenceEngine @Inject constructor(
                 Result.success(session)
             } catch (e: Throwable) {
                 Timber.e(e, "MLCInferenceEngine: Failed to load model")
+                runCatching { activeSession?.close() }
                 activeSession = null
                 activeModelId = null
+                runCatching { engine?.unload() }
                 Result.failure(if (e is Exception) e else RuntimeException("MLC load failed", e))
+            }
             }
         }
     }
@@ -81,16 +88,18 @@ class MLCInferenceEngine @Inject constructor(
 
     override suspend fun unloadModel() {
         withContext(Dispatchers.IO) {
-            Timber.i("MLCInferenceEngine: Unloading model and releasing VRAM")
+            mutex.withLock {
+                Timber.i("MLCInferenceEngine: Unloading model and releasing VRAM")
 
-            runCatching { activeSession?.close() }
-                .onFailure { Timber.e(it, "MLCInferenceEngine: Error while closing active session") }
+                runCatching { activeSession?.close() }
+                    .onFailure { Timber.e(it, "MLCInferenceEngine: Error while closing active session") }
 
-            activeSession = null
-            activeModelId = null
+                activeSession = null
+                activeModelId = null
 
-            runCatching { engine?.unload() }
-                .onFailure { Timber.e(it, "MLCInferenceEngine: Error during model unload") }
+                runCatching { engine?.unload() }
+                    .onFailure { Timber.e(it, "MLCInferenceEngine: Error during model unload") }
+            }
         }
     }
 
