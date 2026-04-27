@@ -34,6 +34,8 @@ class TasksViewModel @Inject constructor(
 
     fun runBatteryStatus() = executeTool("get_battery_status")
 
+    fun runReadScreen() = executeTool("read_screen")
+
     fun clearResult() {
         currentJob?.cancel()
         currentJob = null

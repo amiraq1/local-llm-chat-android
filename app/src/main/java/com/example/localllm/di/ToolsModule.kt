@@ -7,6 +7,7 @@ import com.example.localllm.data.tools.DeviceInfoProvider
 import com.example.localllm.data.tools.GetBatteryStatusTool
 import com.example.localllm.data.tools.GetClipboardTool
 import com.example.localllm.data.tools.GetDeviceInfoTool
+import com.example.localllm.data.tools.ReadScreenTool
 import com.example.localllm.data.tools.SystemBatteryInfoProvider
 import com.example.localllm.data.tools.SystemClipboardReader
 import com.example.localllm.domain.tools.Tool
@@ -55,6 +56,10 @@ abstract class ToolsModule {
         @Provides
         @IntoSet
         fun provideBatteryStatusTool(tool: GetBatteryStatusTool): Tool = tool
+
+        @Provides
+        @IntoSet
+        fun provideReadScreenTool(tool: ReadScreenTool): Tool = tool
 
         @Provides
         @Singleton

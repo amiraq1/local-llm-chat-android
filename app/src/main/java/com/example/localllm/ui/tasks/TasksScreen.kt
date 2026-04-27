@@ -64,6 +64,13 @@ fun TasksScreen(
                 onClick = viewModel::runBatteryStatus
             )
 
+            ToolButton(
+                label = "قراءة الشاشة",
+                icon = Icons.Outlined.PhoneAndroid, // Using PhoneAndroid as a placeholder icon for screen
+                enabled = !uiState.isLoading,
+                onClick = viewModel::runReadScreen
+            )
+
             AnimatedVisibility(visible = uiState.isLoading, enter = fadeIn(), exit = fadeOut()) {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
