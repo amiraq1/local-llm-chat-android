@@ -199,46 +199,17 @@ class MlcModelRepository @Inject constructor(
     }
 
     private fun loadBundledModels(): List<BundledMlcModel> = runCatching {
-        loadBundledMlcAppConfig(context).modelList.map(::toBundledModel)
+        com.example.localllm.domain.model.CuratedModelCatalog.load(context)
+            .filter { it.hasMlcBinding }
+            .map { catalogModel ->
+                BundledMlcModel(
+                    uiModel = catalogModel.toLlmModel(),
+                    manifest = catalogModel.toMlcModelRecord()!!
+                )
+            }
     }.onFailure { error ->
-        Timber.e(error, "Failed to load bundled mlc-app-config.json")
+        Timber.e(error, "Failed to load CuratedModelCatalog")
     }.getOrDefault(emptyList())
-
-    private fun toBundledModel(record: MlcModelRecord): BundledMlcModel {
-        val modelSlug = record.modelId.removeSuffix("-MLC")
-        val quantizationSegment = modelSlug.substringAfterLast('-', missingDelimiterValue = "")
-        val quantization = if (quantizationSegment.startsWith("q", ignoreCase = true)) {
-            quantizationSegment.uppercase()
-        } else {
-            "MLC"
-        }
-        val displayBase = if (quantizationSegment.startsWith("q", ignoreCase = true)) {
-            modelSlug.removeSuffix("-$quantizationSegment")
-        } else {
-            modelSlug
-        }
-        val estimatedBytes = record.estimatedVramBytes ?: 0L
-        val minRamMb = max(2048, (estimatedBytes / 1_000_000L).toInt())
-        val recommendedRamMb = max(minRamMb + 1024, minRamMb * 2)
-
-        return BundledMlcModel(
-            uiModel = LLMModel(
-                id = record.modelId,
-                name = displayBase.replace('-', ' '),
-                family = displayBase.substringBefore('-').lowercase(),
-                sizeBytes = estimatedBytes,
-                downloadUrl = record.modelUrl,
-                checksumSha256 = "",
-                minRamMb = minRamMb,
-                recommendedRamMb = recommendedRamMb,
-                contextLength = 2048,
-                quantization = quantization,
-                tags = listOf("mlc", "on-device"),
-                minAndroidApi = 28
-            ),
-            manifest = record
-        )
-    }
 
     private suspend fun installBundledModel(
         record: MlcModelRecord,
