@@ -11,7 +11,7 @@ plugins {
 
 android {
     namespace = "com.example.localllm"
-    compileSdk = 34
+    compileSdk = 35
     ndkVersion = "28.0.12433566"
 
     defaultConfig {
