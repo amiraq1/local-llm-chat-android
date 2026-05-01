@@ -1,7 +1,9 @@
 package com.example.localllm.data.tools
 
 import com.example.localllm.domain.tools.Tool
+import com.example.localllm.domain.tools.ToolRefusalReason
 import com.example.localllm.domain.tools.ToolResult
+import com.example.localllm.domain.tools.ToolSensitivity
 import javax.inject.Inject
 
 class GetDeviceInfoTool @Inject constructor(
@@ -11,6 +13,7 @@ class GetDeviceInfoTool @Inject constructor(
     override val name = "get_device_info"
     override val description = "Returns manufacturer, model, Android version, and SDK level"
     override val keywords = listOf("device", "info", "model", "manufacturer", "android", "sdk", "معلومات", "جهاز")
+    override val sensitivity = ToolSensitivity.PUBLIC
 
     override suspend fun execute(params: Map<String, Any>): ToolResult {
         return try {
@@ -35,10 +38,11 @@ class GetDeviceInfoTool @Inject constructor(
             ToolResult(toolName = name, success = true, resultText = text, payload = payload)
         } catch (e: Exception) {
             ToolResult(
-                toolName = name,
-                success = false,
-                resultText = "",
-                errorMessage = "فشل في قراءة معلومات الجهاز: ${e.message}"
+                toolName      = name,
+                success       = false,
+                resultText    = "",
+                errorMessage  = "فشل في قراءة معلومات الجهاز: ${e.message}",
+                refusalReason = ToolRefusalReason.INTERNAL_ERROR
             )
         }
     }

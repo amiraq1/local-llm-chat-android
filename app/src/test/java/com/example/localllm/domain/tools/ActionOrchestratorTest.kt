@@ -19,9 +19,15 @@ class ActionOrchestratorTest {
         override suspend fun execute(params: Map<String, Any>) = result
     }
 
+    /** Always-allow gate — these tests cover non-sensitive dispatch only. */
+    private val openGate = object : ToolConsentGate {
+        override suspend fun isPersistentlyEnabledNow(toolName: String) = true
+        override fun isSessionApproved(toolName: String) = true
+    }
+
     private fun orchestratorWith(vararg tools: Tool): ActionOrchestrator {
         val registry = ToolRegistry(tools.toSet())
-        return ActionOrchestrator(registry)
+        return ActionOrchestrator(registry, openGate)
     }
 
     // ── execute() – direct dispatch by name ──────────────────────────────────────

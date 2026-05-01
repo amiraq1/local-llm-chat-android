@@ -6,8 +6,12 @@ import androidx.room.Room
 import com.example.localllm.data.db.AppDatabase
 import com.example.localllm.data.db.dao.*
 import com.example.localllm.data.repository.MlcModelRepository
+import com.example.localllm.engine.FakeEngine
+import com.example.localllm.engine.FakeInferenceEngine
 import com.example.localllm.engine.FallbackInferenceEngine
 import com.example.localllm.engine.InferenceEngine
+import com.example.localllm.engine.MLCInferenceEngine
+import com.example.localllm.engine.MlcEngine
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -80,7 +84,11 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             DATABASE_NAME
-        ).build()
+        )
+            .addMigrations(*AppDatabase.MIGRATIONS)
+            // No fallbackToDestructiveMigration on purpose — schema bumps must
+            // ship with explicit migrations to preserve user conversations.
+            .build()
     }
 
     @Provides
@@ -124,4 +132,16 @@ abstract class EngineModule {
     abstract fun bindInferenceEngine(
         engine: FallbackInferenceEngine
     ): InferenceEngine
+
+    /** Concrete native engine — exposed to [FallbackInferenceEngine] via the interface. */
+    @Binds
+    @Singleton
+    @MlcEngine
+    abstract fun bindMlcEngine(impl: MLCInferenceEngine): InferenceEngine
+
+    /** Deterministic fallback engine — exposed to [FallbackInferenceEngine] via the interface. */
+    @Binds
+    @Singleton
+    @FakeEngine
+    abstract fun bindFakeEngine(impl: FakeInferenceEngine): InferenceEngine
 }

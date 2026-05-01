@@ -11,6 +11,8 @@ import com.example.localllm.data.tools.ReadScreenTool
 import com.example.localllm.data.tools.SystemBatteryInfoProvider
 import com.example.localllm.data.tools.SystemClipboardReader
 import com.example.localllm.domain.tools.Tool
+import com.example.localllm.domain.tools.ToolConsentGate
+import com.example.localllm.domain.tools.ToolConsentStore
 import com.example.localllm.domain.tools.ToolRegistry
 import dagger.Binds
 import dagger.Module
@@ -42,6 +44,10 @@ abstract class ToolsModule {
     @Binds
     @Singleton
     abstract fun bindBatteryInfoProvider(impl: SystemBatteryInfoProvider): BatteryInfoProvider
+
+    @Binds
+    @Singleton
+    abstract fun bindToolConsentGate(impl: ToolConsentStore): ToolConsentGate
 
     companion object {
 

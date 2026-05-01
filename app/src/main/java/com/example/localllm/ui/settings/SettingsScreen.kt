@@ -26,6 +26,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.Tag
@@ -126,6 +127,15 @@ fun SettingsScreen(
                     wifiOnlyDownload = settings.wifiOnlyDownload,
                     onWifiOnlyChanged = viewModel::setWifiOnlyDownload
                 )
+            }
+
+            if (uiState.sensitiveToolConsents.isNotEmpty()) {
+                item {
+                    PrivacySection(
+                        consents = uiState.sensitiveToolConsents,
+                        onConsentChanged = viewModel::setSensitiveToolEnabled
+                    )
+                }
             }
 
             item {
@@ -351,6 +361,35 @@ private fun NetworkSection(
             checked = wifiOnlyDownload,
             onToggle = onWifiOnlyChanged
         )
+    }
+}
+
+@Composable
+private fun PrivacySection(
+    consents: List<SensitiveToolConsent>,
+    onConsentChanged: (String, Boolean) -> Unit
+) {
+    SettingsGroup(
+        title = "الخصوصية والأدوات الحساسة",
+        icon = Icons.Outlined.PrivacyTip
+    ) {
+        Text(
+            text = "تتطلب هذه الأدوات إذنك للوصول إلى بيانات حساسة. يمكنك تعطيلها بالكامل في أي وقت.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+
+        consents.forEachIndexed { index, consent ->
+            if (index > 0) SettingsDivider()
+            ToggleRow(
+                icon = Icons.Outlined.Lock,
+                label = consent.toolName,
+                description = consent.description,
+                checked = consent.enabled,
+                onToggle = { onConsentChanged(consent.toolName, it) }
+            )
+        }
     }
 }
 

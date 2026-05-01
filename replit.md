@@ -70,35 +70,50 @@ download_model.py             Utility script for fetching model weights
 
 The configured workflow runs `./gradlew --no-daemon tasks --console=plain` to display available build tasks. This is a console-only project — no web preview is available since it's an Android application.
 
-## Tool Calling Layer (Day 1 — Action Assistant)
+## Tool Calling Layer
 
 A clean, extensible tool-calling architecture lives above the `InferenceEngine`:
 
 ```
 domain/tools/
-  Tool.kt                 Interface: name, description, keywords, execute()
-  ToolResult.kt           Typed result: success, resultText, payload, errorMessage
+  Tool.kt                 Interface: name, description, keywords, sensitivity, execute()
+  ToolResult.kt           Typed result: success, resultText, payload, errorMessage, refusalReason
   ToolRegistry.kt         Central registry populated via Hilt multibindings
-  ActionOrchestrator.kt   Deterministic keyword-based tool selection + execution
+  ToolConsentStore.kt     ToolConsentGate interface + DataStore-backed implementation
+  ActionOrchestrator.kt   Tool dispatch + two-layer consent gating for SENSITIVE tools
+  ToolCallClassifier.kt   Deterministic keyword classifier with sensitivity thresholds
 
 data/tools/
-  GetDeviceInfoTool.kt    Reads Build.* — no permissions required
-  GetClipboardTool.kt     Reads ClipboardManager — foreground-only, no permissions
-  GetBatteryStatusTool.kt Reads ACTION_BATTERY_CHANGED sticky broadcast — no permissions
+  GetDeviceInfoTool.kt    PUBLIC    — Reads Build.*
+  GetBatteryStatusTool.kt PUBLIC    — Reads ACTION_BATTERY_CHANGED sticky broadcast
+  GetClipboardTool.kt     SENSITIVE — Reads ClipboardManager (PII-safe logging)
+  ReadScreenTool.kt       SENSITIVE — Reads accessibility tree of foreground app
 
 di/
   ToolsModule.kt          @IntoSet multibindings; add new tools here only
 
 ui/tasks/
   TasksViewModel.kt       @HiltViewModel — delegates to ActionOrchestrator
-  TasksScreen.kt          3-button Compose screen (Device Info / Clipboard / Battery)
+  TasksScreen.kt          Compose screen exposing the available tools
 ```
 
-The Tasks screen is accessible from the bottom navigation bar ("المهام").
+### Privacy & consent model
+SENSITIVE tools (clipboard, screen) require **two independent approvals**:
+1. A persistent enable flag (DataStore `tool_consent`) the user toggles in the **Privacy** section of `SettingsScreen` via `SettingsViewModel.setSensitiveToolEnabled`. The list of toggles is built dynamically by enumerating tools whose `sensitivity == SENSITIVE` from `ToolRegistry`.
+2. A per-process session approval held only in memory (`grantSessionApproval`), to be wired into the chat UI's refusal handler in a follow-up.
 
-## Notes
+A `ToolResult.refusalReason` of `DISABLED_BY_USER` or `NEEDS_USER_APPROVAL` lets the UI distinguish a permission prompt from a real error.
 
-- The `InferenceEngine` bound via Hilt is `FallbackInferenceEngine`, which tries `MLCInferenceEngine` first and automatically falls back to `FakeInferenceEngine` when native libs are missing or generation fails at runtime.
-- `FakeInferenceEngine` is still used for isolated testing/development and as the automatic fallback backend.
-- Native libraries are in `mlc4j/output/` and are required for actual inference
-- Full compilation (`assembleDebug`) requires a locally configured Android SDK
+## Inference Engine
+
+- The `InferenceEngine` bound via Hilt is `FallbackInferenceEngine`, which tries the MLC native engine first (`@MlcEngine`) and automatically falls back to a deterministic fake (`@FakeEngine`) when native libs are missing or generation fails at runtime. Both delegates are injected by qualifier and held as the `InferenceEngine` interface — the fallback can therefore be unit-tested without touching real native code.
+- **Cancellation is never swallowed** — `CancellationException` is re-thrown in both the `loadModel` and `generate` paths. Programmer errors (`IllegalStateException`, `IllegalArgumentException`) surface as `GenerationResponse.Error` instead of triggering a silent fallback.
+- Native libraries live in `mlc4j/output/` and are required for actual inference.
+- Full compilation (`assembleDebug`) requires a locally configured Android SDK.
+
+## Database
+
+Room schemas are exported (`exportSchema = true`). When bumping `@Database.version`:
+- Prefer `autoMigrations` for purely additive changes.
+- Use `AppDatabase.MIGRATIONS` for non-trivial changes (renames, type changes, splits).
+- `fallbackToDestructiveMigration()` is intentionally **not** used — it would silently wipe user conversations and downloaded model metadata.

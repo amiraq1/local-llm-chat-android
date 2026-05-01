@@ -1,5 +1,6 @@
 package com.example.localllm.engine
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
@@ -18,8 +19,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class FallbackInferenceEngine @Inject constructor(
-    private val mlcEngine: MLCInferenceEngine,
-    private val fakeEngine: FakeInferenceEngine
+    @MlcEngine private val mlcEngine: InferenceEngine,
+    @FakeEngine private val fakeEngine: InferenceEngine
 ) : InferenceEngine {
 
     @Volatile
@@ -45,6 +46,12 @@ class FallbackInferenceEngine @Inject constructor(
         }
 
         val mlcError = mlcResult.exceptionOrNull()
+
+        // Never silently fall back on cancellation — surface it to the caller.
+        if (mlcError is CancellationException) {
+            throw mlcError
+        }
+
         Timber.w(mlcError, "FallbackEngine: MLC failed, falling back to fake engine")
 
         return loadFakeEngine(modelPath, config, mlcError)
@@ -111,6 +118,17 @@ class FallbackInferenceEngine @Inject constructor(
             emitAll(
                 delegate.generate(request)
                     .catch { e ->
+                        // CRITICAL: Never swallow cancellation. Re-throw so coroutine machinery
+                        // can propagate it correctly (downstream collector cancelled, scope cancelled, etc.).
+                        if (e is CancellationException) throw e
+
+                        // Do not silently fall back on programmer errors that indicate the caller
+                        // misused the API — they should be visible during development.
+                        if (e is IllegalStateException || e is IllegalArgumentException) {
+                            emit(GenerationResponse.Error(e))
+                            return@catch
+                        }
+
                         Timber.e(
                             e,
                             "FallbackEngine: MLC generation crashed, " +

@@ -72,6 +72,13 @@ class MLCInferenceEngine @Inject constructor(
                 activeModelId = modelId
 
                 Result.success(session)
+            } catch (cancel: CancellationException) {
+                // Never swallow cancellation — let coroutine machinery handle it.
+                runCatching { activeSession?.close() }
+                activeSession = null
+                activeModelId = null
+                runCatching { engine?.unload() }
+                throw cancel
             } catch (e: Throwable) {
                 Timber.e(e, "MLCInferenceEngine: Failed to load model")
                 runCatching { activeSession?.close() }

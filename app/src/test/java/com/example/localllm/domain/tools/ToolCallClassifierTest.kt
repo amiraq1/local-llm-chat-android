@@ -7,10 +7,15 @@ class ToolCallClassifierTest {
 
     // ── Fakes ─────────────────────────────────────────────────────────────────
 
-    private fun fakeTool(name: String, keywords: List<String>) = object : Tool {
+    private fun fakeTool(
+        name: String,
+        keywords: List<String>,
+        sensitivity: ToolSensitivity = ToolSensitivity.PUBLIC
+    ) = object : Tool {
         override val name        = name
         override val description = "description for $name"
         override val keywords    = keywords
+        override val sensitivity = sensitivity
         override suspend fun execute(params: Map<String, Any>) =
             ToolResult(name, true, "ok")
     }
@@ -194,5 +199,108 @@ class ToolCallClassifierTest {
         val result = classifier.classify("اكتب لي قصيدة عن البحر")
 
         assertThat(result).isInstanceOf(ClassificationResult.LlmChat::class.java)
+    }
+
+    // ── SENSITIVE-tool gating threshold ───────────────────────────────────────
+
+    @Test
+    fun `sensitive tool is NOT triggered by a single non-canonical keyword hit`() {
+        // "copy" alone (not canonical: not the tool name, not the first keyword)
+        // must not be enough to invoke a SENSITIVE tool — protects privacy.
+        val classifier = classifierWith(
+            fakeTool(
+                name = "get_clipboard",
+                keywords = listOf("clipboard", "copy", "paste"),
+                sensitivity = ToolSensitivity.SENSITIVE
+            )
+        )
+
+        val result = classifier.classify("هل تستطيع copy هذا الملف؟")
+
+        assertThat(result).isInstanceOf(ClassificationResult.LlmChat::class.java)
+    }
+
+    @Test
+    fun `sensitive tool IS triggered by canonical keyword (first keyword)`() {
+        // First keyword is treated as canonical — single hit is enough.
+        val classifier = classifierWith(
+            fakeTool(
+                name = "get_clipboard",
+                keywords = listOf("clipboard", "copy", "paste"),
+                sensitivity = ToolSensitivity.SENSITIVE
+            )
+        )
+
+        val result = classifier.classify("show me the clipboard")
+
+        assertThat(result).isInstanceOf(ClassificationResult.ToolCall::class.java)
+        assertThat((result as ClassificationResult.ToolCall).toolName).isEqualTo("get_clipboard")
+    }
+
+    @Test
+    fun `sensitive tool IS triggered by exact tool name in message`() {
+        val classifier = classifierWith(
+            fakeTool(
+                name = "read_screen",
+                keywords = listOf("screen", "ui", "view"),
+                sensitivity = ToolSensitivity.SENSITIVE
+            )
+        )
+
+        // Exact-name match is the very first rule in the classifier.
+        val result = classifier.classify("read_screen")
+
+        assertThat(result).isInstanceOf(ClassificationResult.ToolCall::class.java)
+        assertThat((result as ClassificationResult.ToolCall).toolName).isEqualTo("read_screen")
+    }
+
+    @Test
+    fun `sensitive tool IS triggered when at least two non-canonical keywords match`() {
+        val classifier = classifierWith(
+            fakeTool(
+                name = "get_clipboard",
+                keywords = listOf("clipboard", "copy", "paste"),
+                sensitivity = ToolSensitivity.SENSITIVE
+            )
+        )
+
+        // Two non-canonical hits ("copy" + "paste") clear SENSITIVE_MIN_HITS=2.
+        val result = classifier.classify("can you copy and paste it?")
+
+        assertThat(result).isInstanceOf(ClassificationResult.ToolCall::class.java)
+        assertThat((result as ClassificationResult.ToolCall).toolName).isEqualTo("get_clipboard")
+    }
+
+    @Test
+    fun `public tool with same single-keyword hit IS still triggered`() {
+        // Sanity check: the threshold raise applies ONLY to SENSITIVE tools.
+        val classifier = classifierWith(
+            fakeTool(
+                name = "get_battery_status",
+                keywords = listOf("battery", "charge"),
+                sensitivity = ToolSensitivity.PUBLIC
+            )
+        )
+
+        val result = classifier.classify("how is the charge?")
+
+        assertThat(result).isInstanceOf(ClassificationResult.ToolCall::class.java)
+    }
+
+    @Test
+    fun `tie-break is deterministic and alphabetical by tool name`() {
+        // Both tools have identical keyword sets and same score; alphabetical
+        // tie-break must consistently pick the same one regardless of insertion order.
+        val a = fakeTool("aaa_tool", listOf("device"))
+        val b = fakeTool("bbb_tool", listOf("device"))
+
+        val classifierAB = classifierWith(a, b)
+        val classifierBA = classifierWith(b, a)
+
+        val resA = classifierAB.classify("device")
+        val resB = classifierBA.classify("device")
+
+        assertThat((resA as ClassificationResult.ToolCall).toolName).isEqualTo("aaa_tool")
+        assertThat((resB as ClassificationResult.ToolCall).toolName).isEqualTo("aaa_tool")
     }
 }
