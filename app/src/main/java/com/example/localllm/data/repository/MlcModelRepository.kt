@@ -10,8 +10,10 @@ import com.example.localllm.domain.model.LLMModel
 import com.example.localllm.domain.model.ModelUiState
 import com.example.localllm.domain.model.ModelDownloadState
 import com.example.localllm.mlc.MLC_MODEL_CONFIG_FILENAME
+import com.example.localllm.mlc.MLC_LEGACY_TENSOR_CACHE_FILENAME
 import com.example.localllm.mlc.MLC_TENSOR_CACHE_FILENAME
 import com.example.localllm.mlc.MlcModelRecord
+import com.example.localllm.mlc.ensureInstalledMlcTensorCacheAlias
 import com.example.localllm.mlc.isInstalledMlcModelComplete
 import com.example.localllm.mlc.loadBundledMlcAppConfig
 import com.example.localllm.mlc.readInstalledMlcChatConfig
@@ -49,16 +51,19 @@ class MlcModelRepository @Inject constructor(
     // ─── Installed Model Queries ───────────────────────────────────────────────
 
     fun getInstalledModels(): Flow<List<InstalledModel>> =
-        modelDao.getAllInstalledModels().map { it.map(InstalledModelEntity::toDomain) }
+        modelDao.getAllInstalledModels().map { installedList ->
+            pruneStaleInstalls(installedList).map(InstalledModelEntity::toDomain)
+        }
 
     fun getModelUiStates(): Flow<List<ModelUiState>> =
         modelDao.getAllInstalledModels().map { installedList ->
-            val installedMap = installedList.associateBy { it.id }
+            val usableInstalls = pruneStaleInstalls(installedList)
+            val usableInstallsById = usableInstalls.associateBy { it.id }
             // Cache device specs to avoid repeated system calls per-model
             val ramMb = getAvailableRamMb()
             val storageMb = getAvailableStorageMb()
             availableModels.map { model ->
-                val installed = installedMap[model.id]
+                val installed = usableInstallsById[model.id]
                 ModelUiState(
                     model = model,
                     downloadState = if (installed != null) ModelDownloadState.INSTALLED
@@ -72,11 +77,15 @@ class MlcModelRepository @Inject constructor(
         }
 
     suspend fun getActiveModel(): InstalledModel? =
-        modelDao.getActiveModel()?.toDomain()
+        modelDao.getActiveModel()
+            ?.takeIf(::isUsableInstalledModel)
+            ?.toDomain()
+            ?: handleStaleActiveModel()
 
     suspend fun setActiveModel(modelId: String) {
         val installedModel = modelDao.getModelById(modelId)
-            ?: error("لا يمكن تفعيل نموذج غير مثبّت: $modelId")
+            ?.takeIf(::isUsableInstalledModel)
+            ?: error("لا يمكن تفعيل نموذج غير مثبّت أو غير مكتمل: $modelId")
         if (installedModel.isActive) {
             Timber.d("Active model already set to: $modelId")
             return
@@ -234,11 +243,14 @@ class MlcModelRepository @Inject constructor(
             }
             currentDownloaded += chatConfigFile.length()
 
-            downloadFileIfMissing(
-                url = resolveMlcModelAssetUrl(record.modelUrl, MLC_TENSOR_CACHE_FILENAME),
-                destination = tensorCacheFile
+            installTensorCacheManifest(
+                modelUrl = record.modelUrl,
+                modelDir = modelDir
             ) { downloaded, _ ->
-                onProgress(currentDownloaded + downloaded, estimatedTotal.coerceAtLeast(currentDownloaded + downloaded))
+                onProgress(
+                    currentDownloaded + downloaded,
+                    estimatedTotal.coerceAtLeast(currentDownloaded + downloaded)
+                )
             }
             currentDownloaded += tensorCacheFile.length()
 
@@ -373,6 +385,74 @@ class MlcModelRepository @Inject constructor(
 
     private fun installRootDir(): File =
         context.getExternalFilesDir(null) ?: context.filesDir
+
+    private suspend fun pruneStaleInstalls(
+        installedList: List<InstalledModelEntity>
+    ): List<InstalledModelEntity> = withContext(Dispatchers.IO) {
+        installedList.filter { entity ->
+            val isUsable = isUsableInstalledModel(entity)
+            if (!isUsable) {
+                Timber.w(
+                    "Pruning stale installed model entry id=%s path=%s",
+                    entity.id,
+                    entity.filePath
+                )
+                modelDao.deleteById(entity.id)
+            }
+            isUsable
+        }
+    }
+
+    private suspend fun installTensorCacheManifest(
+        modelUrl: String,
+        modelDir: File,
+        onProgress: (Long, Long) -> Unit = { _, _ -> }
+    ) {
+        ensureInstalledMlcTensorCacheAlias(modelDir)?.let { return }
+
+        val tensorCacheFile = File(modelDir, MLC_TENSOR_CACHE_FILENAME)
+        val remoteCandidates = listOf(
+            MLC_TENSOR_CACHE_FILENAME,
+            MLC_LEGACY_TENSOR_CACHE_FILENAME
+        )
+
+        var lastError: Throwable? = null
+        for (remoteName in remoteCandidates) {
+            val result = runCatching {
+                downloadFileIfMissing(
+                    url = resolveMlcModelAssetUrl(modelUrl, remoteName),
+                    destination = tensorCacheFile,
+                    onProgress = onProgress
+                )
+            }
+            if (result.isSuccess) {
+                return
+            }
+            lastError = result.exceptionOrNull()
+        }
+
+        throw lastError ?: IllegalStateException(
+            "Failed to install tensor cache manifest for $modelUrl"
+        )
+    }
+
+    private suspend fun handleStaleActiveModel(): InstalledModel? {
+        val activeModel = modelDao.getActiveModel() ?: return null
+        if (isUsableInstalledModel(activeModel)) {
+            return activeModel.toDomain()
+        }
+
+        Timber.w(
+            "Active model entry is stale and will be removed id=%s path=%s",
+            activeModel.id,
+            activeModel.filePath
+        )
+        modelDao.deleteById(activeModel.id)
+        return null
+    }
+
+    private fun isUsableInstalledModel(entity: InstalledModelEntity): Boolean =
+        isInstalledMlcModelComplete(File(entity.filePath))
 }
 
 // ─── Mapper ───────────────────────────────────────────────────────────────────

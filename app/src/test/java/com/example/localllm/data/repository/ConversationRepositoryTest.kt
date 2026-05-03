@@ -3,10 +3,13 @@ package com.example.localllm.data.repository
 import com.example.localllm.data.db.AppDatabase
 import com.example.localllm.data.db.dao.ConversationDao
 import com.example.localllm.data.db.dao.MessageDao
+import com.example.localllm.data.db.entity.MessageEntity
+import com.example.localllm.domain.model.MessageRole
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ConversationRepositoryTest {
@@ -25,5 +28,17 @@ class ConversationRepositoryTest {
         coVerify(exactly = 1) {
             messageDao.searchMessages("50\\%\\_off\\\\")
         }
+    }
+
+    @Test
+    fun `message entity preserves tool role when mapped back to domain`() {
+        val entity = MessageEntity(
+            id = 7L,
+            conversationId = 3L,
+            role = "tool",
+            content = "Battery: 82%"
+        )
+
+        assertEquals(MessageRole.TOOL, entity.toDomain().role)
     }
 }

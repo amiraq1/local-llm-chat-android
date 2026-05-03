@@ -5,7 +5,9 @@ import com.example.localllm.domain.model.LLMModel
 import com.example.localllm.domain.model.ModelDownloadState
 import com.example.localllm.domain.model.ModelUiState
 import com.example.localllm.mlc.MLC_MODEL_CONFIG_FILENAME
+import com.example.localllm.mlc.MLC_LEGACY_TENSOR_CACHE_FILENAME
 import com.example.localllm.mlc.MLC_TENSOR_CACHE_FILENAME
+import com.example.localllm.mlc.ensureInstalledMlcTensorCacheAlias
 import com.example.localllm.mlc.isInstalledMlcModelComplete
 import com.example.localllm.mlc.readInstalledMlcChatConfig
 import com.example.localllm.mlc.readInstalledMlcTensorCache
@@ -193,8 +195,6 @@ class ModelRepository(
         modelDir.mkdirs()
 
         val chatConfigFile = File(modelDir, MLC_MODEL_CONFIG_FILENAME)
-        val tensorCacheFile = File(modelDir, MLC_TENSOR_CACHE_FILENAME)
-
         downloadFileWithResume(
             url = resolveMlcModelAssetUrl(model.downloadUrl, MLC_MODEL_CONFIG_FILENAME),
             destination = chatConfigFile,
@@ -202,9 +202,9 @@ class ModelRepository(
                 onProgress(downloadedBytes, totalBytes.coerceAtLeast(model.sizeBytes))
             }
         )
-        downloadFileWithResume(
-            url = resolveMlcModelAssetUrl(model.downloadUrl, MLC_TENSOR_CACHE_FILENAME),
-            destination = tensorCacheFile,
+        installTensorCacheManifest(
+            modelUrl = model.downloadUrl,
+            modelDir = modelDir,
             onProgress = { downloadedBytes, totalBytes ->
                 onProgress(downloadedBytes, totalBytes.coerceAtLeast(model.sizeBytes))
             }
@@ -389,6 +389,39 @@ class ModelRepository(
         }
 
         error("Failed to connect or too many redirects")
+    }
+
+    private suspend fun installTensorCacheManifest(
+        modelUrl: String,
+        modelDir: File,
+        onProgress: (Long, Long) -> Unit
+    ) {
+        ensureInstalledMlcTensorCacheAlias(modelDir)?.let { return }
+
+        val tensorCacheFile = File(modelDir, MLC_TENSOR_CACHE_FILENAME)
+        val remoteCandidates = listOf(
+            MLC_TENSOR_CACHE_FILENAME,
+            MLC_LEGACY_TENSOR_CACHE_FILENAME
+        )
+
+        var lastError: Throwable? = null
+        for (remoteName in remoteCandidates) {
+            val result = runCatching {
+                downloadFileWithResume(
+                    url = resolveMlcModelAssetUrl(modelUrl, remoteName),
+                    destination = tensorCacheFile,
+                    onProgress = onProgress
+                )
+            }
+            if (result.isSuccess) {
+                return
+            }
+            lastError = result.exceptionOrNull()
+        }
+
+        throw lastError ?: IllegalStateException(
+            "Failed to install tensor cache manifest for $modelUrl"
+        )
     }
 
     internal suspend fun downloadFileForTest(

@@ -1,7 +1,7 @@
 package com.example.localllm.ui.models
 
 import com.example.localllm.data.datastore.SettingsDataStore
-import com.example.localllm.data.repository.ModelRepository
+import com.example.localllm.data.repository.MlcModelRepository
 import com.example.localllm.domain.model.AppSettings
 import com.example.localllm.domain.model.LLMModel
 import com.example.localllm.domain.model.ModelUiState
@@ -24,7 +24,7 @@ class ModelsViewModelRegressionTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private val modelRepository = mockk<ModelRepository>()
+    private val modelRepository = mockk<MlcModelRepository>()
     private val settingsDataStore = mockk<SettingsDataStore>()
 
     @Test
@@ -89,7 +89,7 @@ class ModelsViewModelRegressionTest {
         every { settingsDataStore.settings } returns flowOf(AppSettings())
         every { modelRepository.getInstallPath(MODEL_ID) } returns "C:/models/$MODEL_ID"
         every { modelRepository.isInstallComplete(MODEL_ID) } returnsMany listOf(false, false, true)
-        coEvery { modelRepository.downloadModel(MODEL_ID) } throws IllegalStateException("false negative")
+        coEvery { modelRepository.downloadModel(MODEL_ID, any()) } throws IllegalStateException("false negative")
         coEvery { modelRepository.markAsInstalled(model, "C:/models/$MODEL_ID") } just runs
 
         val viewModel = ModelsViewModel(modelRepository, settingsDataStore)
@@ -98,7 +98,7 @@ class ModelsViewModelRegressionTest {
         viewModel.downloadModel(MODEL_ID)
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { modelRepository.downloadModel(MODEL_ID) }
+        coVerify(exactly = 1) { modelRepository.downloadModel(MODEL_ID, any()) }
         coVerify(exactly = 1) { modelRepository.markAsInstalled(model, "C:/models/$MODEL_ID") }
         assertEquals(null, viewModel.state.value.errorMessage)
     }

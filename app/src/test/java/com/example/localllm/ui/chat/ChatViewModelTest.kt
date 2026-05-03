@@ -3,7 +3,7 @@ package com.example.localllm.ui.chat
 import app.cash.turbine.test
 import com.example.localllm.data.datastore.SettingsDataStore
 import com.example.localllm.data.repository.ConversationRepository
-import com.example.localllm.data.repository.ModelRepository
+import com.example.localllm.data.repository.MlcModelRepository
 import com.example.localllm.domain.model.AppSettings
 import com.example.localllm.domain.model.InstalledModel
 import com.example.localllm.domain.model.Message
@@ -35,7 +35,7 @@ class ChatViewModelTest {
 
     private val inferenceEngine   = FakeInferenceEngine()
     private val conversationRepo  = mockk<ConversationRepository>()
-    private val modelRepository   = mockk<ModelRepository>()
+    private val modelRepository   = mockk<MlcModelRepository>()
     private val settingsDataStore = mockk<SettingsDataStore>()
     private val orchestrator      = mockk<ActionOrchestrator>()
 
@@ -69,7 +69,7 @@ class ChatViewModelTest {
     // ── LLM path (pre-existing) ───────────────────────────────────────────────
 
     @Test
-    fun `sendMessage with NO active model emits ShowError event`() = runTest {
+    fun `sendMessage with NO active model preserves the draft and emits ShowError event`() = runTest {
         coEvery { modelRepository.getActiveModel() } returns null
         val viewModel = createViewModel(this.backgroundScope)
         viewModel.onInputChanged("Hello")
@@ -88,6 +88,10 @@ class ChatViewModelTest {
             }
             cancelAndIgnoreRemainingEvents()
         }
+
+        assertEquals("Hello", viewModel.uiState.value.inputText)
+        io.mockk.coVerify(exactly = 0) { conversationRepo.createConversation(any(), any()) }
+        io.mockk.coVerify(exactly = 0) { conversationRepo.addMessage(any(), any(), any(), any(), any()) }
     }
 
     @Test
@@ -155,15 +159,23 @@ class ChatViewModelTest {
 
             viewModel.sendMessage()
 
-            val loading = awaitItem()
-            assertThat(loading.isGenerating).isTrue()
+            var inFlight = awaitItem()
+            assertThat(inFlight.isGenerating).isTrue()
 
-            // Trace message appears while tool runs
-            val tracing = awaitItem()
-            assertThat(tracing.streamingText).contains("get_battery_status")
+            // Depending on StateFlow delivery timing, the first in-flight emission may
+            // already include the trace text. Keep consuming until the trace appears.
+            while (
+                inFlight.isGenerating &&
+                !inFlight.streamingText.contains("get_battery_status")
+            ) {
+                inFlight = awaitItem()
+            }
+            assertThat(inFlight.streamingText).contains("get_battery_status")
 
-            // Tool finishes — trace cleared, generating = false
-            val done = awaitItem()
+            var done = awaitItem()
+            while (done.isGenerating) {
+                done = awaitItem()
+            }
             assertThat(done.isGenerating).isFalse()
             assertThat(done.streamingText).isEmpty()
 

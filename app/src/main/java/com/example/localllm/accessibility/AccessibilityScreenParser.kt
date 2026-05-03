@@ -116,7 +116,7 @@ class AccessibilityScreenParser @Inject constructor() {
                 val childCount = node.childCount
                 for (index in 0 until childCount) {
                     val child = runCatching { node.getChild(index) }.getOrNull() ?: continue
-                        queue.addLast(ParserNodeFrame(child, depth + 1))
+                    queue.addLast(ParserNodeFrame(child, depth + 1))
                 }
             } finally {
                 node.recycle()

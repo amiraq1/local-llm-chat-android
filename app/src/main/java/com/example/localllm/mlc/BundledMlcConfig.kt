@@ -1,6 +1,7 @@
 package com.example.localllm.mlc
 
 import android.content.Context
+import com.example.localllm.domain.model.CuratedModelCatalog
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -30,8 +31,22 @@ fun loadBundledMlcAppConfig(context: Context): MlcAppConfig =
         mlcJson.decodeFromString<MlcAppConfig>(reader.readText())
     }
 
-fun findBundledMlcModel(context: Context, modelId: String): MlcModelRecord? = runCatching {
-    loadBundledMlcAppConfig(context).modelList.firstOrNull { it.modelId == modelId }
-}.onFailure { error ->
-    Timber.e(error, "Failed to read bundled MLC config for model %s", modelId)
-}.getOrNull()
+fun findBundledMlcModel(context: Context, modelId: String): MlcModelRecord? {
+    val directMatch = runCatching {
+        loadBundledMlcAppConfig(context).modelList.firstOrNull { it.modelId == modelId }
+    }.onFailure { error ->
+        Timber.e(error, "Failed to read bundled MLC config for model %s", modelId)
+    }.getOrNull()
+
+    if (directMatch != null) {
+        return directMatch
+    }
+
+    // Installed model directories use the catalog slug (for example `gemma-4-e2b`),
+    // while MLC assets may use a different internal `model_id`.
+    return CuratedModelCatalog.load(context)
+        .firstOrNull { catalogModel ->
+            catalogModel.slug == modelId && catalogModel.hasMlcBinding
+        }
+        ?.toMlcModelRecord()
+}

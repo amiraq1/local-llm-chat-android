@@ -44,8 +44,8 @@ class HistoryViewModelTest {
     @Test
     fun `delete and archive delegate to repository`() = runTest {
         every { repository.getAllConversations() } returns flowOf(emptyList<Conversation>())
-        coEvery { repository.deleteConversation(7L) } returns Unit
-        coEvery { repository.archiveConversation(9L) } returns Unit
+        coEvery { repository.deleteConversation(7L) } returns true
+        coEvery { repository.archiveConversation(9L) } returns true
 
         val viewModel = HistoryViewModel(repository)
 

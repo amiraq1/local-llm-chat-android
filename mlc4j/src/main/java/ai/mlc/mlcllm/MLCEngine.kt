@@ -3,6 +3,7 @@ package ai.mlc.mlcllm
 import ai.mlc.mlcllm.OpenAIProtocol.*
 import org.apache.tvm.Device
 import kotlin.concurrent.thread
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -13,12 +14,19 @@ class BackgroundWorker(
     private val task: () -> Unit,
     private val onError: (Throwable) -> Unit = {}
 ) {
+    @Volatile
+    private var workerThread: Thread? = null
 
     fun start() {
-        thread(start = true) {
+        val startedThread = thread(start = true) {
             runCatching { task() }
                 .onFailure(onError)
         }
+        workerThread = startedThread
+    }
+
+    fun join(timeoutMs: Long) {
+        runCatching { workerThread?.join(timeoutMs) }
     }
 }
 
@@ -103,6 +111,14 @@ class MLCEngine {
     fun unload() {
         state.abortAll("Engine unloaded")
         jsonFFIEngine.unload()
+    }
+
+    fun shutdown() {
+        state.abortAll("Engine shutdown")
+        runCatching { jsonFFIEngine.unload() }
+        runCatching { jsonFFIEngine.exitBackgroundLoop() }
+        threads.forEach { worker -> worker.join(timeoutMs = 1_000L) }
+        callbackScope.coroutineContext.cancel()
     }
 
     private fun handleBackgroundFailure(workerName: String, error: Throwable) {

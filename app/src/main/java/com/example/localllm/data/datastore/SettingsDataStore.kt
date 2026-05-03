@@ -37,7 +37,7 @@ class SettingsDataStore @Inject constructor(
         }
         .map { prefs ->
             AppSettings(
-                activeModelId = prefs[Keys.ACTIVE_MODEL_ID] ?: "gemma-4-e2b",
+                activeModelId = prefs[Keys.ACTIVE_MODEL_ID] ?: "",
                 temperature = prefs[Keys.TEMPERATURE] ?: 0.7f,
                 topP = prefs[Keys.TOP_P] ?: 0.9f,
                 maxTokens = prefs[Keys.MAX_TOKENS] ?: 512,

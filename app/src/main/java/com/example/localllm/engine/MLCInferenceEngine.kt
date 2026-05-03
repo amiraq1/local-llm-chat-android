@@ -7,6 +7,7 @@ import ai.mlc.mlcllm.OpenAIProtocol.ChatCompletionStreamResponse
 import ai.mlc.mlcllm.OpenAIProtocol.StreamOptions
 import android.content.Context
 import com.example.localllm.domain.model.MessageRole
+import com.example.localllm.mlc.ensureInstalledMlcTensorCacheAlias
 import com.example.localllm.mlc.findBundledMlcModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
@@ -41,45 +42,38 @@ class MLCInferenceEngine @Inject constructor(
             mutex.withLock {
                 try {
                     val modelDir = File(modelPath)
-                require(modelDir.exists()) { "Model path not found: $modelPath" }
-                require(modelDir.isDirectory) {
-                    "MLC requires a model directory, not a single file: $modelPath"
-                }
-
-                val modelId = modelDir.name
-                val manifestRecord = findBundledMlcModel(context, modelId)
-                    ?: error("Model \"$modelId\" is missing from mlc-app-config.json")
-
-                Timber.i("MLCInferenceEngine: Loading model %s from %s", modelId, modelPath)
-
-                val mlcEngine = engine ?: MLCEngine().also { engine = it }
-
-                runCatching { activeSession?.close() }
-                    .onFailure {
-                        Timber.e(it, "MLCInferenceEngine: Failed to close active session before reload")
+                    require(modelDir.exists()) { "Model path not found: $modelPath" }
+                    require(modelDir.isDirectory) {
+                        "MLC requires a model directory, not a single file: $modelPath"
                     }
-                activeSession = null
 
-                runCatching { mlcEngine.unload() }
-                    .onFailure { Timber.w(it, "MLCInferenceEngine: Engine unload before reload failed") }
+                    val modelId = modelDir.name
+                    val manifestRecord = findBundledMlcModel(context, modelId)
+                        ?: error("Model \"$modelId\" is missing from mlc-app-config.json")
+                    val tensorCacheFile = ensureInstalledMlcTensorCacheAlias(modelDir)
+                        ?: error("Model \"$modelId\" is missing tensor-cache.json")
 
-                                        mlcEngine.reload(modelDir.absolutePath, manifestRecord.modelLib)
+                    Timber.i("MLCInferenceEngine: Loading model %s from %s", modelId, modelPath)
+                    Timber.i(
+                        "MLCInferenceEngine: Using tensor cache manifest %s",
+                        tensorCacheFile.absolutePath
+                    )
 
+                    disposeEngine("Preparing engine for model reload")
 
+                    val mlcEngine = MLCEngine().also { engine = it }
+                    mlcEngine.reload(modelDir.absolutePath, manifestRecord.modelLib)
 
-                val session = MLCModelSession(mlcEngine, config)
-                activeSession = session
-                activeModelId = modelId
+                    val session = MLCModelSession(mlcEngine, config)
+                    activeSession = session
+                    activeModelId = modelId
 
-                Result.success(session)
-            } catch (e: Throwable) {
-                Timber.e(e, "MLCInferenceEngine: Failed to load model")
-                runCatching { activeSession?.close() }
-                activeSession = null
-                activeModelId = null
-                runCatching { engine?.unload() }
-                Result.failure(if (e is Exception) e else RuntimeException("MLC load failed", e))
-            }
+                    Result.success(session)
+                } catch (e: Throwable) {
+                    Timber.e(e, "MLCInferenceEngine: Failed to load model")
+                    disposeEngine("MLC load failure")
+                    Result.failure(if (e is Exception) e else RuntimeException("MLC load failed", e))
+                }
             }
         }
     }
@@ -97,8 +91,7 @@ class MLCInferenceEngine @Inject constructor(
                 activeSession = null
                 activeModelId = null
 
-                runCatching { engine?.unload() }
-                    .onFailure { Timber.e(it, "MLCInferenceEngine: Error during model unload") }
+                disposeEngine("Explicit unload")
             }
         }
     }
@@ -108,6 +101,19 @@ class MLCInferenceEngine @Inject constructor(
         version = "mlc4j-local",
         backend = "MLC"
     )
+
+    private suspend fun disposeEngine(reason: String) {
+        runCatching { activeSession?.close() }
+            .onFailure { Timber.w(it, "MLCInferenceEngine: Failed to close active session: %s", reason) }
+
+        activeSession = null
+        activeModelId = null
+
+        val engineToShutdown = engine
+        engine = null
+        runCatching { engineToShutdown?.shutdown() }
+            .onFailure { Timber.w(it, "MLCInferenceEngine: Engine shutdown failed: %s", reason) }
+    }
 }
 
 private class MLCModelSession(

@@ -2,6 +2,7 @@ package com.example.localllm.mlc
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -70,6 +71,35 @@ class MlcConfigTest {
         writeText(File(modelDir, "tokenizer_config.json"), "{}")
         writeText(File(modelDir, "params_shard_0.bin"), "weights")
 
+        assertTrue(isInstalledMlcModelComplete(modelDir))
+    }
+
+    @Test
+    fun `legacy ndarray cache is promoted to tensor cache for runtime compatibility`() {
+        val modelDir = Files.createTempDirectory("legacy-mlc-model").toFile()
+        writeText(
+            File(modelDir, MLC_MODEL_CONFIG_FILENAME),
+            """
+            {
+              "tokenizer_files": ["tokenizer.json"]
+            }
+            """.trimIndent()
+        )
+        writeText(
+            File(modelDir, MLC_LEGACY_TENSOR_CACHE_FILENAME),
+            """
+            {
+              "records": [{"dataPath": "params_shard_0.bin"}]
+            }
+            """.trimIndent()
+        )
+        writeText(File(modelDir, "tokenizer.json"), "{}")
+        writeText(File(modelDir, "params_shard_0.bin"), "weights")
+
+        val promotedFile = ensureInstalledMlcTensorCacheAlias(modelDir)
+
+        assertNotNull(promotedFile)
+        assertTrue(File(modelDir, MLC_TENSOR_CACHE_FILENAME).isFile)
         assertTrue(isInstalledMlcModelComplete(modelDir))
     }
 

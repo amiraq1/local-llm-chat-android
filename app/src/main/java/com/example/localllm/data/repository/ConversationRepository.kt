@@ -118,7 +118,7 @@ class ConversationRepository @Inject constructor(
         // If the enum relies on name, we use role.name.lowercase() here if needed.
         val entity = MessageEntity(
             conversationId = conversationId,
-            role = role.name.lowercase(), // fallback mapped to avoid compilation issues in case of storageValue absence.
+            role = role.storageValue,
             content = normalizedContent,
             tokensUsed = tokensUsed,
             generationTimeMs = generationTimeMs
@@ -233,11 +233,7 @@ internal fun MessageEntity.toDomain(): Message =
     Message(
         id = id,
         conversationId = conversationId,
-        role = when(role.lowercase()) {
-            "user" -> MessageRole.USER
-            "assistant" -> MessageRole.ASSISTANT
-            else -> MessageRole.SYSTEM
-        },
+        role = MessageRole.fromStorageValue(role),
         content = content,
         createdAt = createdAt,
         tokensUsed = tokensUsed,
@@ -248,7 +244,7 @@ internal fun Message.toEntity(): MessageEntity =
     MessageEntity(
         id = id,
         conversationId = conversationId,
-        role = role.name.lowercase(),
+        role = role.storageValue,
         content = content,
         createdAt = createdAt,
         tokensUsed = tokensUsed,

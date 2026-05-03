@@ -37,7 +37,7 @@ data class MessageEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val conversationId: Long,
-    val role: String,           // "user" | "assistant" | "system"
+    val role: String,           // "user" | "assistant" | "system" | "tool"
     val content: String,
     val createdAt: Long = System.currentTimeMillis(),
     val tokensUsed: Int? = null,

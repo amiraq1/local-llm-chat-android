@@ -14,7 +14,8 @@
 - `FakeInferenceEngine` يعمل كـbackend احتياطي وللاختبارات والتطوير المعزول.
 - مشروع `mlc4j` مضمن داخل المستودع ومربوط مباشرة مع التطبيق.
 - يوجد Gradle Wrapper داخل المستودع، والإصدار الحالي هو Gradle 8.7.
-- التحقق الكامل (`assembleDebug` / `test` / `lint`) يحتاج Android SDK محليًا مضبوطًا عبر `ANDROID_HOME` أو `ANDROID_SDK_ROOT` أو `local.properties`.
+- التحقق المنفذ حاليًا نجح لمسارات `:app:testDebugUnitTest` و`:download-core:test` و`:app:assembleDebug`.
+- `lint` ومسارات النشر النهائية ما تزال تحتاج Android SDK محليًا مضبوطًا عبر `ANDROID_HOME` أو `ANDROID_SDK_ROOT` أو `local.properties`.
 
 ## Stack
 
@@ -77,4 +78,4 @@ docs/
 - طبقة البث الحالية تستخدم cancellation فعليًا عبر `abort` في طبقة FFI بدل الاكتفاء بإلغاء coroutine محليًا.
 - ما زالت بعض أجزاء التكامل تعتبر scaffold عمليًا، خصوصًا ما يعتمد على البيئة المحلية والـnative toolchain.
 
-راجع [docs/mlc-integration.md](/data/data/com.termux/files/home/local-llm-chat-android/docs/mlc-integration.md) و[RELEASE_2_0_ANALYSIS.md](/data/data/com.termux/files/home/local-llm-chat-android/RELEASE_2_0_ANALYSIS.md) للتفاصيل.
+راجع [docs/mlc-integration.md](docs/mlc-integration.md) و[RELEASE_2_0_ANALYSIS.md](RELEASE_2_0_ANALYSIS.md) للتفاصيل.

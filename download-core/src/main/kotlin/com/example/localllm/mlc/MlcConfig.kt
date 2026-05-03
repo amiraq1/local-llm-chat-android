@@ -8,7 +8,8 @@ import java.io.File
 import java.net.URI
 
 const val MLC_MODEL_CONFIG_FILENAME = "mlc-chat-config.json"
-const val MLC_TENSOR_CACHE_FILENAME = "ndarray-cache.json"
+const val MLC_TENSOR_CACHE_FILENAME = "tensor-cache.json"
+const val MLC_LEGACY_TENSOR_CACHE_FILENAME = "ndarray-cache.json"
 
 private const val HUGGING_FACE_RESOLVE_PREFIX = "resolve/main/"
 
@@ -36,7 +37,7 @@ fun readInstalledMlcChatConfig(modelDir: File): MlcChatConfig =
     mlcJson.decodeFromString(File(modelDir, MLC_MODEL_CONFIG_FILENAME).readText())
 
 fun readInstalledMlcTensorCache(modelDir: File): MlcTensorCache =
-    mlcJson.decodeFromString(File(modelDir, MLC_TENSOR_CACHE_FILENAME).readText())
+    mlcJson.decodeFromString(resolveInstalledMlcTensorCacheFile(modelDir).readText())
 
 fun resolveMlcModelAssetUrl(modelUrl: String, relativePath: String): String {
     val normalizedBase = if (modelUrl.endsWith("/")) modelUrl else "$modelUrl/"
@@ -50,8 +51,8 @@ fun isInstalledMlcModelComplete(modelDir: File): Boolean = runCatching {
     if (!modelDir.isDirectory) return false
 
     val chatConfigFile = File(modelDir, MLC_MODEL_CONFIG_FILENAME)
-    val tensorCacheFile = File(modelDir, MLC_TENSOR_CACHE_FILENAME)
-    if (!chatConfigFile.isFile || !tensorCacheFile.isFile) {
+    val tensorCacheFile = resolveInstalledMlcTensorCacheFileOrNull(modelDir)
+    if (!chatConfigFile.isFile || tensorCacheFile?.isFile != true) {
         return false
     }
 
@@ -67,3 +68,26 @@ fun isInstalledMlcModelComplete(modelDir: File): Boolean = runCatching {
 
     tokenizerFilesPresent && tensorFilesPresent
 }.getOrDefault(false)
+
+fun ensureInstalledMlcTensorCacheAlias(modelDir: File): File? {
+    val tensorCacheFile = File(modelDir, MLC_TENSOR_CACHE_FILENAME)
+    if (tensorCacheFile.isFile) {
+        return tensorCacheFile
+    }
+
+    val legacyTensorCacheFile = File(modelDir, MLC_LEGACY_TENSOR_CACHE_FILENAME)
+    if (!legacyTensorCacheFile.isFile) {
+        return null
+    }
+
+    legacyTensorCacheFile.copyTo(tensorCacheFile, overwrite = true)
+    return tensorCacheFile
+}
+
+private fun resolveInstalledMlcTensorCacheFile(modelDir: File): File =
+    resolveInstalledMlcTensorCacheFileOrNull(modelDir)
+        ?: error("Missing tensor cache manifest in ${modelDir.absolutePath}")
+
+private fun resolveInstalledMlcTensorCacheFileOrNull(modelDir: File): File? =
+    ensureInstalledMlcTensorCacheAlias(modelDir)
+        ?: File(modelDir, MLC_LEGACY_TENSOR_CACHE_FILENAME).takeIf(File::isFile)

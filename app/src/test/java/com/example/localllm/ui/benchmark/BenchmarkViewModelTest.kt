@@ -4,7 +4,7 @@ import android.content.Context
 import com.example.localllm.data.datastore.SettingsDataStore
 import com.example.localllm.data.db.dao.BenchmarkDao
 import com.example.localllm.data.db.entity.BenchmarkResultEntity
-import com.example.localllm.data.repository.ModelRepository
+import com.example.localllm.data.repository.MlcModelRepository
 import com.example.localllm.domain.model.AppSettings
 import com.example.localllm.engine.FakeInferenceEngine
 import com.example.localllm.util.MainDispatcherRule
@@ -26,7 +26,7 @@ class BenchmarkViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val inferenceEngine = FakeInferenceEngine()
-    private val modelRepository = mockk<ModelRepository>()
+    private val modelRepository = mockk<MlcModelRepository>()
     private val benchmarkDao = mockk<BenchmarkDao>(relaxed = true)
     private val settingsDataStore = mockk<SettingsDataStore>()
     private val context = mockk<Context>(relaxed = true)

@@ -4,15 +4,25 @@
 
 المستودع لم يعد في حالة `FakeInferenceEngine`-only. الحالة الحالية كالتالي:
 
-- `MLCInferenceEngine` هو الـbackend المربوط فعليًا عبر Hilt.
+- `FallbackInferenceEngine` هو الـbackend المربوط فعليًا عبر Hilt.
+- `FallbackInferenceEngine` يجرّب `MLCInferenceEngine` أولًا ثم يتراجع إلى `FakeInferenceEngine`
+  إذا فشل تحميل المكتبات الأصلية أو انهار التوليد داخل runtime المحلي.
 - module `mlc4j` مضمّن داخل المشروع ومربوط مع `app`.
 - طبقة البث تمر عبر `MLCEngine` و`JSONFFIEngine` وواجهة `OpenAIProtocol`.
 - تم تشديد lifecycle الخاص بالبث بحيث يدعم:
   - إلغاء الطلب عبر `abort`
   - تنظيف state عند إغلاق الـstream
+  - إيقاف background loops صراحة عند التفريغ
   - تقليل مخاطر التسريب وعدم الأمان الخيطي في تتبع الطلبات
 
-هذا لا يعني أن المشروع `runtime-verified` بالكامل في هذه البيئة. التحقق الكامل ما زال متوقفًا على توفر Android SDK محليًا، وعلى صلاحية ملفات الـnative runtime الموجودة ضمن `mlc4j/output`.
+التحقق المحلي المنفذ حاليًا أثبت المسارات التالية:
+
+- `:app:testDebugUnitTest`
+- `:download-core:test`
+- `:app:assembleDebug`
+
+ما يزال التشغيل الفعلي على جهاز Android معتمدًا على صلاحية ملفات الـnative runtime الموجودة ضمن `mlc4j/output`
+وعلى توافق الجهاز المستهدف مع backend الخاص بـMLC.
 
 ## Architecture Notes
 
@@ -34,14 +44,16 @@
 
 ### Wired now
 
-- DI binding على `MLCInferenceEngine`
+- DI binding على `FallbackInferenceEngine`
+- fallback تلقائي من MLC إلى fake backend عند الفشل
 - وجود `mlc4j` داخل البناء
 - request abort path من طبقة التطبيق إلى طبقة FFI
 - bounded channel strategy بدل النمو غير المحدود للذاكرة
+- shutdown صريح لخلفيات `MLCEngine`
 
 ### Still environment-dependent
 
-- نجاح `assembleDebug` و`lint` و`test` يتطلب Android SDK محليًا مضبوطًا
+- نجاح `lint` ومسارات النشر النهائية ما يزال يتطلب Android SDK محليًا مضبوطًا
 - التشغيل الفعلي يعتمد على صلاحية المكتبات الأصلية داخل `mlc4j/output`
 - الأداء الفعلي وTTFT/TPS ما زالا يحتاجان تحققًا على جهاز Android مناسب
 
@@ -57,7 +69,7 @@
 ./gradlew --no-daemon help --console=plain
 ./gradlew --no-daemon tasks --console=plain
 ./gradlew --no-daemon assembleDebug --console=plain
-./gradlew --no-daemon test --console=plain
+./gradlew --no-daemon :app:testDebugUnitTest :download-core:test --console=plain
 ./gradlew --no-daemon lint --console=plain
 ```
 
