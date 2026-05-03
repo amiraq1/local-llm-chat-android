@@ -1,0 +1,10 @@
+{
+  "device": "android",
+  "model_list": [
+    {
+      "model": "HF://mlc-ai/DeepSeek-R1-Distill-Qwen-1.5B-q4f16_1-MLC",
+      "model_id": "DeepSeek-R1-Distill-Qwen-1.5B-q4f16_1-MLC",
+      "estimated_vram_bytes": 2200000000
+    }
+  ]
+}

@@ -219,6 +219,32 @@
     "minAndroidApi": 28
   },
   {
+    "slug": "qwen-2-5-0-5b-instruct",
+    "name": "Qwen 2.5 0.5B Instruct",
+    "family": "qwen",
+    "provider": "Alibaba",
+    "sizeGb": 0.3,
+    "description": "فائق الخفة للاستجابة السريعة على الجهاز",
+    "tags": [
+      "خفيف",
+      "سريع جدًا",
+      "MLC",
+      "Qwen"
+    ],
+    "capabilities": [
+      "fast",
+      "lightweight",
+      "bilingual"
+    ],
+    "contextLength": 32768,
+    "quantization": "Q4F16_1",
+    "isRecommended": false,
+    "mlcModelId": "Qwen2.5-0.5B-Instruct-q4f16_1-MLC",
+    "mlcModelUrl": "https://huggingface.co/mlc-ai/Qwen2.5-0.5B-Instruct-q4f16_1-MLC",
+    "mlcModelLib": null,
+    "minAndroidApi": 28
+  },
+  {
     "slug": "qwen-3-5-2b",
     "name": "Qwen 3.5 2B",
     "family": "qwen",
@@ -582,26 +608,27 @@
   },
   {
     "slug": "deepseek-r1-1-5b",
-    "name": "DeepSeek R1 1.5B",
+    "name": "DeepSeek R1 Distill Qwen 1.5B",
     "family": "deepseek",
     "provider": "DeepSeek",
-    "sizeGb": 0.9,
-    "description": "استدلال ومنطق سريع",
+    "sizeGb": 1.1,
+    "description": "استدلال صغير مبني على Qwen ومناسب للتجارب المحلية",
     "tags": [
       "استدلال",
       "منطق",
-      "سريع"
+      "Qwen",
+      "MLC"
     ],
     "capabilities": [
       "reasoning",
       "logic",
-      "fast"
+      "bilingual"
     ],
-    "contextLength": 8192,
-    "quantization": "Q4",
+    "contextLength": 131072,
+    "quantization": "Q4F16_1",
     "isRecommended": false,
-    "mlcModelId": null,
-    "mlcModelUrl": null,
+    "mlcModelId": "DeepSeek-R1-Distill-Qwen-1.5B-q4f16_1-MLC",
+    "mlcModelUrl": "https://huggingface.co/mlc-ai/DeepSeek-R1-Distill-Qwen-1.5B-q4f16_1-MLC",
     "mlcModelLib": null,
     "minAndroidApi": 28
   },
