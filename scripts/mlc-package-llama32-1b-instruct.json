@@ -1,0 +1,13 @@
+{
+  "device": "android",
+  "model_list": [
+    {
+      "model": "HF://mlc-ai/Llama-3.2-1B-Instruct-q4f16_1-MLC",
+      "model_id": "Llama-3.2-1B-Instruct-q4f16_1-MLC",
+      "estimated_vram_bytes": 1400000000,
+      "overrides": {
+        "prefill_chunk_size": 1024
+      }
+    }
+  ]
+}

@@ -76,22 +76,24 @@
   },
   {
     "slug": "gemma-4-e2b",
-    "name": "Gemma 4 E2B",
+    "name": "Gemma 2 2B It",
     "family": "gemma",
     "provider": "Google",
     "sizeGb": 1.8,
-    "description": "أحدث جيل، يدعم أكثر من 140 لغة",
+    "description": "نموذج Google المدمج الجاهز للتشغيل محليًا",
     "tags": [
+      "Gemma",
       "متعدد اللغات",
-      "حديث",
+      "MLC",
       "Google"
     ],
     "capabilities": [
       "multilingual",
-      "latest"
+      "on_device",
+      "ready"
     ],
-    "contextLength": 8192,
-    "quantization": "Q4",
+    "contextLength": 4096,
+    "quantization": "Q4F16_1",
     "isRecommended": true,
     "mlcModelId": "gemma-2-2b-it-q4f16_1-MLC",
     "mlcModelUrl": "https://huggingface.co/mlc-ai/gemma-2-2b-it-q4f16_1-MLC",
@@ -466,25 +468,27 @@
   },
   {
     "slug": "llama-3-2-1b",
-    "name": "Llama 3.2 1B",
+    "name": "Llama 3.2 1B Instruct",
     "family": "llama",
     "provider": "Meta",
     "sizeGb": 0.7,
-    "description": "أخف نموذج من Meta",
+    "description": "نموذج Meta خفيف بتعليمات محادثة وسياق طويل",
     "tags": [
       "خفيف",
       "Meta",
-      "سريع"
+      "سريع",
+      "MLC"
     ],
     "capabilities": [
       "lightweight",
-      "fast"
+      "fast",
+      "instruction"
     ],
-    "contextLength": 8192,
-    "quantization": "Q4",
+    "contextLength": 131072,
+    "quantization": "Q4F16_1",
     "isRecommended": false,
-    "mlcModelId": null,
-    "mlcModelUrl": null,
+    "mlcModelId": "Llama-3.2-1B-Instruct-q4f16_1-MLC",
+    "mlcModelUrl": "https://huggingface.co/mlc-ai/Llama-3.2-1B-Instruct-q4f16_1-MLC",
     "mlcModelLib": null,
     "minAndroidApi": 28
   },
