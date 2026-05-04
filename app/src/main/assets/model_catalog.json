@@ -245,6 +245,32 @@
     "minAndroidApi": 28
   },
   {
+    "slug": "qwen-2-5-1-5b-instruct",
+    "name": "Qwen 2.5 1.5B Instruct",
+    "family": "qwen",
+    "provider": "Alibaba",
+    "sizeGb": 1.0,
+    "description": "توازن خفيف بين السرعة وجودة المحادثة ثنائية اللغة",
+    "tags": [
+      "ثنائي اللغة",
+      "متوازن",
+      "MLC",
+      "Qwen"
+    ],
+    "capabilities": [
+      "bilingual",
+      "balanced",
+      "fast"
+    ],
+    "contextLength": 32768,
+    "quantization": "Q4F16_1",
+    "isRecommended": false,
+    "mlcModelId": "Qwen2.5-1.5B-Instruct-q4f16_1-MLC",
+    "mlcModelUrl": "https://huggingface.co/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC",
+    "mlcModelLib": null,
+    "minAndroidApi": 28
+  },
+  {
     "slug": "qwen-3-5-2b",
     "name": "Qwen 3.5 2B",
     "family": "qwen",
