@@ -517,6 +517,32 @@
     "minAndroidApi": 28
   },
   {
+    "slug": "phi-3-mini-4k-instruct",
+    "name": "Phi 3 Mini 4K Instruct",
+    "family": "phi",
+    "provider": "Microsoft",
+    "sizeGb": 2.2,
+    "description": "نموذج تعليمات صغير وقوي بسياق 4K",
+    "tags": [
+      "استدلال",
+      "تعليمات",
+      "Microsoft",
+      "MLC"
+    ],
+    "capabilities": [
+      "reasoning",
+      "instruction",
+      "compact"
+    ],
+    "contextLength": 4096,
+    "quantization": "Q4F16_1",
+    "isRecommended": false,
+    "mlcModelId": "Phi-3-mini-4k-instruct-q4f16_1-MLC",
+    "mlcModelUrl": "https://huggingface.co/mlc-ai/Phi-3-mini-4k-instruct-q4f16_1-MLC",
+    "mlcModelLib": null,
+    "minAndroidApi": 28
+  },
+  {
     "slug": "phi-4-mini",
     "name": "Phi 4 Mini",
     "family": "phi",
