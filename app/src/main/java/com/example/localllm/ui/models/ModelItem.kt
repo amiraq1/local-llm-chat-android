@@ -38,6 +38,8 @@ fun ModelItem(
     onLoad: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val incompatibilityReason = modelState.incompatibilityReason
+
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
             text = modelState.model.name,
@@ -49,6 +51,13 @@ fun ModelItem(
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        if (!modelState.isCompatible && !incompatibilityReason.isNullOrBlank()) {
+            Text(
+                text = incompatibilityReason,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
 
         if (modelState.downloadState == ModelDownloadState.DOWNLOADING ||
             modelState.downloadState == ModelDownloadState.PAUSED ||
@@ -121,7 +130,7 @@ fun ModelItem(
                         when (modelState.downloadState) {
                             ModelDownloadState.PAUSED -> "تحميل"
                             ModelDownloadState.ERROR -> "تحميل"
-                            else -> if (modelState.isCompatible) "تحميل" else "غير متوافق"
+                            else -> if (modelState.isCompatible) "تحميل" else "غير جاهز"
                         }
                     )
                 }

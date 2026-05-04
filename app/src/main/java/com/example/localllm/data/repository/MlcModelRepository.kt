@@ -5,6 +5,8 @@ import android.content.Context
 import android.os.StatFs
 import com.example.localllm.data.db.dao.ModelDao
 import com.example.localllm.data.db.entity.InstalledModelEntity
+import com.example.localllm.domain.model.CatalogModel
+import com.example.localllm.domain.model.CuratedModelCatalog
 import com.example.localllm.domain.model.InstalledModel
 import com.example.localllm.domain.model.LLMModel
 import com.example.localllm.domain.model.ModelUiState
@@ -15,7 +17,6 @@ import com.example.localllm.mlc.MLC_TENSOR_CACHE_FILENAME
 import com.example.localllm.mlc.MlcModelRecord
 import com.example.localllm.mlc.ensureInstalledMlcTensorCacheAlias
 import com.example.localllm.mlc.isInstalledMlcModelComplete
-import com.example.localllm.mlc.loadBundledMlcAppConfig
 import com.example.localllm.mlc.readInstalledMlcChatConfig
 import com.example.localllm.mlc.readInstalledMlcTensorCache
 import com.example.localllm.mlc.resolveMlcRedirectUrl
@@ -41,12 +42,18 @@ class MlcModelRepository @Inject constructor(
 ) {
     private val modelDownloadMutexes = java.util.concurrent.ConcurrentHashMap<String, Mutex>()
 
+    private val catalogModels: List<CatalogModel> by lazy(LazyThreadSafetyMode.NONE) {
+        loadCatalogModels()
+    }
+
     private val bundledModels: List<BundledMlcModel> by lazy(LazyThreadSafetyMode.NONE) {
         loadBundledModels()
     }
 
     val availableModels: List<LLMModel>
-        get() = bundledModels.map(BundledMlcModel::uiModel)
+        get() = catalogModels
+            .filter { it.hasMlcBinding || it.hasPendingMlcTarget }
+            .map(CatalogModel::toLlmModel)
 
     // ─── Installed Model Queries ───────────────────────────────────────────────
 
@@ -70,7 +77,8 @@ class MlcModelRepository @Inject constructor(
                                    else ModelDownloadState.NOT_DOWNLOADED,
                     isInstalled = installed != null,
                     isActive = installed?.isActive ?: false,
-                    isCompatible = isCompatibleWith(model, ramMb, storageMb),
+                    isCompatible = isModelRuntimePackaged(model.id) &&
+                        isCompatibleWith(model, ramMb, storageMb),
                     incompatibilityReason = getIncompatibilityReasonWith(model, ramMb, storageMb)
                 )
             }
@@ -122,7 +130,7 @@ class MlcModelRepository @Inject constructor(
         return mutex.withLock {
             withContext(Dispatchers.IO) {
                 val bundledModel = bundledModels.firstOrNull { it.uiModel.id == modelId }
-                    ?: error("النموذج غير موجود في mlc-app-config.json")
+                    ?: error(getPendingRuntimeMessage(modelId) ?: "النموذج غير موجود في mlc-app-config.json")
 
                 val modelDir = File(getInstallPath(modelId))
                 val installedConfig = installBundledModel(bundledModel.manifest, modelDir, onProgress)
@@ -164,7 +172,8 @@ class MlcModelRepository @Inject constructor(
         File(getModelsDir(), modelId).absolutePath
 
     fun isInstallComplete(modelId: String): Boolean =
-        isInstalledMlcModelComplete(File(getInstallPath(modelId)))
+        isModelRuntimePackaged(modelId) &&
+            isInstalledMlcModelComplete(File(getInstallPath(modelId)))
 
     suspend fun deleteModel(modelId: String) {
         File(getInstallPath(modelId)).deleteRecursively()
@@ -178,13 +187,17 @@ class MlcModelRepository @Inject constructor(
         isCompatibleWith(model, getAvailableRamMb(), getAvailableStorageMb())
 
     fun isCompatibleWith(model: LLMModel, ramMb: Int, storageMb: Long): Boolean =
-        ramMb >= model.minRamMb && storageMb >= (model.sizeBytes / 1_000_000)
+        isModelRuntimePackaged(model.id) &&
+            ramMb >= model.minRamMb &&
+            storageMb >= (model.sizeBytes / 1_000_000)
 
     fun getIncompatibilityReason(model: LLMModel): String? =
         getIncompatibilityReasonWith(model, getAvailableRamMb(), getAvailableStorageMb())
 
     fun getIncompatibilityReasonWith(model: LLMModel, ramMb: Int, storageMb: Long): String? {
         return when {
+            !isModelRuntimePackaged(model.id) ->
+                getPendingRuntimeMessage(model.id)
             ramMb < model.minRamMb ->
                 "RAM غير كافية: ${ramMb}MB متاح، ${model.minRamMb}MB مطلوب"
             storageMb < (model.sizeBytes / 1_000_000) ->
@@ -207,8 +220,14 @@ class MlcModelRepository @Inject constructor(
         return stat.availableBlocksLong * stat.blockSizeLong / 1_000_000
     }
 
+    private fun loadCatalogModels(): List<CatalogModel> = runCatching {
+        CuratedModelCatalog.load(context)
+    }.onFailure { error ->
+        Timber.e(error, "Failed to load CuratedModelCatalog")
+    }.getOrDefault(emptyList())
+
     private fun loadBundledModels(): List<BundledMlcModel> = runCatching {
-        com.example.localllm.domain.model.CuratedModelCatalog.load(context)
+        catalogModels
             .filter { it.hasMlcBinding }
             .map { catalogModel ->
                 BundledMlcModel(
@@ -452,7 +471,15 @@ class MlcModelRepository @Inject constructor(
     }
 
     private fun isUsableInstalledModel(entity: InstalledModelEntity): Boolean =
-        isInstalledMlcModelComplete(File(entity.filePath))
+        isModelRuntimePackaged(entity.id) && isInstalledMlcModelComplete(File(entity.filePath))
+
+    private fun isModelRuntimePackaged(modelId: String): Boolean =
+        bundledModels.any { it.uiModel.id == modelId }
+
+    private fun getPendingRuntimeMessage(modelId: String): String? =
+        catalogModels
+            .firstOrNull { it.slug == modelId && it.hasPendingMlcTarget }
+            ?.let { "يتطلب تجهيز مكتبة MLC الأصلية قبل التحميل" }
 }
 
 // ─── Mapper ───────────────────────────────────────────────────────────────────
@@ -474,3 +501,6 @@ private data class BundledMlcModel(
     val uiModel: LLMModel,
     val manifest: MlcModelRecord
 )
+
+private val CatalogModel.hasPendingMlcTarget: Boolean
+    get() = !mlcModelUrl.isNullOrBlank() && mlcModelLib.isNullOrBlank()
