@@ -115,6 +115,20 @@ class BenchmarkViewModel @Inject constructor(
     ) {
         if (benchmarkJob?.isActive == true || _state.value.isRunning) return
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+        viewModelScope.launch {
+            try {
+                val modelPath = "/data/local/tmp/fake_model"
+                val session = inferenceEngine.loadModel(modelPath, ModelConfig())
+                    .getOrThrow()
+
+                val request = GenerationRequest(
+                    messages = listOf(ChatMessage("user", BENCHMARK_PROMPT)),
+                    maxTokens = 200
+=======
+=======
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
         benchmarkJob = viewModelScope.launch {
             var session: ModelSession? = null
 
@@ -135,6 +149,10 @@ class BenchmarkViewModel @Inject constructor(
                     worstTPS = null,
                     statusMessage = "جاري تهيئة الاختبار...",
                     errorMessage = null
+<<<<<<< HEAD
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
+=======
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
                 )
             }
 

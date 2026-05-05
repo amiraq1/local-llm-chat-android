@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LocalLLM</string>
+
+    <!-- Navigation -->
+    <string name="nav_chat">الدردشة</string>
+    <string name="nav_models">النماذج</string>
+    <string name="nav_history">السجل</string>
+    <string name="nav_benchmark">الأداء</string>
+    <string name="nav_settings">الإعدادات</string>
+
+    <!-- Chat -->
+    <string name="chat_new">محادثة جديدة</string>
+    <string name="chat_input_placeholder">اكتب رسالتك…</string>
+    <string name="chat_send">إرسال</string>
+    <string name="chat_stop">إيقاف</string>
+    <string name="chat_no_model">لم يُختر نموذج</string>
+    <string name="chat_no_active_model">لا يوجد نموذج نشط</string>
+    <string name="chat_select_model_hint">الرجاء اختيار نموذج من الإعدادات أو تنزيل نموذج جديد للبدء في استخدام التطبيق.</string>
+    <string name="chat_ready">LocalLLM جاهز</string>
+    <string name="chat_local_processing">كل معالجتك تتم محليًا على جهازك\nبدون أي اتصال بالإنترنت</string>
+    <string name="chat_loading_model">جاري تحميل النموذج…</string>
+    <string name="chat_assistant_typing">المساعد يكتب…</string>
+    <string name="chat_model_connected">نموذج متصل</string>
+    <string name="chat_no_model_connected">لا يوجد نموذج</string>
+    <string name="chat_session_failed">فشل تحميل جلسة النموذج</string>
+    <string name="chat_generation_error">حدث خطأ أثناء التوليد</string>
+    <string name="chat_no_active_model_error">لا يوجد نموذج نشط. الرجاء اختيار نموذج من الإعدادات قبل بدء المحادثة.</string>
+
+    <!-- Models -->
+    <string name="models_title">النماذج</string>
+    <string name="models_installed_count">%d مثبّت</string>
+    <string name="models_device_hint">اختر نموذجًا متوافقًا مع ذاكرة جهازك</string>
+    <string name="models_active">نشط</string>
+    <string name="models_activate">تفعيل</string>
+    <string name="models_download">تنزيل</string>
+    <string name="models_downloading">جارٍ التنزيل…</string>
+    <string name="models_incompatible">غير متوافق</string>
+    <string name="models_uninstall">إلغاء التثبيت</string>
+    <string name="models_ram_insufficient">RAM غير كافية: %1$dMB متاح، %2$dMB مطلوب</string>
+    <string name="models_storage_insufficient">تخزين غير كافٍ: %1$dMB متاح، %2$dMB مطلوب</string>
+
+    <!-- History -->
+    <string name="history_title">المحادثات</string>
+    <string name="history_count">%d محادثة</string>
+    <string name="history_search">ابحث في عناوين المحادثات…</string>
+    <string name="history_empty">لا توجد محادثات بعد</string>
+    <string name="history_start_new">ابدأ محادثة جديدة من تبويب الدردشة</string>
+    <string name="history_delete_title">حذف المحادثة</string>
+    <string name="history_delete_confirm">سيتم حذف \"%s\" نهائيًا ولا يمكن التراجع.</string>
+    <string name="history_message_count">%d رسالة</string>
+    <string name="history_today">اليوم</string>
+    <string name="history_yesterday">أمس</string>
+    <string name="history_this_week">هذا الأسبوع</string>
+    <string name="history_this_month">هذا الشهر</string>
+
+    <!-- Benchmark -->
+    <string name="benchmark_title">قياس الأداء</string>
+    <string name="benchmark_run">تشغيل اختبار الأداء</string>
+    <string name="benchmark_running">جارٍ الاختبار…</string>
+    <string name="benchmark_live">النتائج الحية</string>
+    <string name="benchmark_history">نتائج سابقة</string>
+    <string name="benchmark_error">حدث خطأ في الاختبار</string>
+
+    <!-- Settings -->
+    <string name="settings_title">الإعدادات</string>
+    <string name="settings_subtitle">تخصيص سلوك النموذج</string>
+    <string name="settings_engine">المحرك</string>
+    <string name="settings_inference">الاستدلال</string>
+    <string name="settings_temperature_desc">يتحكم في إبداعية الردود</string>
+    <string name="settings_topp_desc">نطاق الكلمات المقترحة (Nucleus Sampling)</string>
+    <string name="settings_max_tokens_desc">الحد الأقصى لطول الرد</string>
+    <string name="settings_context_desc">حجم نافذة السياق (تأثير على استهلاك الذاكرة)</string>
+    <string name="settings_network">الشبكة والتنزيل</string>
+    <string name="settings_wifi_only">Wi-Fi فقط</string>
+    <string name="settings_wifi_desc">تنزيل النماذج عبر Wi-Fi لتجنب استهلاك البيانات</string>
+    <string name="settings_appearance">المظهر</string>
+    <string name="settings_dark_mode">الوضع الداكن</string>
+    <string name="settings_about">حول التطبيق</string>
+    <string name="settings_reset">إعادة الضبط</string>
+    <string name="settings_reset_confirm">هل تريد إعادة جميع الإعدادات إلى قيمها الافتراضية؟ لا يمكن التراجع.</string>
+    <string name="settings_privacy">100%% محلي</string>
+
+    <!-- Common -->
+    <string name="action_delete">حذف</string>
+    <string name="action_cancel">إلغاء</string>
+    <string name="action_ok">حسنًا</string>
+    <string name="action_search">بحث</string>
+    <string name="error_title">خطأ</string>
+</resources>

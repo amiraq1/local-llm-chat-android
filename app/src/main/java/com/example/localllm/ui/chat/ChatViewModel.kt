@@ -4,7 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.localllm.data.datastore.SettingsDataStore
 import com.example.localllm.data.repository.ConversationRepository
+<<<<<<< HEAD
+<<<<<<< HEAD
+import com.example.localllm.domain.model.AppSettings
+=======
 import com.example.localllm.di.ApplicationScope
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
+=======
+import com.example.localllm.di.ApplicationScope
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
 import com.example.localllm.domain.model.Message
 import com.example.localllm.domain.model.MessageRole
 import com.example.localllm.domain.tools.ActionOrchestrator
@@ -13,6 +21,13 @@ import com.example.localllm.domain.tools.ToolCallClassifier
 import com.example.localllm.engine.*
 import com.example.localllm.data.repository.MlcModelRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+<<<<<<< HEAD
+<<<<<<< HEAD
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+=======
+=======
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -21,6 +36,10 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.yield
+<<<<<<< HEAD
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
+=======
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -61,16 +80,37 @@ class ChatViewModel @Inject constructor(
     private var generationJob: Job? = null
     private var currentSession: ModelSession? = null
     private var currentConversationId: Long? = null
+<<<<<<< HEAD
+<<<<<<< HEAD
+    private var currentSettings: AppSettings = AppSettings()
+
+    init {
+        viewModelScope.launch {
+            settingsDataStore.settings.collect { settings ->
+                currentSettings = settings
+                _uiState.update { it.copy(activeModelId = settings.activeModelId) }
+            }
+=======
     private var messagesCollectionJob: Job? = null
 
     init {
         viewModelScope.launch {
+=======
+    private var messagesCollectionJob: Job? = null
+
+    init {
+        viewModelScope.launch {
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
             settingsDataStore.settings
                 .map { it.activeModelId }
                 .distinctUntilChanged()
                 .collect { activeModelId ->
                     _uiState.update { it.copy(activeModelId = activeModelId) }
                 }
+<<<<<<< HEAD
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
+=======
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
         }
     }
 
@@ -122,6 +162,62 @@ class ChatViewModel @Inject constructor(
 
                 // ── Classify: tool call or LLM conversation? ──────────────────
                 when (val classification = classifier.classify(text)) {
+<<<<<<< HEAD
+
+                    is ClassificationResult.ToolCall -> {
+                        // Show ephemeral trace in the StreamingBubble.
+                        // yield() lets the UI frame update (and tests observe the state)
+                        // before the tool starts executing.
+                        _uiState.update { it.copy(streamingText = "⚙ جارٍ تنفيذ: ${classification.toolName}…") }
+                        _events.emit(ChatEvent.ScrollToBottom)
+                        yield()
+
+<<<<<<< HEAD
+                val session = currentSession ?: run {
+                    _events.emit(ChatEvent.ShowError("فشل تحميل جلسة النموذج"))
+                    _uiState.update { it.copy(isGenerating = false) }
+                    return@launch
+                }
+
+                // Build chat history for context
+                val history = _uiState.value.messages.map { msg ->
+                    ChatMessage(
+                        role = msg.role.name.lowercase(),
+                        content = msg.content
+                    )
+                }
+
+                val request = GenerationRequest(
+                    messages = history + ChatMessage("user", text),
+                    maxTokens = currentSettings.maxTokens,
+                    temperature = currentSettings.temperature,
+                    topP = currentSettings.topP
+                )
+
+                val startTime = System.currentTimeMillis()
+                var totalTokens = 0
+                val builder = StringBuilder()
+
+                session.generate(request).collect { response ->
+                    when (response) {
+                        is GenerationResponse.Token -> {
+                            builder.append(response.text)
+                            totalTokens++
+                            _uiState.update { it.copy(streamingText = builder.toString()) }
+                            _events.emit(ChatEvent.ScrollToBottom)
+=======
+                        val startTime = System.currentTimeMillis()
+                        val toolResult = orchestrator.execute(classification.toolName)
+                        val execTimeMs = System.currentTimeMillis() - startTime
+
+                        val content = if (toolResult.success) {
+                            toolResult.resultText
+                        } else {
+                            "⚠ ${toolResult.errorMessage ?: "حدث خطأ غير معروف"}"
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
+                        }
+
+=======
 
                     is ClassificationResult.ToolCall -> {
                         // Show ephemeral trace in the StreamingBubble.
@@ -141,6 +237,7 @@ class ChatViewModel @Inject constructor(
                             "⚠ ${toolResult.errorMessage ?: "حدث خطأ غير معروف"}"
                         }
 
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
                         conversationRepo.addMessage(
                             conversationId = convId,
                             role           = MessageRole.TOOL,
@@ -254,6 +351,22 @@ class ChatViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
+<<<<<<< HEAD
+<<<<<<< HEAD
+        // viewModelScope is cancelled in onCleared, so we use a bounded cleanup scope
+        // with a timeout to ensure native C++ models are safely unloaded.
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            try {
+                withTimeout(5_000L) {
+                    currentSession?.close()
+                    inferenceEngine.unloadModel()
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Cleanup failed during onCleared")
+            }
+=======
+=======
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
         generationJob?.cancel()
         messagesCollectionJob?.cancel()
         val sessionToClose = currentSession
@@ -263,6 +376,10 @@ class ChatViewModel @Inject constructor(
                 sessionToClose?.close()
                 inferenceEngine.unloadModel()
             } ?: Timber.w("Model unload timed out after 5s — native resources may leak")
+<<<<<<< HEAD
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
+=======
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
         }
     }
 }

@@ -1,5 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+<<<<<<< HEAD
+<<<<<<< HEAD
+    <string name="app_name">LocalLLM</string>
+
+    <!-- Navigation -->
+    <string name="nav_chat">Chat</string>
+    <string name="nav_models">Models</string>
+    <string name="nav_history">History</string>
+    <string name="nav_benchmark">Benchmark</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Chat -->
+    <string name="chat_new">New Chat</string>
+    <string name="chat_input_placeholder">Type your message…</string>
+    <string name="chat_send">Send</string>
+    <string name="chat_stop">Stop</string>
+    <string name="chat_no_model">No model selected</string>
+    <string name="chat_no_active_model">No active model</string>
+    <string name="chat_select_model_hint">Please select a model from settings or download a new one to start.</string>
+    <string name="chat_ready">LocalLLM Ready</string>
+    <string name="chat_local_processing">All processing runs locally on your device\nwith no internet connection</string>
+    <string name="chat_loading_model">Loading model…</string>
+    <string name="chat_assistant_typing">Assistant is typing…</string>
+    <string name="chat_model_connected">Model connected</string>
+    <string name="chat_no_model_connected">No model</string>
+    <string name="chat_session_failed">Failed to load model session</string>
+    <string name="chat_generation_error">An error occurred during generation</string>
+    <string name="chat_no_active_model_error">No active model. Please select a model from settings before starting a conversation.</string>
+
+    <!-- Models -->
+    <string name="models_title">Models</string>
+    <string name="models_installed_count">%d installed</string>
+    <string name="models_device_hint">Choose a model compatible with your device RAM</string>
+    <string name="models_active">Active</string>
+    <string name="models_activate">Activate</string>
+    <string name="models_download">Download</string>
+    <string name="models_downloading">Downloading…</string>
+    <string name="models_incompatible">Incompatible</string>
+    <string name="models_uninstall">Uninstall</string>
+    <string name="models_ram_insufficient">Insufficient RAM: %1$dMB available, %2$dMB required</string>
+    <string name="models_storage_insufficient">Insufficient storage: %1$dMB available, %2$dMB required</string>
+
+    <!-- History -->
+    <string name="history_title">Conversations</string>
+    <string name="history_count">%d conversations</string>
+    <string name="history_search">Search conversation titles…</string>
+    <string name="history_empty">No conversations yet</string>
+    <string name="history_start_new">Start a new conversation from the Chat tab</string>
+    <string name="history_delete_title">Delete Conversation</string>
+    <string name="history_delete_confirm">\"%s\" will be permanently deleted. This cannot be undone.</string>
+    <string name="history_message_count">%d messages</string>
+    <string name="history_today">Today</string>
+    <string name="history_yesterday">Yesterday</string>
+    <string name="history_this_week">This Week</string>
+    <string name="history_this_month">This Month</string>
+
+    <!-- Benchmark -->
+    <string name="benchmark_title">Benchmark</string>
+    <string name="benchmark_run">Run Benchmark</string>
+    <string name="benchmark_running">Running…</string>
+    <string name="benchmark_live">Live Results</string>
+    <string name="benchmark_history">Past Results</string>
+    <string name="benchmark_error">Benchmark error</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_subtitle">Customize model behavior</string>
+    <string name="settings_engine">Engine</string>
+    <string name="settings_inference">Inference</string>
+    <string name="settings_temperature_desc">Controls response creativity</string>
+    <string name="settings_topp_desc">Word suggestion range (Nucleus Sampling)</string>
+    <string name="settings_max_tokens_desc">Maximum response length</string>
+    <string name="settings_context_desc">Context window size (affects memory usage)</string>
+    <string name="settings_network">Network &amp; Download</string>
+    <string name="settings_wifi_only">Wi-Fi Only</string>
+    <string name="settings_wifi_desc">Download models via Wi-Fi to save data</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_dark_mode">Dark Mode</string>
+    <string name="settings_about">About</string>
+    <string name="settings_reset">Reset</string>
+    <string name="settings_reset_confirm">Reset all settings to defaults? This cannot be undone.</string>
+    <string name="settings_privacy">100%% Local</string>
+
+    <!-- Common -->
+    <string name="action_delete">Delete</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_ok">OK</string>
+    <string name="action_search">Search</string>
+    <string name="error_title">Error</string>
+=======
     <string name="app_name">نبض</string>
     <string name="accessibility_service_description">Local Gemma Agent Service</string>
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
+=======
+    <string name="app_name">نبض</string>
+    <string name="accessibility_service_description">Local Gemma Agent Service</string>
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
 </resources>
