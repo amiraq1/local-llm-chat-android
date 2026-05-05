@@ -14,6 +14,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+<<<<<<< HEAD
+<<<<<<< HEAD
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+=======
+=======
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -21,6 +29,10 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontFamily
+<<<<<<< HEAD
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
+=======
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -81,7 +93,15 @@ fun ChatScreen(
             if (uiState.messages.isEmpty() && uiState.streamingText.isEmpty() && !uiState.isModelLoading) {
                 ChatEmptyState(
                     activeModelId = uiState.activeModelId,
+<<<<<<< HEAD
+<<<<<<< HEAD
+                    onSuggestionClick = viewModel::onInputChanged
+=======
                     onSuggestionClick = viewModel::onSuggestionClicked
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
+=======
+                    onSuggestionClick = viewModel::onSuggestionClicked
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
                 )
             } else {
                 LazyColumn(
@@ -139,12 +159,23 @@ private fun ChatTopBar(uiState: ChatUiState, onNewChat: () -> Unit) {
                                 MaterialTheme.colorScheme.outline
                         )
                         .semantics {
+<<<<<<< HEAD
+<<<<<<< HEAD
+                            contentDescription = if (uiState.activeModelId.isNotEmpty())
+                                "نموذج متصل" else "لا يوجد نموذج"
+=======
+=======
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
                             contentDescription = "حالة النموذج"
                             stateDescription = if (uiState.activeModelId.isNotEmpty()) {
                                 "نموذج نشط"
                             } else {
                                 "لا يوجد نموذج نشط"
                             }
+<<<<<<< HEAD
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
+=======
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
                         }
                 )
                 Spacer(Modifier.width(8.dp))
@@ -206,7 +237,15 @@ private fun ChatTopBar(uiState: ChatUiState, onNewChat: () -> Unit) {
 // ─── Empty State ──────────────────────────────────────────────────────────────
 
 @Composable
+<<<<<<< HEAD
+<<<<<<< HEAD
+private fun ChatEmptyState(activeModelId: String, onSuggestionClick: (String) -> Unit = {}) {
+=======
 private fun ChatEmptyState(activeModelId: String, onSuggestionClick: (String) -> Unit) {
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
+=======
+private fun ChatEmptyState(activeModelId: String, onSuggestionClick: (String) -> Unit) {
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -274,16 +313,36 @@ private fun ChatEmptyState(activeModelId: String, onSuggestionClick: (String) ->
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+<<<<<<< HEAD
+<<<<<<< HEAD
+                SuggestionItem("اشرح لي AI") { onSuggestionClick(it) }
+                SuggestionItem("اكتب قصيدة") { onSuggestionClick(it) }
+=======
                 SuggestionItem("اشرح لي AI", onClick = onSuggestionClick)
                 SuggestionItem("اكتب قصيدة", onClick = onSuggestionClick)
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
+=======
+                SuggestionItem("اشرح لي AI", onClick = onSuggestionClick)
+                SuggestionItem("اكتب قصيدة", onClick = onSuggestionClick)
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
             }
         }
     }
 }
 
 @Composable
+<<<<<<< HEAD
+<<<<<<< HEAD
+private fun SuggestionItem(text: String, onClick: (String) -> Unit = {}) {
+    Surface(
+=======
 private fun SuggestionItem(text: String, onClick: (String) -> Unit) {
     SuggestionChip(
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
+=======
+private fun SuggestionItem(text: String, onClick: (String) -> Unit) {
+    SuggestionChip(
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
         onClick = { onClick(text) },
         shape = RoundedCornerShape(20.dp),
         colors = SuggestionChipDefaults.suggestionChipColors(
@@ -488,7 +547,9 @@ fun StreamingBubble(text: String) {
 @Composable
 private fun TypingIndicator() {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics { contentDescription = "المساعد يكتب..." },
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {

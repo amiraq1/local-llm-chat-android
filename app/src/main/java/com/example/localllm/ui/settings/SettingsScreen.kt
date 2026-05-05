@@ -113,6 +113,21 @@ fun SettingsScreen(
             }
 
             item {
+<<<<<<< HEAD
+<<<<<<< HEAD
+                SettingsGroup(title = "الاستدلال", icon = Icons.Outlined.Tune) {
+                    SliderRow(
+                        icon        = Icons.Outlined.Thermostat,
+                        label       = "Temperature",
+                        description = "يتحكم في إبداعية الردود",
+                        value       = settings.temperature,
+                        formatValue = { "%.2f".format(it) },
+                        valueRange  = 0f..2f,
+                        onValueCommit = viewModel::setTemperature
+                    )
+=======
+=======
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
                 InferenceSection(
                     settings = settings,
                     onTemperatureChange = viewModel::setTemperature,
@@ -121,6 +136,10 @@ fun SettingsScreen(
                     onContextLengthChange = { viewModel.setContextLength(it.roundToInt()) }
                 )
             }
+<<<<<<< HEAD
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
+=======
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
 
             item {
                 NetworkSection(
@@ -129,11 +148,54 @@ fun SettingsScreen(
                 )
             }
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+                    SliderRow(
+                        icon        = Icons.Outlined.FilterList,
+                        label       = "Top-P",
+                        description = "نطاق الكلمات المقترحة (Nucleus Sampling)",
+                        value       = settings.topP,
+                        formatValue = { "%.2f".format(it) },
+                        valueRange  = 0.1f..1f,
+                        onValueCommit = viewModel::setTopP
+                    )
+
+                    SettingsDivider()
+
+                    SliderRow(
+                        icon        = Icons.Outlined.Article,
+                        label       = "Max Tokens",
+                        description = "الحد الأقصى لطول الرد",
+                        value       = settings.maxTokens.toFloat(),
+                        formatValue = { it.toInt().toString() },
+                        valueRange  = 64f..2048f,
+                        steps       = 30,
+                        onValueCommit = { viewModel.setMaxTokens(it.roundToInt()) }
+                    )
+
+                    SettingsDivider()
+
+                    SliderRow(
+                        icon        = Icons.Outlined.Forum,
+                        label       = "Context Length",
+                        description = "حجم نافذة السياق (تأثير على استهلاك الذاكرة)",
+                        value       = settings.contextLength.toFloat(),
+                        formatValue = { it.toInt().toString() },
+                        valueRange  = 512f..8192f,
+                        steps       = 14,
+                        onValueCommit = { viewModel.setContextLength(it.roundToInt()) }
+=======
+=======
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
             if (uiState.sensitiveToolConsents.isNotEmpty()) {
                 item {
                     PrivacySection(
                         consents = uiState.sensitiveToolConsents,
                         onConsentChanged = viewModel::setSensitiveToolEnabled
+<<<<<<< HEAD
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
+=======
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
                     )
                 }
             }
@@ -482,11 +544,12 @@ private fun SliderRow(
     label: String,
     description: String,
     value: Float,
-    displayValue: String,
     valueRange: ClosedFloatingPointRange<Float>,
     steps: Int = 0,
-    onValueChange: (Float) -> Unit
+    formatValue: (Float) -> String = { "%.2f".format(it) },
+    onValueCommit: (Float) -> Unit
 ) {
+    var sliderPosition by remember(value) { mutableFloatStateOf(value) }
     Column(modifier = Modifier.padding(vertical = 12.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -516,7 +579,15 @@ private fun SliderRow(
                 color = MaterialTheme.colorScheme.primaryContainer
             ) {
                 Text(
+<<<<<<< HEAD
+<<<<<<< HEAD
+                    formatValue(sliderPosition),
+=======
                     text = displayValue,
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
+=======
+                    text = displayValue,
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -526,8 +597,9 @@ private fun SliderRow(
         }
 
         Slider(
-            value = value,
-            onValueChange = onValueChange,
+            value = sliderPosition,
+            onValueChange = { sliderPosition = it },
+            onValueChangeFinished = { onValueCommit(sliderPosition) },
             valueRange = valueRange,
             steps = steps,
             modifier = Modifier

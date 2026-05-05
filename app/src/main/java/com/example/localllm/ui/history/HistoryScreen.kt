@@ -289,17 +289,27 @@ private fun ConversationItem(
                 )
                 IconButton(
                     onClick = { showDeleteDialog = true },
+<<<<<<< HEAD
+<<<<<<< HEAD
+                    modifier = Modifier.size(44.dp)
+=======
+=======
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
                     modifier = Modifier
                         .size(28.dp)
                         .semantics {
                             contentDescription = "حذف المحادثة ${conversation.title}"
                         }
+<<<<<<< HEAD
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
+=======
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
                 ) {
                     Icon(
                         Icons.Outlined.DeleteOutline,
-                        null,
+                        contentDescription = "حذف المحادثة",
                         tint = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }

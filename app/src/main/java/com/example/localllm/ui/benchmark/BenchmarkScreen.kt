@@ -23,6 +23,8 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -349,7 +351,12 @@ private fun TpsArc(tps: Double, modifier: Modifier = Modifier) {
         label = "arcFraction"
     )
 
-    Box(modifier, contentAlignment = Alignment.Center) {
+    Box(
+        modifier.semantics {
+            contentDescription = "${"%,.1f".format(tps)} توكن في الثانية"
+        },
+        contentAlignment = Alignment.Center
+    ) {
         Canvas(Modifier.fillMaxSize()) {
             val stroke = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round)
             val inset = 5.dp.toPx()

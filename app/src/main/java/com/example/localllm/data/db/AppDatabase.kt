@@ -28,10 +28,20 @@ import com.example.localllm.data.db.entity.*
         BenchmarkResultEntity::class
     ],
     version = 1,
+<<<<<<< HEAD
+<<<<<<< HEAD
+    exportSchema = false
+=======
+=======
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
     exportSchema = true,
     autoMigrations = [
         // Add @AutoMigration(from = N, to = N+1) entries here for additive schema bumps.
     ]
+<<<<<<< HEAD
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
+=======
+>>>>>>> 050ce6414e57d683a82e894e3da65e4ca8aa1ae5
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun conversationDao(): ConversationDao
